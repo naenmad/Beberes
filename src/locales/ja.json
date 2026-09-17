@@ -34,6 +34,8 @@
   "nav": {
     "dashboard": "ダッシュボード",
     "quickReview": "クイック確認",
+    "largeDuplicates": "大容量・重複ファイル",
+    "trashManager": "ゴミ箱の管理",
     "tidyUp": "ファイル整理",
     "apps": "アプリケーション",
     "systemClean": "システムクリーン",
@@ -60,6 +62,8 @@
     "tidyUpDownloads": "ダウンロードの整理",
     "tidyUpDesc": "散らかったファイルをカテゴリ別フォルダへ自動整理します",
     "quickReviewDesc": "キーボードショートカットでファイルを1つずつ素早く確認・仕分け",
+    "largeDuplicatesDesc": "100MB以上の大容量ファイルや重複した複製、長期間放置されたファイルを検出",
+    "trashManagerDesc": "macOSのゴミ箱内の項目を確認し、安全に空にします",
     "appUninstaller": "アンインストーラー",
     "appUninstallerDesc": "アプリ本体とライブラリ内の隠れた残存ファイルを完全削除",
     "historyModalTitle": "クリーンアップ履歴",
@@ -331,5 +335,54 @@
     "noFilesFoundTitle": "対象ファイルが見つかりません",
     "noFilesFoundDesc": "現在の条件に一致するファイルはこのディレクトリにありません。",
     "chooseFolder": "別のフォルダを選択"
+  },
+  "topBar": {
+    "diskTooltip": "クリックしてダッシュボードで詳細を確認",
+    "searchPlaceholder": "アプリ、ファイル、操作を検索... (⌘K)"
+  },
+  "spotlight": {
+    "placeholder": "コマンド、アプリ、または画面名を入力...",
+    "noResults": "一致するコマンドや項目は見つかりませんでした。",
+    "navigate": "移動",
+    "select": "選択",
+    "close": "閉じる"
+  },
+  "largeDuplicates": {
+    "title": "大容量・重複ファイル",
+    "subtitle": "巨大ファイル、重複コピー、長期間放置された不要ファイルを一掃してギガバイト単位で容量を解放します。",
+    "tabLarge": "大容量ファイル",
+    "tabDuplicates": "重複ファイル",
+    "tabOld": "長期未アクセス (>6ヶ月)",
+    "threshold": "最小サイズ",
+    "keepNewest": "最新を残す",
+    "keepOldest": "最古を残す",
+    "noLargeFiles": "大容量ファイルはありません",
+    "noLargeFilesDesc": "指定したサイズ以上のファイルは見つかりませんでした。",
+    "noDuplicates": "重複ファイルはありません",
+    "noDuplicatesDesc": "スキャン対象のフォルダ内に重複ファイルは存在しません。",
+    "noOldFiles": "長期未アクセスのファイルはありません",
+    "noOldFilesDesc": "6ヶ月以上更新のないファイルは見つかりませんでした。",
+    "group": "重複グループ #{index}",
+    "copies": "個の複製",
+    "wastedSpace": "浪費容量: {size}",
+    "modified": "更新日時",
+    "original": "オリジナル",
+    "daysAgo": "日間未操作"
+  },
+  "trashManager": {
+    "title": "ゴミ箱の管理",
+    "subtitle": "macOSゴミ箱の内容を確認し、個別の完全消去または安全な一括消去を実行します。",
+    "emptyAll": "ゴミ箱を空にする",
+    "trashSize": "ゴミ箱の容量",
+    "totalItems": "項目数",
+    "status": "状態",
+    "clean": "空・クリーン",
+    "readyToReclaim": "解放可能",
+    "deleteSelected": "選択項目を完全消去",
+    "emptyTitle": "ゴミ箱は完全に空です！",
+    "emptyDesc": "現在ゴミ箱に残っているファイルやフォルダはありません。",
+    "emptyConfirmTitle": "macOSのゴミ箱を完全に空にしますか？",
+    "deleteSelectedTitle": "選択した項目を完全消去しますか？",
+    "date": "削除日"
   }
 }

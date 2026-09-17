@@ -15,6 +15,8 @@ import {
   AppWindow,
   Globe,
   Eye,
+  Layers,
+  Trash2,
 } from 'lucide-react';
 import { formatSize, percentage } from '../../lib/utils';
 import { useTranslation } from '../../lib/i18n';
@@ -23,6 +25,8 @@ import { supportedLanguages } from '../../locales';
 const navDefinitions: { id: ViewPage; labelKey: string; icon: React.ReactNode }[] = [
   { id: 'dashboard', labelKey: 'nav.dashboard', icon: <LayoutDashboard size={16} /> },
   { id: 'quick-review', labelKey: 'nav.quickReview', icon: <Eye size={16} /> },
+  { id: 'large-duplicates', labelKey: 'nav.largeDuplicates', icon: <Layers size={16} /> },
+  { id: 'trash-manager', labelKey: 'nav.trashManager', icon: <Trash2 size={16} /> },
   { id: 'tidy-up', labelKey: 'nav.tidyUp', icon: <FolderTree size={16} /> },
   { id: 'apps', labelKey: 'nav.apps', icon: <AppWindow size={16} /> },
   { id: 'system-clean', labelKey: 'nav.systemClean', icon: <Sparkles size={16} /> },

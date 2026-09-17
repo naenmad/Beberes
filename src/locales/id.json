@@ -34,6 +34,8 @@
   "nav": {
     "dashboard": "Dasbor",
     "quickReview": "Tinjau Cepat",
+    "largeDuplicates": "File Besar & Duplikat",
+    "trashManager": "Kelola Tong Sampah",
     "tidyUp": "Rapikan File",
     "apps": "Aplikasi",
     "systemClean": "Bersih Sistem",
@@ -58,8 +60,9 @@
     "systemCaches": "Cache Sistem",
     "developerWorkspaces": "Ruang Kerja Pengembang",
     "tidyUpDownloads": "Rapikan Unduhan & Berkas",
-    "tidyUpDesc": "Kelompokkan berkas acak ke dalam folder kategori rapi",
     "quickReviewDesc": "Pilah dan tinjau berkas satu per satu dengan pintasan keyboard cepat",
+    "largeDuplicatesDesc": "Temukan berkas >100MB, salinan duplikat, dan berkas usang berbulan-bulan",
+    "trashManagerDesc": "Inspeksi item di Tong Sampah macOS dan kosongkan secara aman",
     "appUninstaller": "Pencopot Aplikasi",
     "appUninstallerDesc": "Hapus aplikasi tuntas beserta berkas sisa dan cachenya",
     "historyModalTitle": "Log Riwayat Pembersihan",
@@ -331,6 +334,55 @@
     "noFilesFoundTitle": "Tidak ada berkas yang ditemukan",
     "noFilesFoundDesc": "Folder ini tidak memiliki berkas lepasan yang sesuai dengan filter saat ini.",
     "chooseFolder": "Pilih Folder Lain"
+  },
+  "topBar": {
+    "diskTooltip": "Klik untuk melihat rincian penyimpanan di Dasbor",
+    "searchPlaceholder": "Cari aplikasi, file, aksi... (⌘K)"
+  },
+  "spotlight": {
+    "placeholder": "Ketik perintah, aplikasi, atau halaman...",
+    "noResults": "Tidak ada perintah atau item yang sesuai pencarian.",
+    "navigate": "Navigasi",
+    "select": "Pilih",
+    "close": "Tutup"
+  },
+  "largeDuplicates": {
+    "title": "File Besar & Duplikat",
+    "subtitle": "Bebaskan puluhan gigabyte dengan memburu file jumbo, salinan duplikat, dan file usang.",
+    "tabLarge": "File Besar",
+    "tabDuplicates": "File Duplikat",
+    "tabOld": "File Usang (>6 Bln)",
+    "threshold": "Ukuran Min",
+    "keepNewest": "Simpan Yang Terbaru",
+    "keepOldest": "Simpan Yang Terlama",
+    "noLargeFiles": "Tidak ada file besar",
+    "noLargeFilesDesc": "Tidak ada file lepasan yang melebihi batas ukuran terpilih.",
+    "noDuplicates": "Tidak ada file duplikat",
+    "noDuplicatesDesc": "Folder yang diperiksa tidak memiliki file salinan kembar.",
+    "noOldFiles": "Tidak ada file usang",
+    "noOldFilesDesc": "Tidak ada file yang lebih tua dari 6 bulan tanpa pernah disentuh.",
+    "group": "Grup Duplikat #{index}",
+    "copies": "salinan",
+    "wastedSpace": "Terbuang: {size}",
+    "modified": "Dimodifikasi",
+    "original": "Asli",
+    "daysAgo": "hari tidak disentuh"
+  },
+  "trashManager": {
+    "title": "Kelola Tong Sampah",
+    "subtitle": "Inspeksi item di Tong Sampah macOS Anda, bebaskan ruang, atau kosongkan dengan aman.",
+    "emptyAll": "Kosongkan Tong Sampah",
+    "trashSize": "Ukuran Tong Sampah",
+    "totalItems": "Total Item",
+    "status": "Status",
+    "clean": "Bersih & Kosong",
+    "readyToReclaim": "Siap Dibebaskan",
+    "deleteSelected": "Hapus Permanen",
+    "emptyTitle": "Tong Sampah macOS Anda benar-benar kosong!",
+    "emptyDesc": "Tidak ada file atau folder yang tertinggal di dalam Tong Sampah.",
+    "emptyConfirmTitle": "Kosongkan Tong Sampah macOS?",
+    "deleteSelectedTitle": "Hapus Permanen Item Terpilih?",
+    "date": "Tanggal Dihapus"
   }
 }
 

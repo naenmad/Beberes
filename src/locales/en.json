@@ -34,6 +34,8 @@
   "nav": {
     "dashboard": "Dashboard",
     "quickReview": "Quick Review",
+    "largeDuplicates": "Large & Duplicates",
+    "trashManager": "Trash Manager",
     "tidyUp": "Tidy Up",
     "apps": "Applications",
     "systemClean": "System Clean",
@@ -58,6 +60,8 @@
     "systemCaches": "System Caches",
     "developerWorkspaces": "Developer Workspaces",
     "quickReviewDesc": "Review and clean files one by one with fast keyboard shortcuts",
+    "largeDuplicatesDesc": "Find files over 100MB, duplicate copies, and files untouched for months",
+    "trashManagerDesc": "Inspect items sitting in macOS Trash and empty them safely",
     "tidyUpDownloads": "Tidy Up Downloads",
     "tidyUpDesc": "Organize unorganized loose files into neat categorized folders",
     "appUninstaller": "App Uninstaller",
@@ -331,6 +335,55 @@
     "noFilesFoundTitle": "No loose files found",
     "noFilesFoundDesc": "This directory has no individual files matching the current filter.",
     "chooseFolder": "Choose Another Folder"
+  },
+  "topBar": {
+    "diskTooltip": "Click to view storage details in Dashboard",
+    "searchPlaceholder": "Search apps, files, actions..."
+  },
+  "spotlight": {
+    "placeholder": "Type a command, app, or page...",
+    "noResults": "No commands or items matching your search.",
+    "navigate": "Navigate",
+    "select": "Select",
+    "close": "Close"
+  },
+  "largeDuplicates": {
+    "title": "Large & Duplicate Files",
+    "subtitle": "Reclaim gigabytes by hunting down massive files, duplicate copies, and forgotten items.",
+    "tabLarge": "Large Files",
+    "tabDuplicates": "Duplicates",
+    "tabOld": "Old Files (>6 Mos)",
+    "threshold": "Min Size",
+    "keepNewest": "Keep Newest",
+    "keepOldest": "Keep Oldest",
+    "noLargeFiles": "No large files found",
+    "noLargeFilesDesc": "No loose files exceed the selected threshold.",
+    "noDuplicates": "No duplicate files found",
+    "noDuplicatesDesc": "Your examined directories have no duplicate files.",
+    "noOldFiles": "No old files found",
+    "noOldFilesDesc": "No files older than 6 months were detected in user folders.",
+    "group": "Duplicate Group #{index}",
+    "copies": "copies",
+    "wastedSpace": "Wasted: {size}",
+    "modified": "Modified",
+    "original": "Original",
+    "daysAgo": "days untouched"
+  },
+  "trashManager": {
+    "title": "Trash Manager",
+    "subtitle": "Inspect your macOS Trash bin, reclaim storage, or safely empty all contents.",
+    "emptyAll": "Empty Trash",
+    "trashSize": "Trash Size",
+    "totalItems": "Total Items",
+    "status": "Status",
+    "clean": "Clean & Empty",
+    "readyToReclaim": "Ready to Reclaim",
+    "deleteSelected": "Delete Permanently",
+    "emptyTitle": "macOS Trash is completely empty!",
+    "emptyDesc": "No items are currently lingering in your Trash folder.",
+    "emptyConfirmTitle": "Empty macOS Trash?",
+    "deleteSelectedTitle": "Delete Selected Items?",
+    "date": "Date Deleted"
   }
 }
 

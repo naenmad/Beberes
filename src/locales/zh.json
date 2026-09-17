@@ -34,6 +34,8 @@
   "nav": {
     "dashboard": "仪表盘",
     "quickReview": "快速审查",
+    "largeDuplicates": "大文件与重复项",
+    "trashManager": "废纸篓管理",
     "tidyUp": "文件整理",
     "apps": "应用程序",
     "systemClean": "系统清理",
@@ -60,6 +62,8 @@
     "tidyUpDownloads": "整理下载目录",
     "tidyUpDesc": "将杂乱分散的文件自动分类归档到对应文件夹",
     "quickReviewDesc": "使用快捷键逐个快速预览并清理文件或下载项",
+    "largeDuplicatesDesc": "查找超过 100MB 的大文件、重复副本以及数月未动的文件",
+    "trashManagerDesc": "查看 macOS 废纸篓中的项目并安全清倒",
     "appUninstaller": "应用卸载器",
     "appUninstallerDesc": "彻底移除应用及其隐藏在资源库中的残余缓存",
     "historyModalTitle": "清理历史记录",
@@ -332,5 +336,54 @@
     "noFilesFoundTitle": "未找到符合条件的文件",
     "noFilesFoundDesc": "该文件夹中没有符合当前筛选条件的散乱文件。",
     "chooseFolder": "选择其他文件夹"
+  },
+  "topBar": {
+    "diskTooltip": "点击在仪表盘中查看存储详情",
+    "searchPlaceholder": "搜索应用、文件、操作... (⌘K)"
+  },
+  "spotlight": {
+    "placeholder": "输入命令、应用或页面名称...",
+    "noResults": "未找到匹配的命令或项目。",
+    "navigate": "移动",
+    "select": "选择",
+    "close": "关闭"
+  },
+  "largeDuplicates": {
+    "title": "大文件与重复项",
+    "subtitle": "精准排查超大文件、重复克隆与长期闲置文件，瞬间释放数以千兆字节空间。",
+    "tabLarge": "大文件",
+    "tabDuplicates": "重复文件",
+    "tabOld": "长期闲置 (>6个月)",
+    "threshold": "最小体积",
+    "keepNewest": "保留最新",
+    "keepOldest": "保留最旧",
+    "noLargeFiles": "未发现大文件",
+    "noLargeFilesDesc": "没有超出当前体积阈值的散乱文件。",
+    "noDuplicates": "未发现重复文件",
+    "noDuplicatesDesc": "扫描的文件夹中不存在完全重复的副本。",
+    "noOldFiles": "未发现闲置文件",
+    "noOldFilesDesc": "没有发现超过 6 个月未曾修改的文件。",
+    "group": "重复项分组 #{index}",
+    "copies": "份副本",
+    "wastedSpace": "浪费空间: {size}",
+    "modified": "修改日期",
+    "original": "原件",
+    "daysAgo": "天未变动"
+  },
+  "trashManager": {
+    "title": "废纸篓管理",
+    "subtitle": "检查 macOS 废纸篓详情，按需删除指定项或一键安全清空。",
+    "emptyAll": "清空废纸篓",
+    "trashSize": "废纸篓占用",
+    "totalItems": "项目总数",
+    "status": "状态",
+    "clean": "洁净清空",
+    "readyToReclaim": "可立即释放",
+    "deleteSelected": "永久删除选中项",
+    "emptyTitle": "macOS 废纸篓当前空空如也！",
+    "emptyDesc": "废纸篓中没有任何残留文件或文件夹。",
+    "emptyConfirmTitle": "确定彻底清倒 macOS 废纸篓？",
+    "deleteSelectedTitle": "永久删除选中的项目？",
+    "date": "删除日期"
   }
 }

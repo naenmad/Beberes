@@ -24,6 +24,8 @@ import {
   FolderTree,
   Zap,
   Eye,
+  Layers,
+  Trash2,
 } from 'lucide-react';
 
 export default function Dashboard() {
@@ -254,6 +256,56 @@ export default function Dashboard() {
               </div>
               <p className="mt-4 text-xs text-slate-500 dark:text-neutral-400">
                 {t('dashboard.quickReviewDesc', 'Review and clean files one by one with fast keyboard shortcuts')}
+              </p>
+            </CardBody>
+          </Card>
+
+          {/* Large & Duplicate Files Card */}
+          <Card hoverable onClick={() => setCurrentPage('large-duplicates')}>
+            <CardBody>
+              <div className="flex items-start justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-2.5 rounded-xl bg-violet-50 dark:bg-violet-500/10 text-violet-600 dark:text-violet-400">
+                    <Layers size={20} />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                      {t('nav.largeDuplicates', 'Large & Duplicates')}
+                    </h3>
+                    <p className="text-xs text-slate-400 dark:text-neutral-500 mt-0.5">
+                      Hunt Big & Cloned Files
+                    </p>
+                  </div>
+                </div>
+                <ArrowRight size={16} className="text-slate-300 dark:text-neutral-600 mt-1" />
+              </div>
+              <p className="mt-4 text-xs text-slate-500 dark:text-neutral-400">
+                {t('dashboard.largeDuplicatesDesc', 'Find files over 100MB, duplicate copies, and files untouched for months')}
+              </p>
+            </CardBody>
+          </Card>
+
+          {/* macOS Trash Manager Card */}
+          <Card hoverable onClick={() => setCurrentPage('trash-manager')}>
+            <CardBody>
+              <div className="flex items-start justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-2.5 rounded-xl bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400">
+                    <Trash2 size={20} />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                      {t('nav.trashManager', 'Trash Manager')}
+                    </h3>
+                    <p className="text-xs text-slate-400 dark:text-neutral-500 mt-0.5">
+                      macOS Bin Inspector
+                    </p>
+                  </div>
+                </div>
+                <ArrowRight size={16} className="text-slate-300 dark:text-neutral-600 mt-1" />
+              </div>
+              <p className="mt-4 text-xs text-slate-500 dark:text-neutral-400">
+                {t('dashboard.trashManagerDesc', 'Inspect items sitting in macOS Trash and empty them safely')}
               </p>
             </CardBody>
           </Card>

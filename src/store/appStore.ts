@@ -39,6 +39,8 @@ export interface CleanHistoryEntry {
 export type ViewPage =
   | 'dashboard'
   | 'quick-review'
+  | 'large-duplicates'
+  | 'trash-manager'
   | 'tidy-up'
   | 'apps'
   | 'system-clean'
@@ -121,6 +123,12 @@ interface AppState {
   currentPage: ViewPage;
   setCurrentPage: (page: ViewPage) => void;
 
+  // Spotlight Command Palette
+  isSpotlightOpen: boolean;
+  openSpotlight: () => void;
+  closeSpotlight: () => void;
+  toggleSpotlight: () => void;
+
   // Theme
   isDarkMode: boolean;
   toggleDarkMode: () => void;
@@ -191,6 +199,12 @@ export const useAppStore = create<AppState>((set, get) => ({
   // Navigation
   currentPage: 'dashboard',
   setCurrentPage: (page) => set({ currentPage: page }),
+
+  // Spotlight Command Palette
+  isSpotlightOpen: false,
+  openSpotlight: () => set({ isSpotlightOpen: true }),
+  closeSpotlight: () => set({ isSpotlightOpen: false }),
+  toggleSpotlight: () => set((state) => ({ isSpotlightOpen: !state.isSpotlightOpen })),
 
   // Theme
   isDarkMode: (() => {

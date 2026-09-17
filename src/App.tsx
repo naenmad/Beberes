@@ -7,6 +7,8 @@ import DevWorkspace from './views/DevWorkspace';
 import TidyUp from './views/TidyUp';
 import AppUninstaller from './views/AppUninstaller';
 import QuickReview from './views/QuickReview';
+import LargeAndDuplicates from './views/LargeAndDuplicates';
+import TrashManager from './views/TrashManager';
 import Settings from './views/Settings';
 
 // Beberes macOS Modern Clean Architecture
@@ -34,6 +36,10 @@ export default function App() {
         return <Dashboard />;
       case 'quick-review':
         return <QuickReview />;
+      case 'large-duplicates':
+        return <LargeAndDuplicates />;
+      case 'trash-manager':
+        return <TrashManager />;
       case 'tidy-up':
         return <TidyUp />;
       case 'apps':

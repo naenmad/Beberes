@@ -262,3 +262,81 @@ export async function renameFile(oldPath: string, newName: string): Promise<stri
   return await invoke<string>('rename_file', { oldPath, newName });
 }
 
+export interface FileMetadataItem {
+  id: string;
+  name: string;
+  path: string;
+  size: number;
+  extension: string;
+  kind: string;
+  last_modified: string;
+  days_old: number;
+}
+
+export interface DuplicateGroup {
+  id: string;
+  file_size: number;
+  total_wasted_size: number;
+  items: FileMetadataItem[];
+}
+
+export interface FinderScanResult {
+  large_files: FileMetadataItem[];
+  duplicate_groups: DuplicateGroup[];
+  old_files: FileMetadataItem[];
+  total_large_size: number;
+  total_duplicate_wasted_size: number;
+  total_old_size: number;
+}
+
+/**
+ * Scan for large files, duplicate groups, and old untouched files.
+ */
+export async function scanFinderItems(
+  minLargeSizeMb?: number,
+  scanFolders?: string[]
+): Promise<FinderScanResult> {
+  return await invoke<FinderScanResult>('scan_finder_items', {
+    minLargeSizeMb,
+    scanFolders,
+  });
+}
+
+export interface TrashItem {
+  id: string;
+  name: string;
+  path: string;
+  size: number;
+  kind: string;
+  is_dir: boolean;
+  date_deleted: string;
+}
+
+export interface TrashScanResult {
+  total_items: number;
+  total_size: number;
+  items: TrashItem[];
+  category_sizes: Record<string, number>;
+}
+
+/**
+ * Scan items in macOS Trash folder (~/.Trash).
+ */
+export async function scanTrashContents(): Promise<TrashScanResult> {
+  return await invoke<TrashScanResult>('scan_trash_contents');
+}
+
+/**
+ * Safely empty macOS Trash.
+ */
+export async function emptyMacTrash(): Promise<number> {
+  return await invoke<number>('empty_mac_trash');
+}
+
+/**
+ * Permanently delete specific items in Trash.
+ */
+export async function deleteSpecificTrashItems(paths: string[]): Promise<number> {
+  return await invoke<number>('delete_specific_trash_items', { paths });
+}
+

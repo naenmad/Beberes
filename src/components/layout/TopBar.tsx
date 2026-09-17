@@ -1,0 +1,207 @@
+import { useState, useRef, useEffect } from 'react';
+import { useAppStore } from '../../store/appStore';
+import { useTranslation } from '../../lib/i18n';
+import { supportedLanguages } from '../../locales';
+import { formatSize } from '../../lib/utils';
+import {
+  Search,
+  Command,
+  Trash2,
+  Sun,
+  Moon,
+  Globe,
+  HardDrive,
+  Sparkles,
+  ChevronDown,
+} from 'lucide-react';
+
+export default function TopBar() {
+  const { t } = useTranslation();
+  const {
+    currentPage,
+    diskInfo,
+    deleteToTrash,
+    toggleDeleteToTrash,
+    isDarkMode,
+    toggleDarkMode,
+    language,
+    setLanguage,
+    openSpotlight,
+    setCurrentPage,
+  } = useAppStore();
+
+  const [showLangMenu, setShowLangMenu] = useState(false);
+  const langMenuRef = useRef<HTMLDivElement>(null);
+
+  // Close lang menu on outside click
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (langMenuRef.current && !langMenuRef.current.contains(e.target as Node)) {
+        setShowLangMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const getPageTitle = () => {
+    switch (currentPage) {
+      case 'dashboard':
+        return t('nav.dashboard');
+      case 'quick-review':
+        return t('nav.quickReview');
+      case 'large-duplicates':
+        return t('nav.largeDuplicates', 'Large & Duplicates');
+      case 'trash-manager':
+        return t('nav.trashManager', 'Trash Manager');
+      case 'tidy-up':
+        return t('nav.tidyUp');
+      case 'apps':
+        return t('nav.apps');
+      case 'system-clean':
+        return t('nav.systemClean');
+      case 'dev-workspace':
+        return t('nav.devWorkspace');
+      case 'settings':
+        return t('nav.settings');
+      default:
+        return t('common.appName');
+    }
+  };
+
+  const freeSpaceFormatted = diskInfo ? formatSize(diskInfo.freeSpace) : null;
+
+  return (
+    <header
+      data-tauri-drag-region
+      className="h-12 shrink-0 border-b border-black/[0.04] dark:border-white/[0.06] bg-white/40 dark:bg-black/40 backdrop-blur-xl px-4 sm:px-6 flex items-center justify-between gap-3 select-none z-20"
+    >
+      {/* Left side: Page Title & Disk Info */}
+      <div data-tauri-drag-region className="flex items-center gap-2.5 shrink-0 min-w-0">
+        <h2 className="text-xs sm:text-sm font-semibold text-slate-800 dark:text-neutral-200 tracking-tight truncate">
+          {getPageTitle()}
+        </h2>
+
+        {freeSpaceFormatted && (
+          <button
+            type="button"
+            onClick={() => setCurrentPage('dashboard')}
+            title={t('topBar.diskTooltip', 'Click to view storage details in Dashboard')}
+            className="hidden md:flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-medium bg-black/[0.04] dark:bg-white/[0.06] text-slate-600 dark:text-neutral-400 hover:text-blue-500 dark:hover:text-blue-400 transition-colors cursor-pointer"
+          >
+            <HardDrive size={11} className="text-blue-500 shrink-0" />
+            <span>
+              {freeSpaceFormatted} {t('nav.free')}
+            </span>
+          </button>
+        )}
+      </div>
+
+      {/* Center: Universal Spotlight Search Pill */}
+      <div className="flex-1 max-w-md mx-auto px-2">
+        <button
+          type="button"
+          onClick={openSpotlight}
+          className="w-full flex items-center justify-between gap-2 px-3 py-1.5 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] border border-black/[0.06] dark:border-white/[0.08] hover:bg-white/80 dark:hover:bg-neutral-800/80 hover:border-blue-500/40 dark:hover:border-blue-500/40 text-slate-400 dark:text-neutral-500 hover:text-slate-700 dark:hover:text-neutral-200 transition-all cursor-pointer shadow-2xs group"
+        >
+          <div className="flex items-center gap-2 truncate">
+            <Search
+              size={13}
+              className="text-slate-400 group-hover:text-blue-500 transition-colors shrink-0"
+            />
+            <span className="text-xs truncate font-normal">
+              {t('topBar.searchPlaceholder', 'Search apps, files, actions...')}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-md bg-black/[0.06] dark:bg-white/[0.08] text-[10px] font-mono text-slate-500 dark:text-neutral-400 shrink-0 shadow-2xs">
+            <Command size={10} />
+            <span>K</span>
+          </div>
+        </button>
+      </div>
+
+      {/* Right side: Quick Action Controls */}
+      <div data-tauri-drag-region className="flex items-center gap-1.5 shrink-0">
+        {/* Deletion Mode Toggle */}
+        <button
+          type="button"
+          onClick={toggleDeleteToTrash}
+          title={
+            deleteToTrash
+              ? t('settings.trashModeTitle') + ' (Click to change)'
+              : t('settings.directDeleteTitle') + ' (Click to change)'
+          }
+          className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-black/[0.03] dark:bg-white/[0.05] hover:bg-black/[0.06] dark:hover:bg-white/[0.1] text-slate-700 dark:text-neutral-300 transition-colors cursor-pointer"
+        >
+          <Trash2 size={12} className={deleteToTrash ? 'text-blue-500' : 'text-rose-500'} />
+          <span className="hidden lg:inline text-[11px]">
+            {deleteToTrash ? t('common.trashMode') : t('common.directDelete')}
+          </span>
+        </button>
+
+        {/* Quick Clean Trigger */}
+        <button
+          type="button"
+          onClick={() => setCurrentPage('system-clean')}
+          title={t('dashboard.smartClean')}
+          className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium bg-blue-500/10 text-blue-600 dark:text-blue-400 hover:bg-blue-500/20 transition-colors cursor-pointer"
+        >
+          <Sparkles size={12} />
+          <span className="hidden xl:inline text-[11px] font-semibold">
+            {t('dashboard.smartClean')}
+          </span>
+        </button>
+
+        {/* Language Switcher Dropdown */}
+        <div className="relative" ref={langMenuRef}>
+          <button
+            type="button"
+            onClick={() => setShowLangMenu(!showLangMenu)}
+            className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium text-slate-600 dark:text-neutral-300 hover:bg-black/[0.05] dark:hover:bg-white/[0.08] transition-colors cursor-pointer"
+            title={t('settings.language')}
+          >
+            <Globe size={12} />
+            <span className="text-[11px] uppercase font-mono">{language}</span>
+            <ChevronDown size={10} className="text-slate-400" />
+          </button>
+
+          {showLangMenu && (
+            <div className="absolute right-0 mt-1 w-36 rounded-xl glass-panel py-1 shadow-xl z-50 border border-black/10 dark:border-white/10 animate-fade-in">
+              {supportedLanguages.map((lang) => (
+                <button
+                  key={lang.code}
+                  type="button"
+                  onClick={() => {
+                    setLanguage(lang.code);
+                    setShowLangMenu(false);
+                  }}
+                  className={`w-full flex items-center justify-between px-3 py-1.5 text-xs text-left cursor-pointer transition-colors ${
+                    language === lang.code
+                      ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400 font-semibold'
+                      : 'text-slate-700 dark:text-neutral-200 hover:bg-black/[0.04] dark:hover:bg-white/[0.06]'
+                  }`}
+                >
+                  <span>{lang.name}</span>
+                  <span className="text-[10px] font-mono text-slate-400 uppercase">
+                    {lang.code}
+                  </span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Dark / Light Mode Toggle */}
+        <button
+          type="button"
+          onClick={toggleDarkMode}
+          title={isDarkMode ? t('settings.lightMode') : t('settings.darkMode')}
+          className="p-1.5 rounded-lg text-slate-600 dark:text-neutral-300 hover:bg-black/[0.05] dark:hover:bg-white/[0.08] transition-colors cursor-pointer"
+        >
+          {isDarkMode ? <Sun size={13} /> : <Moon size={13} />}
+        </button>
+      </div>
+    </header>
+  );
+}

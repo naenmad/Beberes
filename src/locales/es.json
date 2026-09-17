@@ -34,6 +34,8 @@
   "nav": {
     "dashboard": "Panel",
     "quickReview": "Revisión Rápida",
+    "largeDuplicates": "Archivos Grandes y Duplicados",
+    "trashManager": "Gestor de Papelera",
     "tidyUp": "Organizar",
     "apps": "Aplicaciones",
     "systemClean": "Limpieza de Sistema",
@@ -60,6 +62,8 @@
     "tidyUpDownloads": "Organizar Descargas",
     "tidyUpDesc": "Organiza archivos sueltos en carpetas categorizadas automáticamente",
     "quickReviewDesc": "Previsualiza y descarta o conserva archivos uno a uno mediante atajos de teclado",
+    "largeDuplicatesDesc": "Encuentra archivos de más de 100MB, copias duplicadas y archivos sin tocar durante meses",
+    "trashManagerDesc": "Inspecciona los elementos en la Papelera de macOS y vacíala con seguridad",
     "appUninstaller": "Desinstalador de Apps",
     "appUninstallerDesc": "Elimina aplicaciones por completo junto con sus cachés ocultos en la Biblioteca",
     "historyModalTitle": "Historial de Limpiezas",
@@ -332,5 +336,54 @@
     "noFilesFoundTitle": "No se encontraron archivos sueltos",
     "noFilesFoundDesc": "Este directorio no contiene archivos que coincidan con el filtro actual.",
     "chooseFolder": "Elegir Otra Carpeta"
+  },
+  "topBar": {
+    "diskTooltip": "Haz clic para ver detalles de almacenamiento en el Panel",
+    "searchPlaceholder": "Buscar apps, archivos, acciones... (⌘K)"
+  },
+  "spotlight": {
+    "placeholder": "Escribe una orden, app o página...",
+    "noResults": "No se encontraron comandos o elementos coincidentes.",
+    "navigate": "Navegar",
+    "select": "Seleccionar",
+    "close": "Cerrar"
+  },
+  "largeDuplicates": {
+    "title": "Archivos Grandes y Duplicados",
+    "subtitle": "Recupera gigabytes localizando archivos gigantes, copias duplicadas y elementos olvidados.",
+    "tabLarge": "Archivos Grandes",
+    "tabDuplicates": "Duplicados",
+    "tabOld": "Archivos Antiguos (>6 Meses)",
+    "threshold": "Tamaño Mínimo",
+    "keepNewest": "Conservar Más Reciente",
+    "keepOldest": "Conservar Más Antiguo",
+    "noLargeFiles": "No se encontraron archivos grandes",
+    "noLargeFilesDesc": "Ningún archivo suelto supera el umbral de tamaño seleccionado.",
+    "noDuplicates": "No se encontraron archivos duplicados",
+    "noDuplicatesDesc": "Los directorios examinados no contienen copias duplicadas.",
+    "noOldFiles": "No se encontraron archivos antiguos",
+    "noOldFilesDesc": "No se detectaron archivos con más de 6 meses sin modificaciones.",
+    "group": "Grupo de Duplicados #{index}",
+    "copies": "copias",
+    "wastedSpace": "Espacio desperdiciado: {size}",
+    "modified": "Modificado",
+    "original": "Original",
+    "daysAgo": "días sin tocar"
+  },
+  "trashManager": {
+    "title": "Gestor de Papelera",
+    "subtitle": "Inspecciona el contenido de la Papelera de macOS, recupera espacio o vacíala con seguridad.",
+    "emptyAll": "Vaciar Papelera",
+    "trashSize": "Tamaño de Papelera",
+    "totalItems": "Elementos Totales",
+    "status": "Estado",
+    "clean": "Limpia y Vacía",
+    "readyToReclaim": "Listo para Recuperar",
+    "deleteSelected": "Eliminar Permanentemente",
+    "emptyTitle": "¡La Papelera de macOS está completamente vacía!",
+    "emptyDesc": "No hay ningún archivo ni carpeta en la Papelera actualmente.",
+    "emptyConfirmTitle": "¿Vaciar la Papelera de macOS?",
+    "deleteSelectedTitle": "¿Eliminar permanentemente los elementos seleccionados?",
+    "date": "Fecha de Eliminación"
   }
 }
