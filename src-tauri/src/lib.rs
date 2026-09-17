@@ -6,8 +6,8 @@ use commands::finder::scan_finder_items;
 use commands::organizer::{clean_redundant_installers, execute_tidy_organization, scan_tidy_directory};
 use commands::reviewer::{read_file_thumbnail, rename_file, scan_review_files};
 use commands::scanner::{
-    clear_icon_cache, get_disk_info, get_system_details, scan_custom_paths, scan_dev_workspaces,
-    scan_system_directories,
+    clear_icon_cache, get_all_disks, get_disk_info, get_disk_info_by_mount, get_system_details,
+    scan_custom_paths, scan_dev_workspaces, scan_system_directories,
 };
 use commands::trash::{delete_specific_trash_items, empty_mac_trash, scan_trash_contents};
 use commands::uninstaller::{scan_installed_apps, uninstall_app};
@@ -21,6 +21,8 @@ pub fn run() {
             scan_dev_workspaces,
             scan_custom_paths,
             get_disk_info,
+            get_all_disks,
+            get_disk_info_by_mount,
             get_system_details,
             clear_icon_cache,
             clean_selected_items,

@@ -394,6 +394,14 @@
     "highlight1": "Native macOS Trash integration with put-back capability",
     "highlight2": "Protected system whitelist prevents accidental OS damage",
     "highlight3": "Smart dev workspace cleaner for node_modules, venv, and caches"
+  },
+  "drive": {
+    "storageDevices": "Storage Devices",
+    "switchDrive": "Switch Storage Drive",
+    "drivesDetected": "drives detected",
+    "driveDetected": "drive detected",
+    "capacity": "capacity",
+    "exploreDrive": "Explore Files"
   }
 }
 

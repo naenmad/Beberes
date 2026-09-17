@@ -593,30 +593,133 @@ pub fn scan_custom_paths(paths: Vec<String>) -> Vec<ScanCategory> {
     categories
 }
 
-/// Get disk info for the primary disk.
-#[tauri::command]
-pub fn get_disk_info() -> DiskInfo {
-    let disks = Disks::new_with_refreshed_list();
+/// Detailed information for any detected storage drive.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DiskDetail {
+    pub id: String,
+    pub name: String,
+    #[serde(rename = "mountPoint")]
+    pub mount_point: String,
+    #[serde(rename = "totalSpace")]
+    pub total_space: u64,
+    #[serde(rename = "usedSpace")]
+    pub used_space: u64,
+    #[serde(rename = "freeSpace")]
+    pub free_space: u64,
+    #[serde(rename = "isRemovable")]
+    pub is_removable: bool,
+    #[serde(rename = "fileSystem")]
+    pub file_system: String,
+}
 
-    // Find the root "/" disk (macOS primary)
+/// Get all mounted storage devices (Internal Macintosh HD, USB Flashdisks, External SSDs).
+#[tauri::command]
+pub fn get_all_disks() -> Vec<DiskDetail> {
+    let disks = Disks::new_with_refreshed_list();
+    let mut result = Vec::new();
+    let mut has_primary = false;
+
+    // 1. Primary internal disk (/System/Volumes/Data or /)
+    let data_disk = disks.list().iter().find(|d| d.mount_point() == Path::new("/System/Volumes/Data"));
+    let root_disk = disks.list().iter().find(|d| d.mount_point() == Path::new("/"));
+
+    if let Some(disk) = data_disk.or(root_disk) {
+        let name = if disk.name().to_string_lossy().is_empty() || disk.name().to_string_lossy() == "/" {
+            "Macintosh HD".to_string()
+        } else {
+            disk.name().to_string_lossy().to_string()
+        };
+
+        result.push(DiskDetail {
+            id: "internal_primary".to_string(),
+            name,
+            mount_point: "/".to_string(),
+            total_space: disk.total_space(),
+            used_space: disk.total_space().saturating_sub(disk.available_space()),
+            free_space: disk.available_space(),
+            is_removable: false,
+            file_system: disk.file_system().to_string_lossy().to_string(),
+        });
+        has_primary = true;
+    }
+
+    // 2. Discover External Drives / Flashdisks / Mounted Volumes (/Volumes/*)
     for disk in disks.list() {
-        if disk.mount_point() == Path::new("/") {
-            return DiskInfo {
+        let mp = disk.mount_point();
+        let mp_str = mp.to_string_lossy();
+
+        if mp_str.starts_with("/Volumes/") {
+            let vol_name = mp.file_name()
+                .map(|n| n.to_string_lossy().to_string())
+                .unwrap_or_else(|| disk.name().to_string_lossy().to_string());
+
+            let is_removable = disk.is_removable() || mp_str.starts_with("/Volumes/");
+
+            result.push(DiskDetail {
+                id: format!("vol_{}", vol_name),
+                name: vol_name,
+                mount_point: mp_str.to_string(),
                 total_space: disk.total_space(),
-                used_space: disk.total_space() - disk.available_space(),
+                used_space: disk.total_space().saturating_sub(disk.available_space()),
                 free_space: disk.available_space(),
-                disk_name: disk.name().to_string_lossy().to_string(),
-            };
+                is_removable,
+                file_system: disk.file_system().to_string_lossy().to_string(),
+            });
         }
     }
 
-    // Fallback: use first disk
-    if let Some(disk) = disks.list().first() {
+    // Fallback if no primary disk found
+    if !has_primary {
+        if let Some(disk) = disks.list().first() {
+            result.push(DiskDetail {
+                id: "primary_disk".to_string(),
+                name: "Macintosh HD".to_string(),
+                mount_point: disk.mount_point().to_string_lossy().to_string(),
+                total_space: disk.total_space(),
+                used_space: disk.total_space().saturating_sub(disk.available_space()),
+                free_space: disk.available_space(),
+                is_removable: disk.is_removable(),
+                file_system: disk.file_system().to_string_lossy().to_string(),
+            });
+        }
+    }
+
+    result
+}
+
+/// Get disk info for a specific mount point (e.g. "/" or "/Volumes/NAENDISK").
+#[tauri::command]
+pub fn get_disk_info_by_mount(mount_point: String) -> DiskInfo {
+    let all = get_all_disks();
+    if let Some(d) = all.iter().find(|d| d.mount_point == mount_point) {
         return DiskInfo {
-            total_space: disk.total_space(),
-            used_space: disk.total_space() - disk.available_space(),
-            free_space: disk.available_space(),
-            disk_name: disk.name().to_string_lossy().to_string(),
+            total_space: d.total_space,
+            used_space: d.used_space,
+            free_space: d.free_space,
+            disk_name: d.name.clone(),
+        };
+    }
+    get_disk_info()
+}
+
+/// Get disk info for the primary disk.
+#[tauri::command]
+pub fn get_disk_info() -> DiskInfo {
+    let all = get_all_disks();
+    if let Some(primary) = all.iter().find(|d| d.mount_point == "/") {
+        return DiskInfo {
+            total_space: primary.total_space,
+            used_space: primary.used_space,
+            free_space: primary.free_space,
+            disk_name: primary.name.clone(),
+        };
+    }
+    if let Some(first) = all.first() {
+        return DiskInfo {
+            total_space: first.total_space,
+            used_space: first.used_space,
+            free_space: first.free_space,
+            disk_name: first.name.clone(),
         };
     }
 
@@ -624,7 +727,7 @@ pub fn get_disk_info() -> DiskInfo {
         total_space: 0,
         used_space: 0,
         free_space: 0,
-        disk_name: "Unknown".to_string(),
+        disk_name: "Macintosh HD".to_string(),
     }
 }
 

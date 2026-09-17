@@ -395,6 +395,14 @@
     "highlight1": "原生集成 macOS 废纸篓并支持原处放回",
     "highlight2": "受保护的系统白名单防止误删核心系统文件",
     "highlight3": "针对 node_modules、venv 与构建缓存的智能开发环境清理"
+  },
+  "drive": {
+    "storageDevices": "存储设备",
+    "switchDrive": "切换存储盘",
+    "drivesDetected": "个驱动器已检测到",
+    "driveDetected": "个驱动器已检测到",
+    "capacity": "容量",
+    "exploreDrive": "浏览文件"
   }
 }
 

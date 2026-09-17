@@ -1,5 +1,6 @@
 import { invoke } from '@tauri-apps/api/core';
-import type { ScanCategory, DiskInfo } from '../store/appStore';
+import type { ScanCategory, DiskInfo, DiskDetail } from '../store/appStore';
+export type { DiskDetail };
 
 export interface CleanResult {
   cleaned: number;
@@ -60,6 +61,20 @@ export async function scanDevWorkspaces(): Promise<ScanCategory[]> {
  */
 export async function getDiskInfo(): Promise<DiskInfo> {
   return await invoke<DiskInfo>('get_disk_info');
+}
+
+/**
+ * Get all detected storage disks and removable volumes.
+ */
+export async function getAllDisks(): Promise<DiskDetail[]> {
+  return await invoke<DiskDetail[]>('get_all_disks');
+}
+
+/**
+ * Get disk information for a specific mount point.
+ */
+export async function getDiskInfoByMount(mountPoint: string): Promise<DiskInfo> {
+  return await invoke<DiskInfo>('get_disk_info_by_mount', { mountPoint });
 }
 
 /**

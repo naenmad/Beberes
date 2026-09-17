@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { getAllDisks, getDiskInfoByMount } from '../lib/commands';
 
 // Types
 export interface ScanCategory {
@@ -25,6 +26,17 @@ export interface DiskInfo {
   usedSpace: number;
   freeSpace: number;
   diskName: string;
+}
+
+export interface DiskDetail {
+  id: string;
+  name: string;
+  mountPoint: string;
+  totalSpace: number;
+  usedSpace: number;
+  freeSpace: number;
+  isRemovable: boolean;
+  fileSystem: string;
 }
 
 export interface CleanHistoryEntry {
@@ -180,9 +192,14 @@ interface AppState {
   selectAllInCategory: (type: 'system' | 'dev', categoryId: string, selected: boolean) => void;
   selectAll: (type: 'system' | 'dev', selected: boolean) => void;
 
-  // Disk Info
+  // Disk Info & Multi-Drive
   diskInfo: DiskInfo | null;
   setDiskInfo: (info: DiskInfo) => void;
+  availableDisks: DiskDetail[];
+  setAvailableDisks: (disks: DiskDetail[]) => void;
+  selectedDiskMount: string;
+  setSelectedDiskMount: (mount: string) => void;
+  refreshDisks: () => Promise<void>;
 
   // Cleaning & Mode Settings
   isCleaning: boolean;
@@ -331,9 +348,31 @@ export const useAppStore = create<AppState>((set, get) => ({
     };
   }),
 
-  // Disk Info
+  // Disk Info & Multi-Drive
   diskInfo: null,
   setDiskInfo: (info) => set({ diskInfo: info }),
+  availableDisks: [],
+  setAvailableDisks: (disks) => set({ availableDisks: disks }),
+  selectedDiskMount: '/',
+  setSelectedDiskMount: (mount) => {
+    set({ selectedDiskMount: mount });
+    get().refreshDisks();
+  },
+  refreshDisks: async () => {
+    try {
+      const disks = await getAllDisks();
+      const currentMount = get().selectedDiskMount;
+      const targetMount = disks.some((d) => d.mountPoint === currentMount) ? currentMount : (disks[0]?.mountPoint || '/');
+      const info = await getDiskInfoByMount(targetMount);
+      set({
+        availableDisks: disks,
+        selectedDiskMount: targetMount,
+        diskInfo: info,
+      });
+    } catch (err) {
+      console.error('Failed to refresh disks:', err);
+    }
+  },
 
   // Cleaning & Mode Settings
   isCleaning: false,

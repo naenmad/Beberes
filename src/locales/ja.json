@@ -394,6 +394,14 @@
     "highlight1": "元に戻す機能に対応したmacOSゴミ箱ネイティブ連携",
     "highlight2": "OSの誤破損を防止する保護システムホワイトリスト搭載",
     "highlight3": "node_modules、venv、キャッシュに対応した開発環境クリーン機能"
+  },
+  "drive": {
+    "storageDevices": "ストレージデバイス",
+    "switchDrive": "ストレージドライブを切り替え",
+    "drivesDetected": "台のドライブを検出",
+    "driveDetected": "台のドライブを検出",
+    "capacity": "容量",
+    "exploreDrive": "ファイルを閲覧"
   }
 }
 

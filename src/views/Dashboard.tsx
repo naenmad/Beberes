@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useAppStore } from '../store/appStore';
 import { useTranslation } from '../lib/i18n';
-import { getDiskInfo, scanSystemDirectories, scanDevWorkspaces, cleanSelectedItems } from '../lib/commands';
+import { getDiskInfoByMount, scanSystemDirectories, scanDevWorkspaces, cleanSelectedItems } from '../lib/commands';
 import type { CleanResult } from '../lib/commands';
 import { formatSize } from '../lib/utils';
 import Card, { CardBody } from '../components/ui/Card';
@@ -28,6 +28,8 @@ import {
   Layers,
   Trash2,
   LayoutDashboard,
+  HardDrive,
+  Usb,
 } from 'lucide-react';
 
 export default function Dashboard() {
@@ -35,6 +37,9 @@ export default function Dashboard() {
   const {
     diskInfo,
     setDiskInfo,
+    selectedDiskMount,
+    availableDisks,
+    refreshDisks,
     systemCategories,
     devCategories,
     setSystemCategories,
@@ -54,6 +59,8 @@ export default function Dashboard() {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showCleaningFlow, setShowCleaningFlow] = useState(false);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
+
+  const activeDisk = availableDisks.find((d) => d.mountPoint === selectedDiskMount);
 
   const totalSystemJunk = systemCategories.reduce((acc, cat) => acc + cat.size, 0);
   const totalDevJunk = devCategories.reduce((acc, cat) => acc + cat.size, 0);
@@ -78,7 +85,7 @@ export default function Dashboard() {
     setQuickCleanResult(null);
     try {
       const [disk, system, dev] = await Promise.all([
-        getDiskInfo(),
+        getDiskInfoByMount(selectedDiskMount),
         scanSystemDirectories(),
         scanDevWorkspaces(),
       ]);
@@ -116,10 +123,9 @@ export default function Dashboard() {
   };
 
   useEffect(() => {
-    if (!diskInfo) {
-      runFullScan();
-    }
-  }, []);
+    refreshDisks();
+    runFullScan();
+  }, [selectedDiskMount]);
 
   return (
     <div className="space-y-6 animate-fade-in pb-16">
@@ -172,6 +178,50 @@ export default function Dashboard() {
           </>
         }
       />
+
+      {/* Active Storage Drive Banner */}
+      {diskInfo && (
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-4 py-3 rounded-2xl glass-panel border border-black/[0.04] dark:border-white/[0.06]">
+          <div className="flex items-center gap-3 min-w-0">
+            <div
+              className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
+                activeDisk?.isRemovable ? 'bg-amber-500/15 text-amber-500' : 'bg-blue-500/15 text-blue-500'
+              }`}
+            >
+              {activeDisk?.isRemovable ? <Usb size={18} /> : <HardDrive size={18} />}
+            </div>
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-xs font-bold text-slate-900 dark:text-white truncate">
+                  {diskInfo.diskName || activeDisk?.name || 'Macintosh HD'}
+                </span>
+                <span className="text-[10px] px-1.5 py-0.5 rounded font-semibold bg-black/[0.05] dark:bg-white/[0.08] text-slate-600 dark:text-neutral-400 font-mono">
+                  {selectedDiskMount}
+                </span>
+                {activeDisk?.isRemovable && (
+                  <span className="text-[9px] px-1.5 py-0.5 rounded font-semibold bg-amber-500/15 text-amber-600 dark:text-amber-400">
+                    USB / Flashdisk
+                  </span>
+                )}
+              </div>
+              <p className="text-[11px] text-slate-400 dark:text-neutral-500 mt-0.5">
+                {formatSize(diskInfo.freeSpace)} {t('common.free', 'free')} / {formatSize(diskInfo.totalSpace)} {t('drive.capacity', 'capacity')}
+              </p>
+            </div>
+          </div>
+
+          {activeDisk?.isRemovable && (
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={() => setCurrentPage('quick-review')}
+              icon={<Eye size={12} />}
+            >
+              {t('dashboard.exploreDrive', 'Explore Files')}
+            </Button>
+          )}
+        </div>
+      )}
 
       {/* Storage Breakdown Multi-color Bar (macOS System Settings Style) */}
       {diskInfo && (

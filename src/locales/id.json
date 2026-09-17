@@ -393,6 +393,14 @@
     "highlight1": "Integrasi Tong Sampah native macOS dengan kemampuan pemulihan berkas",
     "highlight2": "Whitelist sistem terlindungi untuk mencegah kerusakan OS tanpa sengaja",
     "highlight3": "Pembersih cerdas workspace developer untuk node_modules, venv, dan cache"
+  },
+  "drive": {
+    "storageDevices": "Media Penyimpanan",
+    "switchDrive": "Ganti Drive Penyimpanan",
+    "drivesDetected": "drive terdeteksi",
+    "driveDetected": "drive terdeteksi",
+    "capacity": "kapasitas",
+    "exploreDrive": "Jelajahi Berkas"
   }
 }
 

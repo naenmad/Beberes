@@ -6,7 +6,6 @@ import {
   Sparkles,
   Code2,
   Settings,
-  HardDrive,
   ShieldCheck,
   PanelLeftClose,
   PanelLeftOpen,
@@ -16,8 +15,8 @@ import {
   Trash2,
   Info,
 } from 'lucide-react';
-import { formatSize, percentage } from '../../lib/utils';
 import { useTranslation } from '../../lib/i18n';
+import DriveSelector from './DriveSelector';
 
 const navDefinitions: { id: ViewPage; labelKey: string; icon: React.ReactNode }[] = [
   { id: 'dashboard', labelKey: 'nav.dashboard', icon: <LayoutDashboard size={16} /> },
@@ -36,7 +35,7 @@ const DEFAULT_WIDTH = 220;
 const MAX_WIDTH = 320;
 
 export default function FloatingSidebar() {
-  const { currentPage, setCurrentPage, diskInfo, openAboutModal } = useAppStore();
+  const { currentPage, setCurrentPage, openAboutModal } = useAppStore();
   const { t } = useTranslation();
 
   const [width, setWidth] = useState<number>(() => {
@@ -52,8 +51,6 @@ export default function FloatingSidebar() {
   const startXRef = useRef<number>(0);
   const startWidthRef = useRef<number>(width);
   const latestWidthRef = useRef<number>(width);
-
-  const diskPercent = diskInfo ? percentage(diskInfo.usedSpace, diskInfo.totalSpace) : 0;
 
   // Toggle collapse state
   const handleToggleCollapse = () => {
@@ -209,44 +206,13 @@ export default function FloatingSidebar() {
         })}
       </nav>
 
-      {/* Footer Area: Disk Mini Bar & Theme / Language / Collapse Controls */}
-      <div className="p-2 border-t border-black/[0.04] dark:border-white/[0.06] space-y-2">
-        {/* Disk Info Mini */}
-        {diskInfo && (
-          <div
-            className={`rounded-2xl p-2.5 bg-black/[0.02] dark:bg-white/[0.03] border border-black/[0.04] dark:border-white/[0.06] ${
-              isCollapsed ? 'text-center' : ''
-            }`}
-            title={`${t('nav.free')}: ${formatSize(diskInfo.freeSpace)} / Total: ${formatSize(diskInfo.totalSpace)}`}
-          >
-            {isCollapsed ? (
-              <div className="flex flex-col items-center justify-center gap-1">
-                <HardDrive size={13} className="text-blue-500" />
-                <span className="text-[9px] font-bold text-slate-700 dark:text-neutral-300">
-                  {Math.round(diskPercent)}%
-                </span>
-              </div>
-            ) : (
-              <div>
-                <div className="flex items-center justify-between text-[11px] mb-1.5">
-                  <span className="text-slate-400 font-medium">{t('nav.free')}</span>
-                  <span className="font-bold text-slate-800 dark:text-neutral-200">
-                    {formatSize(diskInfo.freeSpace)}
-                  </span>
-                </div>
-                <div className="w-full h-1.5 bg-slate-200/60 dark:bg-neutral-800 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-blue-500 rounded-full transition-all duration-300"
-                    style={{ width: `${diskPercent}%` }}
-                  />
-                </div>
-              </div>
-            )}
-          </div>
-        )}
+      {/* Footer Area: Multi-Drive Selector & Settings / About */}
+      <div className="p-2 border-t border-black/[0.04] dark:border-white/[0.06] space-y-1.5">
+        {/* Interactive Drive / Flashdisk Selector */}
+        <DriveSelector isCollapsed={isCollapsed} />
 
         {/* Bottom Actions: Settings & About App */}
-        <div className="space-y-1 pt-1.5 border-t border-black/[0.04] dark:border-white/[0.06]">
+        <div className="space-y-1 pt-1 border-t border-black/[0.04] dark:border-white/[0.06]">
           {/* Settings Button */}
           <button
             onClick={() => setCurrentPage('settings')}

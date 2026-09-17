@@ -395,6 +395,14 @@
     "highlight1": "Integración nativa con la Papelera de macOS con función de restaurar",
     "highlight2": "Lista blanca protegida del sistema que evita daños accidentales al SO",
     "highlight3": "Limpiador inteligente de entornos de desarrollo para node_modules, venv y cachés"
+  },
+  "drive": {
+    "storageDevices": "Dispositivos de Almacenamiento",
+    "switchDrive": "Cambiar Unidad de Almacenamiento",
+    "drivesDetected": "unidades detectadas",
+    "driveDetected": "unidad detectada",
+    "capacity": "capacidad",
+    "exploreDrive": "Explorar Archivos"
   }
 }
 
