@@ -11,6 +11,7 @@ import {
 import { formatSize } from '../lib/utils';
 import Card, { CardBody } from '../components/ui/Card';
 import Button from '../components/ui/Button';
+import PageHeader from '../components/layout/PageHeader';
 import ConfirmModal from '../components/ui/ConfirmModal';
 import CleaningFlowModal from '../components/ui/CleaningFlowModal';
 import { CardSkeleton } from '../components/ui/SkeletonLoader';
@@ -203,43 +204,39 @@ export default function AppUninstaller() {
   return (
     <div className="space-y-6 animate-fade-in pb-20">
       {/* Top Banner & Title */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
-              {t('apps.title')}
-            </h1>
-            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400">
-              {t('apps.installedCount', '{count} installed', { count: apps.length })}
-            </span>
-          </div>
-          <p className="text-xs text-slate-500 dark:text-neutral-400 mt-1">
-            {t('apps.subtitle')}
-          </p>
-        </div>
+      <PageHeader
+        icon={<AppWindow size={20} />}
+        iconColor="text-blue-500"
+        title={t('apps.title')}
+        subtitle={t('apps.subtitle')}
+        badge={
+          <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400">
+            {t('apps.installedCount', '{count} installed', { count: apps.length })}
+          </span>
+        }
+        actions={
+          <>
+            <button
+              onClick={toggleDeleteToTrash}
+              title="Toggle delete mode"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold glass-panel text-slate-700 dark:text-neutral-200 cursor-pointer hover:border-blue-500/40 transition-colors"
+            >
+              <Trash2 size={13} className={deleteToTrash ? 'text-blue-500' : 'text-rose-500'} />
+              <span>{t('common.mode')}: {deleteToTrash ? t('common.trashMode') : t('common.directDelete')}</span>
+            </button>
 
-        {/* Global Controls: Deletion Mode & Refresh */}
-        <div className="flex items-center gap-2 shrink-0">
-          <button
-            onClick={toggleDeleteToTrash}
-            title="Toggle delete mode"
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold glass-panel text-slate-700 dark:text-neutral-200 cursor-pointer hover:border-blue-500/40 transition-colors"
-          >
-            <Trash2 size={13} className={deleteToTrash ? 'text-blue-500' : 'text-rose-500'} />
-            <span>{t('common.mode')}: {deleteToTrash ? t('common.trashMode') : t('common.directDelete')}</span>
-          </button>
-
-          <Button
-            onClick={runScan}
-            loading={isLoading}
-            variant="secondary"
-            size="sm"
-            icon={<RefreshCw size={13} />}
-          >
-            {isLoading ? t('common.scanning') : t('common.refresh')}
-          </Button>
-        </div>
-      </div>
+            <Button
+              onClick={runScan}
+              loading={isLoading}
+              variant="secondary"
+              size="sm"
+              icon={<RefreshCw size={13} />}
+            >
+              {isLoading ? t('common.scanning') : t('common.refresh')}
+            </Button>
+          </>
+        }
+      />
 
       {/* Summary KPI Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">

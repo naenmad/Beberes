@@ -6,21 +6,18 @@ import {
   Sparkles,
   Code2,
   Settings,
-  Sun,
-  Moon,
   HardDrive,
   ShieldCheck,
   PanelLeftClose,
   PanelLeftOpen,
   AppWindow,
-  Globe,
   Eye,
   Layers,
   Trash2,
+  Info,
 } from 'lucide-react';
 import { formatSize, percentage } from '../../lib/utils';
 import { useTranslation } from '../../lib/i18n';
-import { supportedLanguages } from '../../locales';
 
 const navDefinitions: { id: ViewPage; labelKey: string; icon: React.ReactNode }[] = [
   { id: 'dashboard', labelKey: 'nav.dashboard', icon: <LayoutDashboard size={16} /> },
@@ -31,7 +28,6 @@ const navDefinitions: { id: ViewPage; labelKey: string; icon: React.ReactNode }[
   { id: 'apps', labelKey: 'nav.apps', icon: <AppWindow size={16} /> },
   { id: 'system-clean', labelKey: 'nav.systemClean', icon: <Sparkles size={16} /> },
   { id: 'dev-workspace', labelKey: 'nav.devWorkspace', icon: <Code2 size={16} /> },
-  { id: 'settings', labelKey: 'nav.settings', icon: <Settings size={16} /> },
 ];
 
 const MIN_WIDTH = 64;
@@ -40,14 +36,8 @@ const DEFAULT_WIDTH = 220;
 const MAX_WIDTH = 320;
 
 export default function FloatingSidebar() {
-  const { currentPage, setCurrentPage, isDarkMode, toggleDarkMode, diskInfo } = useAppStore();
-  const { t, language, setLanguage } = useTranslation();
-
-  const handleCycleLanguage = () => {
-    const currentIndex = supportedLanguages.findIndex((l) => l.code === language);
-    const next = supportedLanguages[(currentIndex + 1) % supportedLanguages.length];
-    setLanguage(next.code);
-  };
+  const { currentPage, setCurrentPage, diskInfo, openAboutModal } = useAppStore();
+  const { t } = useTranslation();
 
   const [width, setWidth] = useState<number>(() => {
     const saved = localStorage.getItem('beberes_sidebar_width');
@@ -141,12 +131,14 @@ export default function FloatingSidebar() {
       `}
     >
       {/* Top Header: Logo & Collapse Button */}
-      <div className="flex items-center justify-between px-3 py-4 border-b border-black/[0.04] dark:border-white/[0.06]">
+      <div className="flex items-center justify-between px-3 py-3.5 border-b border-black/[0.04] dark:border-white/[0.06]">
         {!isCollapsed ? (
           <div className="flex items-center gap-2.5 min-w-0">
-            <div className="flex items-center justify-center w-7 h-7 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-xs shrink-0">
-              <Sparkles size={14} />
-            </div>
+            <img
+              src="/icon-beberes.webp"
+              alt="Beberes"
+              className="w-7 h-7 rounded-xl object-cover shadow-xs shrink-0"
+            />
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-1.5">
                 <span className="text-xs font-bold text-slate-900 dark:text-white tracking-tight truncate">
@@ -164,11 +156,14 @@ export default function FloatingSidebar() {
             title="Click to expand sidebar"
             className="flex items-center justify-center w-full group cursor-pointer"
           >
-            <div className="flex items-center justify-center w-7 h-7 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-xs group-hover:scale-105 transition-transform">
-              <Sparkles size={14} />
-            </div>
+            <img
+              src="/icon-beberes.webp"
+              alt="Beberes"
+              className="w-7 h-7 rounded-xl object-cover shadow-xs group-hover:scale-105 transition-transform shrink-0"
+            />
           </button>
         )}
+
 
         {!isCollapsed && (
           <button
@@ -250,49 +245,48 @@ export default function FloatingSidebar() {
           </div>
         )}
 
-        {/* Theme, Language & Expand Button */}
-        <div className={`flex items-center gap-1 ${isCollapsed ? 'flex-col' : 'flex-row'}`}>
+        {/* Bottom Actions: Settings & About App */}
+        <div className="space-y-1 pt-1.5 border-t border-black/[0.04] dark:border-white/[0.06]">
+          {/* Settings Button */}
           <button
-            onClick={toggleDarkMode}
-            title={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+            onClick={() => setCurrentPage('settings')}
+            title={isCollapsed ? t('nav.settings') : undefined}
             className={`
-              flex items-center justify-center p-2 rounded-xl text-slate-500 dark:text-neutral-400
-              hover:text-slate-800 dark:hover:text-white hover:bg-black/[0.04] dark:hover:bg-white/[0.06]
-              transition-colors cursor-pointer
-              ${isCollapsed ? 'w-full' : 'flex-1'}
+              w-full flex items-center gap-2.5 rounded-xl text-xs font-semibold
+              transition-all duration-150 cursor-pointer
+              ${isCollapsed ? 'justify-center p-2.5' : 'px-3 py-2 text-left'}
+              ${
+                currentPage === 'settings'
+                  ? 'bg-blue-600 text-white shadow-xs shadow-blue-500/20'
+                  : 'text-slate-600 dark:text-neutral-400 hover:bg-black/[0.03] dark:hover:bg-white/[0.05] hover:text-slate-900 dark:hover:text-white'
+              }
             `}
           >
-            {isDarkMode ? <Sun size={14} /> : <Moon size={14} />}
-            {!isCollapsed && (
-              <span className="text-xs font-semibold ml-1.5">
-                {isDarkMode ? 'Light' : 'Dark'}
-              </span>
-            )}
+            <Settings size={16} className="shrink-0" />
+            {!isCollapsed && <span className="truncate">{t('nav.settings')}</span>}
           </button>
 
+          {/* About App Button */}
           <button
-            onClick={handleCycleLanguage}
-            title={`${t('settings.language.title')}: ${language.toUpperCase()} (Click to switch)`}
+            onClick={openAboutModal}
+            title={isCollapsed ? t('about.title', 'About Beberes') : undefined}
             className={`
-              flex items-center justify-center p-2 rounded-xl text-slate-500 dark:text-neutral-400
-              hover:text-slate-800 dark:hover:text-white hover:bg-black/[0.04] dark:hover:bg-white/[0.06]
-              transition-colors cursor-pointer
-              ${isCollapsed ? 'w-full' : 'px-2.5'}
+              w-full flex items-center gap-2.5 rounded-xl text-xs font-semibold
+              transition-all duration-150 cursor-pointer text-slate-500 dark:text-neutral-400
+              hover:bg-black/[0.03] dark:hover:bg-white/[0.05] hover:text-slate-900 dark:hover:text-white
+              ${isCollapsed ? 'justify-center p-2.5' : 'px-3 py-2 text-left'}
             `}
           >
-            <Globe size={14} />
-            {!isCollapsed && (
-              <span className="text-xs font-semibold ml-1.5 uppercase font-mono">
-                {language}
-              </span>
-            )}
+            <Info size={16} className="shrink-0 text-slate-400 dark:text-neutral-500" />
+            {!isCollapsed && <span className="truncate">{t('about.title', 'About Beberes')}</span>}
           </button>
 
+          {/* Expand Button when Collapsed */}
           {isCollapsed && (
             <button
               onClick={handleToggleCollapse}
               title={t('nav.expand')}
-              className="w-full flex items-center justify-center p-2 rounded-xl text-slate-500 hover:text-slate-800 dark:hover:text-white hover:bg-black/[0.04] dark:hover:bg-white/[0.06] cursor-pointer"
+              className="w-full flex items-center justify-center p-2.5 rounded-xl text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-black/[0.04] dark:hover:bg-white/[0.06] cursor-pointer"
             >
               <PanelLeftOpen size={14} />
             </button>

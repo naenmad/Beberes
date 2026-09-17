@@ -74,7 +74,18 @@ pub async fn scan_trash_contents() -> Result<TrashScanResult, String> {
         });
     }
 
-    let entries = fs::read_dir(&trash_dir).map_err(|e| e.to_string())?;
+    let entries = match fs::read_dir(&trash_dir) {
+        Ok(e) => e,
+        Err(err) => {
+            eprintln!("Notice: Unable to directly read ~/.Trash: {}. Full Disk Access may be needed.", err);
+            return Ok(TrashScanResult {
+                total_items: 0,
+                total_size: 0,
+                items: Vec::new(),
+                category_sizes: std::collections::HashMap::new(),
+            });
+        }
+    };
     let mut items = Vec::new();
     let mut total_size = 0u64;
     let mut category_sizes: std::collections::HashMap<String, u64> = std::collections::HashMap::new();

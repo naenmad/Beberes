@@ -11,6 +11,7 @@ import {
 import type { TidyScanResult } from '../lib/commands';
 import { formatSize } from '../lib/utils';
 import Button from '../components/ui/Button';
+import PageHeader from '../components/layout/PageHeader';
 import Checkbox from '../components/ui/Checkbox';
 import ConfirmModal from '../components/ui/ConfirmModal';
 import CleaningFlowModal from '../components/ui/CleaningFlowModal';
@@ -273,7 +274,26 @@ export default function TidyUp() {
 
   return (
     <div className="space-y-6 animate-fade-in pb-20">
-      {/* Target Directory Switcher (No Emojis - Lucide Icons) */}
+      {/* Header */}
+      <PageHeader
+        icon={<FolderTree size={20} />}
+        iconColor="text-blue-500"
+        title={t('tidyUp.title')}
+        subtitle={t('tidyUp.subtitle')}
+        actions={
+          <Button
+            onClick={() => runScan(currentPath)}
+            loading={isLoading}
+            icon={<RefreshCw size={14} />}
+            variant="secondary"
+            size="sm"
+          >
+            {isLoading ? t('common.scanning') : t('common.refresh')}
+          </Button>
+        }
+      />
+
+      {/* Target Directory Switcher */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-1.5 p-1 rounded-xl glass-pill w-fit">
           <button
@@ -309,18 +329,6 @@ export default function TidyUp() {
             <FolderInput size={13} />
             <span>{customPath ? customPath.split('/').pop() : t('tidyUp.tabCustom')}</span>
           </button>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <Button
-            onClick={() => runScan(currentPath)}
-            loading={isLoading}
-            icon={<RefreshCw size={14} />}
-            variant="secondary"
-            size="sm"
-          >
-            {isLoading ? t('common.scanning') : t('common.refresh')}
-          </Button>
         </div>
       </div>
 

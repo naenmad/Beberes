@@ -384,5 +384,16 @@
     "emptyConfirmTitle": "macOSのゴミ箱を完全に空にしますか？",
     "deleteSelectedTitle": "選択した項目を完全消去しますか？",
     "date": "削除日"
+  },
+  "about": {
+    "title": "Beberes について",
+    "subtitle": "macOSおよび開発者向けハイパフォーマンス・システムクリーナー＆ストレージ最適化ツール。",
+    "engine": "コアエンジン",
+    "privacy": "プライバシー優先",
+    "safetyHighlights": "安全性と正確性のハイライト",
+    "highlight1": "元に戻す機能に対応したmacOSゴミ箱ネイティブ連携",
+    "highlight2": "OSの誤破損を防止する保護システムホワイトリスト搭載",
+    "highlight3": "node_modules、venv、キャッシュに対応した開発環境クリーン機能"
   }
 }
+

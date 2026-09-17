@@ -383,6 +383,17 @@
     "emptyConfirmTitle": "Kosongkan Tong Sampah macOS?",
     "deleteSelectedTitle": "Hapus Permanen Item Terpilih?",
     "date": "Tanggal Dihapus"
+  },
+  "about": {
+    "title": "Tentang Beberes",
+    "subtitle": "Pembersih Sistem Kinerja Tinggi & Pengoptimal Ruang Disk untuk macOS dan Pengembang.",
+    "engine": "Mesin Utama",
+    "privacy": "Privasi Terjamin",
+    "safetyHighlights": "Keamanan & Presisi Tingkat Tinggi",
+    "highlight1": "Integrasi Tong Sampah native macOS dengan kemampuan pemulihan berkas",
+    "highlight2": "Whitelist sistem terlindungi untuk mencegah kerusakan OS tanpa sengaja",
+    "highlight3": "Pembersih cerdas workspace developer untuk node_modules, venv, dan cache"
   }
 }
+
 

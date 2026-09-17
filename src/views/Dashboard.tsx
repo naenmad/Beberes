@@ -7,6 +7,7 @@ import type { CleanResult } from '../lib/commands';
 import { formatSize } from '../lib/utils';
 import Card, { CardBody } from '../components/ui/Card';
 import Button from '../components/ui/Button';
+import PageHeader from '../components/layout/PageHeader';
 import ConfirmModal from '../components/ui/ConfirmModal';
 import CleaningFlowModal from '../components/ui/CleaningFlowModal';
 import StorageBreakdownBar from '../components/ui/StorageBreakdownBar';
@@ -26,6 +27,7 @@ import {
   Eye,
   Layers,
   Trash2,
+  LayoutDashboard,
 } from 'lucide-react';
 
 export default function Dashboard() {
@@ -122,55 +124,54 @@ export default function Dashboard() {
   return (
     <div className="space-y-6 animate-fade-in pb-16">
       {/* Top Action & Overview Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">
-            {t('dashboard.title')}
-          </h2>
-          <p className="text-xs text-slate-500 dark:text-neutral-400 mt-0.5">
-            {isScanning
-              ? t('dashboard.scanningDesc')
-              : totalCleanable > 0
-              ? t('dashboard.detectedDesc', { size: formatSize(totalCleanable), count: totalItemsCount })
-              : t('dashboard.peakConditionDesc')}
-          </p>
-        </div>
+      <PageHeader
+        icon={<LayoutDashboard size={20} />}
+        iconBgColor="bg-blue-500/10 text-blue-600 dark:text-blue-400"
+        title={t('dashboard.title')}
+        subtitle={
+          isScanning
+            ? t('dashboard.scanningDesc')
+            : totalCleanable > 0
+            ? t('dashboard.detectedDesc', { size: formatSize(totalCleanable), count: totalItemsCount })
+            : t('dashboard.peakConditionDesc')
+        }
+        actions={
+          <>
+            {cleanHistory.length > 0 && (
+              <Button
+                onClick={() => setShowHistoryModal(true)}
+                variant="secondary"
+                size="sm"
+                icon={<History size={14} />}
+              >
+                {t('common.history')}
+              </Button>
+            )}
 
-        <div className="flex items-center gap-2">
-          {cleanHistory.length > 0 && (
+            {totalCleanable > 0 && !isScanning && (
+              <Button
+                onClick={handleSmartCleanClick}
+                loading={isCleaning}
+                variant="danger"
+                size="sm"
+                icon={<Zap size={14} />}
+              >
+                {t('dashboard.smartClean')} ({formatSize(totalCleanable)})
+              </Button>
+            )}
+
             <Button
-              onClick={() => setShowHistoryModal(true)}
-              variant="secondary"
+              onClick={runFullScan}
+              loading={isScanning}
+              variant="primary"
               size="sm"
-              icon={<History size={14} />}
+              icon={<RefreshCw size={14} />}
             >
-              {t('common.history')}
+              {t('dashboard.scanSystem')}
             </Button>
-          )}
-
-          {totalCleanable > 0 && !isScanning && (
-            <Button
-              onClick={handleSmartCleanClick}
-              loading={isCleaning}
-              variant="danger"
-              size="sm"
-              icon={<Zap size={14} />}
-            >
-              {t('dashboard.smartClean')} ({formatSize(totalCleanable)})
-            </Button>
-          )}
-
-          <Button
-            onClick={runFullScan}
-            loading={isScanning}
-            icon={<RefreshCw size={14} />}
-            variant="secondary"
-            size="sm"
-          >
-            {isScanning ? t('common.scanning') : t('dashboard.scanSystem')}
-          </Button>
-        </div>
-      </div>
+          </>
+        }
+      />
 
       {/* Storage Breakdown Multi-color Bar (macOS System Settings Style) */}
       {diskInfo && (

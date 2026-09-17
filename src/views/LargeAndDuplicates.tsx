@@ -10,6 +10,7 @@ import {
 } from '../lib/commands';
 import { formatSize } from '../lib/utils';
 import Button from '../components/ui/Button';
+import PageHeader from '../components/layout/PageHeader';
 import ConfirmModal from '../components/ui/ConfirmModal';
 import { CardSkeleton } from '../components/ui/SkeletonLoader';
 import {
@@ -195,47 +196,38 @@ export default function LargeAndDuplicates() {
   };
 
   return (
-    <div className="space-y-6 animate-fade-in pb-12">
+    <div className="space-y-6 animate-fade-in pb-16">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-xl bg-violet-500/10 text-violet-500 flex items-center justify-center">
-              <Layers size={18} />
-            </div>
-            <h1 className="text-xl font-bold text-slate-900 dark:text-white">
-              {t('largeDuplicates.title', 'Large & Duplicate Files')}
-            </h1>
-          </div>
-          <p className="text-xs text-slate-500 dark:text-neutral-400 mt-1">
-            {t('largeDuplicates.subtitle', 'Reclaim gigabytes by hunting down massive files, duplicate copies, and forgotten items.')}
-          </p>
-        </div>
+      <PageHeader
+        icon={<Layers size={20} />}
+        iconColor="text-violet-500"
+        title={t('largeDuplicates.title', 'Large & Duplicate Files')}
+        subtitle={t('largeDuplicates.subtitle', 'Reclaim gigabytes by hunting down massive files, duplicate copies, and forgotten items.')}
+        actions={
+          <>
+            <button
+              type="button"
+              onClick={toggleDeleteToTrash}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold glass-panel text-slate-700 dark:text-neutral-200 cursor-pointer hover:border-violet-500/40 transition-colors"
+            >
+              <Trash2 size={13} className={deleteToTrash ? 'text-blue-500' : 'text-rose-500'} />
+              <span>
+                {t('common.mode')}: {deleteToTrash ? t('common.trashMode') : t('common.directDelete')}
+              </span>
+            </button>
 
-        {/* Global Action & Deletion Mode Toggle */}
-        <div className="flex items-center gap-2 shrink-0">
-          <button
-            type="button"
-            onClick={toggleDeleteToTrash}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold glass-panel text-slate-700 dark:text-neutral-200 cursor-pointer hover:border-blue-500/40 transition-colors"
-          >
-            <Trash2 size={13} className={deleteToTrash ? 'text-blue-500' : 'text-rose-500'} />
-            <span>
-              {t('common.mode')}: {deleteToTrash ? t('common.trashMode') : t('common.directDelete')}
-            </span>
-          </button>
-
-          <Button
-            onClick={() => loadData(minLargeSizeMb)}
-            loading={isLoading}
-            variant="secondary"
-            size="sm"
-            icon={<RefreshCw size={13} />}
-          >
-            {isLoading ? t('common.scanning') : t('common.refresh')}
-          </Button>
-        </div>
-      </div>
+            <Button
+              onClick={() => loadData(minLargeSizeMb)}
+              loading={isLoading}
+              variant="secondary"
+              size="sm"
+              icon={<RefreshCw size={13} />}
+            >
+              {isLoading ? t('common.scanning') : t('common.refresh')}
+            </Button>
+          </>
+        }
+      />
 
       {/* Tabs & Filter Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">

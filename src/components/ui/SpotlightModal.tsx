@@ -22,6 +22,7 @@ import {
   CornerDownLeft,
   ArrowUpDown,
   RefreshCw,
+  Info,
 } from 'lucide-react';
 
 interface SpotlightItem {
@@ -39,6 +40,7 @@ export default function SpotlightModal() {
   const {
     isSpotlightOpen,
     closeSpotlight,
+    openAboutModal,
     setCurrentPage,
     toggleDarkMode,
     isDarkMode,
@@ -227,6 +229,18 @@ export default function SpotlightModal() {
         action: () => {
           clearIconCache().catch(() => {});
           closeSpotlight();
+        },
+        badge: 'Action',
+      },
+      {
+        id: 'action-about',
+        title: t('about.title', 'About Beberes'),
+        subtitle: t('about.subtitle', 'App specifications, version, and architecture'),
+        category: 'action',
+        icon: <Info size={15} className="text-blue-500" />,
+        action: () => {
+          closeSpotlight();
+          openAboutModal();
         },
         badge: 'Action',
       },

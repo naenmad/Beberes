@@ -58,6 +58,28 @@ const STORAGE_CUSTOM_PATHS_KEY = 'beberes_custom_scan_paths';
 const STORAGE_LANG_KEY = 'beberes_language';
 
 const DEFAULT_WHITELIST = ['/System', '/Library/CoreServices', '/usr', '/bin', '/sbin'];
+const STORAGE_PAGE_KEY = 'beberes_current_page';
+
+function getStoredPage(): ViewPage {
+  try {
+    const val = localStorage.getItem(STORAGE_PAGE_KEY) as ViewPage | null;
+    const validPages: ViewPage[] = [
+      'dashboard',
+      'quick-review',
+      'large-duplicates',
+      'trash-manager',
+      'tidy-up',
+      'apps',
+      'system-clean',
+      'dev-workspace',
+      'settings',
+    ];
+    if (val && validPages.includes(val)) return val;
+    return 'dashboard';
+  } catch {
+    return 'dashboard';
+  }
+}
 
 function getStoredLanguage(): string {
   try {
@@ -129,6 +151,11 @@ interface AppState {
   closeSpotlight: () => void;
   toggleSpotlight: () => void;
 
+  // About App Modal
+  isAboutModalOpen: boolean;
+  openAboutModal: () => void;
+  closeAboutModal: () => void;
+
   // Theme
   isDarkMode: boolean;
   toggleDarkMode: () => void;
@@ -197,14 +224,24 @@ interface AppState {
 
 export const useAppStore = create<AppState>((set, get) => ({
   // Navigation
-  currentPage: 'dashboard',
-  setCurrentPage: (page) => set({ currentPage: page }),
+  currentPage: getStoredPage(),
+  setCurrentPage: (page) => {
+    try {
+      localStorage.setItem(STORAGE_PAGE_KEY, page);
+    } catch {}
+    set({ currentPage: page });
+  },
 
   // Spotlight Command Palette
   isSpotlightOpen: false,
   openSpotlight: () => set({ isSpotlightOpen: true }),
   closeSpotlight: () => set({ isSpotlightOpen: false }),
   toggleSpotlight: () => set((state) => ({ isSpotlightOpen: !state.isSpotlightOpen })),
+
+  // About App Modal
+  isAboutModalOpen: false,
+  openAboutModal: () => set({ isAboutModalOpen: true }),
+  closeAboutModal: () => set({ isAboutModalOpen: false }),
 
   // Theme
   isDarkMode: (() => {

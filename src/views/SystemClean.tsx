@@ -6,6 +6,7 @@ import { formatSize } from '../lib/utils';
 import Card, { CardHeader, CardBody } from '../components/ui/Card';
 import Checkbox from '../components/ui/Checkbox';
 import Button from '../components/ui/Button';
+import PageHeader from '../components/layout/PageHeader';
 import ConfirmModal from '../components/ui/ConfirmModal';
 import CleaningFlowModal from '../components/ui/CleaningFlowModal';
 import { CardSkeleton } from '../components/ui/SkeletonLoader';
@@ -149,6 +150,43 @@ export default function SystemClean() {
 
   return (
     <div className="space-y-6 animate-fade-in pb-20">
+      {/* Header */}
+      <PageHeader
+        icon={<Sparkles size={20} />}
+        iconColor="text-blue-500"
+        title={t('systemClean.title')}
+        subtitle={t('systemClean.subtitle')}
+        badge={
+          totalItemsCount > 0 ? (
+            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400">
+              {t('systemClean.itemsCount', '{count} items', { count: totalItemsCount })}
+            </span>
+          ) : undefined
+        }
+        actions={
+          <>
+            <button
+              onClick={toggleDeleteToTrash}
+              title="Toggle delete mode"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold glass-panel text-slate-700 dark:text-neutral-200 cursor-pointer hover:border-blue-500/40 transition-colors"
+            >
+              <Trash2 size={13} className={deleteToTrash ? 'text-blue-500' : 'text-rose-500'} />
+              <span>{t('common.mode')}: {deleteToTrash ? t('common.trashMode') : t('common.directDelete')}</span>
+            </button>
+
+            <Button
+              onClick={runScan}
+              loading={isScanning}
+              icon={<RefreshCw size={14} />}
+              variant="secondary"
+              size="sm"
+            >
+              {isScanning ? t('common.scanning') : t('systemClean.scanButton')}
+            </Button>
+          </>
+        }
+      />
+
       {/* Actions & Search Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex-1 max-w-md relative">
@@ -172,15 +210,6 @@ export default function SystemClean() {
               {allItemsSelected ? t('common.deselectAll') : t('common.selectAll')}
             </Button>
           )}
-          <Button
-            onClick={runScan}
-            loading={isScanning}
-            icon={<RefreshCw size={14} />}
-            variant="secondary"
-            size="sm"
-          >
-            {isScanning ? t('common.scanning') : t('systemClean.scanButton')}
-          </Button>
         </div>
       </div>
 

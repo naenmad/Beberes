@@ -12,6 +12,7 @@ import {
 } from '../lib/commands';
 import { formatSize } from '../lib/utils';
 import Button from '../components/ui/Button';
+import PageHeader from '../components/layout/PageHeader';
 import { CardSkeleton } from '../components/ui/SkeletonLoader';
 import {
   Sparkles,
@@ -438,52 +439,48 @@ export default function QuickReview() {
   const isFinished = items.length > 0 && currentIndex >= items.length;
 
   return (
-    <div className="space-y-5 animate-fade-in pb-20">
-      {/* Top Header & Directory Switcher */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
-              {t('quickReview.title')}
-            </h1>
-            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400">
-              {items.length} {t('quickReview.filesInQueue')}
-            </span>
-          </div>
-          <p className="text-xs text-slate-500 dark:text-neutral-400 mt-1">
-            {t('quickReview.subtitle')}
-          </p>
-        </div>
+    <div className="space-y-6 animate-fade-in pb-20">
+      {/* Top Header */}
+      <PageHeader
+        icon={<Eye size={20} />}
+        iconColor="text-purple-500"
+        title={t('quickReview.title')}
+        subtitle={t('quickReview.subtitle')}
+        badge={
+          <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-600 dark:text-purple-400">
+            {items.length} {t('quickReview.filesInQueue')}
+          </span>
+        }
+        actions={
+          <>
+            <button
+              type="button"
+              onClick={toggleDeleteToTrash}
+              title={
+                deleteToTrash
+                  ? 'Current: Move to macOS Trash (can be restored)'
+                  : 'Current: Direct Delete (instantly frees storage)'
+              }
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold glass-panel text-slate-700 dark:text-neutral-200 cursor-pointer hover:border-purple-500/40 transition-colors"
+            >
+              <Trash2 size={13} className={deleteToTrash ? 'text-blue-500' : 'text-rose-500'} />
+              <span>
+                {t('common.mode')}: {deleteToTrash ? t('common.trashMode') : t('common.directDelete')}
+              </span>
+            </button>
 
-        {/* Global Action & Deletion Mode Toggle */}
-        <div className="flex items-center gap-2 shrink-0">
-          <button
-            type="button"
-            onClick={toggleDeleteToTrash}
-            title={
-              deleteToTrash
-                ? 'Current: Move to macOS Trash (can be restored)'
-                : 'Current: Direct Delete (instantly frees storage)'
-            }
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold glass-panel text-slate-700 dark:text-neutral-200 cursor-pointer hover:border-blue-500/40 transition-colors"
-          >
-            <Trash2 size={13} className={deleteToTrash ? 'text-blue-500' : 'text-rose-500'} />
-            <span>
-              {t('common.mode')}: {deleteToTrash ? t('common.trashMode') : t('common.directDelete')}
-            </span>
-          </button>
-
-          <Button
-            onClick={() => loadDirectory(currentDirStr, filter)}
-            loading={isLoading}
-            variant="secondary"
-            size="sm"
-            icon={<RefreshCw size={13} />}
-          >
-            {isLoading ? t('common.scanning') : t('common.refresh')}
-          </Button>
-        </div>
-      </div>
+            <Button
+              onClick={() => loadDirectory(currentDirStr, filter)}
+              loading={isLoading}
+              variant="secondary"
+              size="sm"
+              icon={<RefreshCw size={13} />}
+            >
+              {isLoading ? t('common.scanning') : t('common.refresh')}
+            </Button>
+          </>
+        }
+      />
 
       {/* Directory & Kind Filter Tabs */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">

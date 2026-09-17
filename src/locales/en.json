@@ -384,6 +384,17 @@
     "emptyConfirmTitle": "Empty macOS Trash?",
     "deleteSelectedTitle": "Delete Selected Items?",
     "date": "Date Deleted"
+  },
+  "about": {
+    "title": "About Beberes",
+    "subtitle": "High-Performance System Cleaner & Storage Optimizer for macOS and Developers.",
+    "engine": "Core Engine",
+    "privacy": "Privacy First",
+    "safetyHighlights": "Safety & Precision Highlights",
+    "highlight1": "Native macOS Trash integration with put-back capability",
+    "highlight2": "Protected system whitelist prevents accidental OS damage",
+    "highlight3": "Smart dev workspace cleaner for node_modules, venv, and caches"
   }
 }
+
 

@@ -6,6 +6,7 @@ import { formatSize } from '../lib/utils';
 import { useTranslation } from '../lib/i18n';
 import Card, { CardHeader, CardBody } from '../components/ui/Card';
 import Button from '../components/ui/Button';
+import PageHeader from '../components/layout/PageHeader';
 import {
   Shield,
   FolderPlus,
@@ -144,14 +145,12 @@ export default function Settings() {
   return (
     <div className="space-y-6 animate-fade-in max-w-4xl pb-16">
       {/* Top Header */}
-      <div>
-        <h2 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">
-          {t('settings.title')}
-        </h2>
-        <p className="text-xs text-slate-500 dark:text-neutral-400 mt-0.5">
-          {t('settings.subtitle')}
-        </p>
-      </div>
+      <PageHeader
+        icon={<Sliders size={20} />}
+        iconColor="text-slate-600 dark:text-neutral-300"
+        title={t('settings.title')}
+        subtitle={t('settings.subtitle')}
+      />
 
       {/* Segmented Navigation Tabs */}
       <div className="flex items-center gap-1.5 p-1 rounded-2xl glass-panel border border-black/[0.06] dark:border-white/[0.08] overflow-x-auto">

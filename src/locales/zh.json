@@ -385,5 +385,16 @@
     "emptyConfirmTitle": "确定彻底清倒 macOS 废纸篓？",
     "deleteSelectedTitle": "永久删除选中的项目？",
     "date": "删除日期"
+  },
+  "about": {
+    "title": "关于 Beberes",
+    "subtitle": "专为 macOS 与开发者打造的高性能系统清理与存储优化工具。",
+    "engine": "核心引擎",
+    "privacy": "隐私至上",
+    "safetyHighlights": "安全与精准核心亮点",
+    "highlight1": "原生集成 macOS 废纸篓并支持原处放回",
+    "highlight2": "受保护的系统白名单防止误删核心系统文件",
+    "highlight3": "针对 node_modules、venv 与构建缓存的智能开发环境清理"
   }
 }
+

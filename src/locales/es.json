@@ -385,5 +385,16 @@
     "emptyConfirmTitle": "¿Vaciar la Papelera de macOS?",
     "deleteSelectedTitle": "¿Eliminar permanentemente los elementos seleccionados?",
     "date": "Fecha de Eliminación"
+  },
+  "about": {
+    "title": "Acerca de Beberes",
+    "subtitle": "Limpiador de sistema y optimizador de almacenamiento de alto rendimiento para macOS y desarrolladores.",
+    "engine": "Motor Principal",
+    "privacy": "Privacidad Primero",
+    "safetyHighlights": "Puntos Destacados de Seguridad y Precisión",
+    "highlight1": "Integración nativa con la Papelera de macOS con función de restaurar",
+    "highlight2": "Lista blanca protegida del sistema que evita daños accidentales al SO",
+    "highlight3": "Limpiador inteligente de entornos de desarrollo para node_modules, venv y cachés"
   }
 }
+

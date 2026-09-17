@@ -10,6 +10,7 @@ import {
 } from '../lib/commands';
 import { formatSize } from '../lib/utils';
 import Button from '../components/ui/Button';
+import PageHeader from '../components/layout/PageHeader';
 import ConfirmModal from '../components/ui/ConfirmModal';
 import { CardSkeleton } from '../components/ui/SkeletonLoader';
 import {
@@ -145,45 +146,37 @@ export default function TrashManager() {
   };
 
   return (
-    <div className="space-y-6 animate-fade-in pb-12">
+    <div className="space-y-6 animate-fade-in pb-16">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-xl bg-rose-500/10 text-rose-500 flex items-center justify-center">
-              <Trash2 size={18} />
-            </div>
-            <h1 className="text-xl font-bold text-slate-900 dark:text-white">
-              {t('trashManager.title', 'Trash Manager')}
-            </h1>
-          </div>
-          <p className="text-xs text-slate-500 dark:text-neutral-400 mt-1">
-            {t('trashManager.subtitle', 'Inspect your macOS Trash bin, reclaim storage, or safely empty all contents.')}
-          </p>
-        </div>
+      <PageHeader
+        icon={<Trash2 size={20} />}
+        iconColor="text-rose-500"
+        title={t('trashManager.title', 'Trash Manager')}
+        subtitle={t('trashManager.subtitle', 'Inspect your macOS Trash bin, reclaim storage, or safely empty all contents.')}
+        actions={
+          <>
+            <Button
+              onClick={loadData}
+              loading={isLoading}
+              variant="secondary"
+              size="sm"
+              icon={<RefreshCw size={13} />}
+            >
+              {isLoading ? t('common.scanning') : t('common.refresh')}
+            </Button>
 
-        <div className="flex items-center gap-2 shrink-0">
-          <Button
-            onClick={loadData}
-            loading={isLoading}
-            variant="secondary"
-            size="sm"
-            icon={<RefreshCw size={13} />}
-          >
-            {isLoading ? t('common.scanning') : t('common.refresh')}
-          </Button>
-
-          <Button
-            variant="danger"
-            size="sm"
-            disabled={!data || data.total_items === 0}
-            onClick={() => setShowEmptyModal(true)}
-            icon={<Trash size={13} />}
-          >
-            {t('trashManager.emptyAll', 'Empty Trash')}
-          </Button>
-        </div>
-      </div>
+            <Button
+              variant="danger"
+              size="sm"
+              disabled={!data || data.total_items === 0}
+              onClick={() => setShowEmptyModal(true)}
+              icon={<Trash size={13} />}
+            >
+              {t('trashManager.emptyAll', 'Empty Trash')}
+            </Button>
+          </>
+        }
+      />
 
       {/* Storage & Statistics Card */}
       {data && (

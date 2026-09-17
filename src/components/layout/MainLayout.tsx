@@ -1,6 +1,7 @@
 import FloatingSidebar from './FloatingSidebar';
 import TopBar from './TopBar';
 import SpotlightModal from '../ui/SpotlightModal';
+import AboutModal from '../ui/AboutModal';
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -19,9 +20,11 @@ export default function MainLayout({ children }: MainLayoutProps) {
         </main>
       </div>
 
-      {/* Global Command Palette / Spotlight */}
+      {/* Global Modals */}
       <SpotlightModal />
+      <AboutModal />
     </div>
   );
 }
+
 
