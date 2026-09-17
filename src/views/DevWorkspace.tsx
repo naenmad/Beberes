@@ -1,4 +1,5 @@
 import { useAppStore } from '../store/appStore';
+import { useTranslation } from '../lib/i18n';
 import { scanDevWorkspaces, cleanSelectedItems, revealInFinder } from '../lib/commands';
 import type { CleanResult } from '../lib/commands';
 import { formatSize } from '../lib/utils';
@@ -6,6 +7,7 @@ import Card, { CardHeader, CardBody } from '../components/ui/Card';
 import Checkbox from '../components/ui/Checkbox';
 import Button from '../components/ui/Button';
 import ConfirmModal from '../components/ui/ConfirmModal';
+import CleaningFlowModal from '../components/ui/CleaningFlowModal';
 import { CardSkeleton } from '../components/ui/SkeletonLoader';
 import {
   FolderOpen,
@@ -21,8 +23,6 @@ import {
   Layers,
   Search,
   ExternalLink,
-  ShieldCheck,
-  Eye,
   CheckSquare,
   Square,
   Filter,
@@ -31,16 +31,17 @@ import {
 import { useState, useMemo } from 'react';
 
 const categoryIcons: Record<string, React.ReactNode> = {
-  xcode_cache: <Hammer size={20} className="text-sky-500" />,
-  package_cache: <Layers size={20} className="text-indigo-500" />,
-  node_modules: <Package size={20} className="text-emerald-500" />,
-  cargo_target: <Box size={20} className="text-orange-500" />,
-  docker_volumes: <Container size={20} className="text-blue-500" />,
+  xcode_cache: <Hammer size={18} className="text-sky-500" />,
+  package_cache: <Layers size={18} className="text-indigo-500" />,
+  node_modules: <Package size={18} className="text-emerald-500" />,
+  cargo_target: <Box size={18} className="text-orange-500" />,
+  docker_volumes: <Container size={18} className="text-blue-500" />,
 };
 
 type SizeFilter = 'all' | '100mb' | '1gb';
 
 export default function DevWorkspace() {
+  const { t } = useTranslation();
   const {
     devCategories,
     setDevCategories,
@@ -48,8 +49,8 @@ export default function DevWorkspace() {
     setIsScanning,
     isCleaning,
     setIsCleaning,
-    isDryRun,
-    toggleDryRun,
+    deleteToTrash,
+    toggleDeleteToTrash,
     toggleCategorySelection,
     toggleItemSelection,
     selectAll,
@@ -63,6 +64,7 @@ export default function DevWorkspace() {
   const [searchQuery, setSearchQuery] = useState('');
   const [sizeFilter, setSizeFilter] = useState<SizeFilter>('all');
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [showCleaningFlow, setShowCleaningFlow] = useState(false);
 
   const selectedSize = getSelectedSize('dev');
   const selectedItems = getSelectedItems('dev');
@@ -100,20 +102,18 @@ export default function DevWorkspace() {
 
   const executeClean = async () => {
     if (selectedItems.length === 0) return;
+    setShowConfirmModal(false);
+    setShowCleaningFlow(true);
     setIsCleaning(true);
     try {
       const result = await cleanSelectedItems(
         selectedItems.map((item) => item.path),
-        isDryRun
+        false,
+        deleteToTrash
       );
       setCleanResult(result);
-      if (!isDryRun) {
-        recordCleanResult(result.freedBytes, selectedItems.length, false, ['Dev Workspace']);
-        setShowConfirmModal(false);
-        await runScan();
-      } else {
-        setShowConfirmModal(false);
-      }
+      recordCleanResult(result.freedBytes, selectedItems.length, false, ['Dev Workspace']);
+      await runScan();
     } catch (err) {
       console.error('Clean failed:', err);
     } finally {
@@ -152,17 +152,17 @@ export default function DevWorkspace() {
   }, [devCategories, searchQuery, sizeFilter]);
 
   return (
-    <div className="space-y-6 animate-fade-in pb-16">
+    <div className="space-y-6 animate-fade-in pb-20">
       {/* Actions & Search Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex-1 max-w-md relative">
-          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
-            placeholder="Search dev caches, packages, or paths..."
+            placeholder={t('devWorkspace.searchPlaceholder')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 text-sm bg-white dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 dark:text-neutral-200"
+            className="w-full pl-9 pr-4 py-2 text-xs bg-white dark:bg-neutral-800 border border-black/[0.06] dark:border-white/[0.08] rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 dark:text-neutral-200"
           />
         </div>
         <div className="flex items-center gap-2">
@@ -171,19 +171,19 @@ export default function DevWorkspace() {
               variant="secondary"
               size="sm"
               onClick={() => selectAll('dev', !allItemsSelected)}
-              icon={allItemsSelected ? <Square size={14} /> : <CheckSquare size={14} />}
+              icon={allItemsSelected ? <Square size={13} /> : <CheckSquare size={13} />}
             >
-              {allItemsSelected ? 'Deselect All' : 'Select All'}
+              {allItemsSelected ? t('common.deselectAll') : t('common.selectAll')}
             </Button>
           )}
           <Button
             onClick={runScan}
             loading={isScanning}
-            icon={<RefreshCw size={15} />}
+            icon={<RefreshCw size={14} />}
             variant="secondary"
             size="sm"
           >
-            {isScanning ? 'Scanning...' : 'Scan Workspaces'}
+            {isScanning ? t('common.scanning') : t('devWorkspace.scanButton')}
           </Button>
         </div>
       </div>
@@ -191,76 +191,26 @@ export default function DevWorkspace() {
       {/* Filter Pills Bar */}
       {devCategories.length > 0 && (
         <div className="flex items-center gap-2 text-xs">
-          <span className="text-slate-400 dark:text-neutral-500 flex items-center gap-1">
-            <Filter size={12} /> Size filter:
+          <span className="text-slate-400 dark:text-neutral-500 flex items-center gap-1 font-medium">
+            <Filter size={12} /> {t('common.filter')}:
           </span>
           {(['all', '100mb', '1gb'] as SizeFilter[]).map((f) => (
             <button
               key={f}
               onClick={() => setSizeFilter(f)}
-              className={`px-2.5 py-1 rounded-full font-medium transition-colors cursor-pointer ${
+              className={`px-3 py-1 rounded-full font-semibold transition-colors cursor-pointer ${
                 sizeFilter === f
-                  ? 'bg-blue-500 text-white shadow-xs'
-                  : 'bg-slate-100 dark:bg-neutral-800 text-slate-600 dark:text-neutral-400 hover:bg-slate-200 dark:hover:bg-neutral-700'
+                  ? 'bg-blue-600 text-white shadow-xs'
+                  : 'bg-black/[0.04] dark:bg-white/[0.06] text-slate-600 dark:text-neutral-400 hover:bg-black/[0.07] dark:hover:bg-white/[0.1]'
               }`}
             >
-              {f === 'all' ? 'All Sizes' : f === '100mb' ? '> 100 MB' : '> 1 GB'}
+              {f === 'all'
+                ? t('devWorkspace.filterAll')
+                : f === '100mb'
+                ? t('devWorkspace.filter100mb')
+                : t('devWorkspace.filter1gb')}
             </button>
           ))}
-        </div>
-      )}
-
-      {/* Clean result banner */}
-      {cleanResult && (
-        <div
-          className={`flex items-center justify-between p-4 rounded-xl border animate-fade-in ${
-            cleanResult.isSimulation
-              ? 'bg-sky-50 dark:bg-sky-500/10 border-sky-200 dark:border-sky-500/20'
-              : 'bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/20'
-          }`}
-        >
-          <div className="flex items-center gap-3">
-            <div
-              className={`p-2 rounded-lg ${
-                cleanResult.isSimulation
-                  ? 'bg-sky-100 dark:bg-sky-500/20 text-sky-600 dark:text-sky-400'
-                  : 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400'
-              }`}
-            >
-              {cleanResult.isSimulation ? <ShieldCheck size={18} /> : <Trash2 size={18} />}
-            </div>
-            <div>
-              <p
-                className={`text-sm font-medium ${
-                  cleanResult.isSimulation
-                    ? 'text-sky-800 dark:text-sky-300'
-                    : 'text-emerald-800 dark:text-emerald-300'
-                }`}
-              >
-                {cleanResult.isSimulation ? '[Simulation / Dry Run]' : 'Clean Complete:'}{' '}
-                {cleanResult.isSimulation
-                  ? `Would clean ${cleanResult.cleaned} items safely`
-                  : `Successfully cleaned ${cleanResult.cleaned} items`}
-              </p>
-              <p
-                className={`text-xs ${
-                  cleanResult.isSimulation
-                    ? 'text-sky-600 dark:text-sky-400'
-                    : 'text-emerald-600 dark:text-emerald-400'
-                }`}
-              >
-                {cleanResult.isSimulation
-                  ? `Estimated space reclaim: ${formatSize(cleanResult.freedBytes)} (no files deleted)`
-                  : `Freed ${formatSize(cleanResult.freedBytes)} of disk space`}
-              </p>
-            </div>
-          </div>
-          <button
-            onClick={() => setCleanResult(null)}
-            className="text-xs text-slate-400 hover:text-slate-600 cursor-pointer"
-          >
-            Dismiss
-          </button>
         </div>
       )}
 
@@ -291,24 +241,24 @@ export default function DevWorkspace() {
                       onClick={() => toggleExpand(category.id)}
                       className="flex items-center gap-3 flex-1 cursor-pointer"
                     >
-                      <div className="p-2 rounded-lg bg-slate-50 dark:bg-neutral-700/50">
-                        {categoryIcons[category.id] || <FolderOpen size={20} className="text-slate-400" />}
+                      <div className="p-2 rounded-xl bg-black/[0.03] dark:bg-white/[0.05]">
+                        {categoryIcons[category.id] || <FolderOpen size={18} className="text-slate-400" />}
                       </div>
                       <div className="text-left flex-1">
-                        <h3 className="text-sm font-semibold text-slate-800 dark:text-white">
+                        <h3 className="text-sm font-bold text-slate-900 dark:text-white">
                           {category.name}
                         </h3>
-                        <p className="text-xs text-slate-400 dark:text-neutral-500">
+                        <p className="text-xs text-slate-400 dark:text-neutral-400">
                           {category.items.length} items
                         </p>
                       </div>
-                      <span className="text-sm font-semibold text-slate-600 dark:text-neutral-300 mr-2">
+                      <span className="text-xs font-bold text-slate-600 dark:text-neutral-300 mr-2">
                         {formatSize(category.size)}
                       </span>
                       {isExpanded ? (
-                        <ChevronDown size={16} className="text-slate-400" />
+                        <ChevronDown size={15} className="text-slate-400" />
                       ) : (
-                        <ChevronRight size={16} className="text-slate-400" />
+                        <ChevronRight size={15} className="text-slate-400" />
                       )}
                     </button>
                   </div>
@@ -316,11 +266,11 @@ export default function DevWorkspace() {
 
                 {isExpanded && (
                   <CardBody className="!py-2">
-                    <div className="divide-y divide-slate-50 dark:divide-neutral-700/50">
+                    <div className="divide-y divide-black/[0.04] dark:divide-white/[0.06]">
                       {category.items.map((item) => (
                         <div
                           key={item.id}
-                          className="flex items-center gap-3 py-2.5 hover:bg-slate-50/50 dark:hover:bg-neutral-700/20 -mx-2 px-2 rounded-lg transition-colors duration-150 group"
+                          className="flex items-center gap-3 py-2.5 hover:bg-black/[0.02] dark:hover:bg-white/[0.03] -mx-2 px-2 rounded-xl transition-colors group"
                         >
                           <Checkbox
                             checked={item.selected}
@@ -330,29 +280,29 @@ export default function DevWorkspace() {
                           />
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2">
-                              <p className="text-sm font-medium text-slate-700 dark:text-neutral-200 truncate">
+                              <p className="text-xs font-semibold text-slate-800 dark:text-neutral-200 truncate">
                                 {item.name}
                               </p>
                               {item.category === 'node_modules' && (
-                                <span className="inline-block px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400">
-                                  &gt; 90 days inactive
+                                <span className="inline-block px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                                  Inactive &gt; 90 days
                                 </span>
                               )}
                             </div>
-                            <p className="text-xs text-slate-400 dark:text-neutral-500 truncate">
+                            <p className="text-[11px] text-slate-400 dark:text-neutral-500 truncate">
                               {item.path}
                             </p>
                           </div>
                           <div className="flex items-center gap-3 shrink-0">
-                            <span className="text-xs font-semibold text-slate-600 dark:text-neutral-300">
+                            <span className="text-xs font-bold text-slate-600 dark:text-neutral-300">
                               {formatSize(item.size)}
                             </span>
                             <button
                               onClick={(e) => handleReveal(e, item.path)}
-                              title="Reveal in Finder"
-                              className="p-1.5 rounded-lg text-slate-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-500/10 opacity-60 group-hover:opacity-100 transition-all duration-150"
+                              title={t('common.revealInFinder')}
+                              className="p-1.5 rounded-lg text-slate-400 hover:text-blue-500 hover:bg-black/[0.04] dark:hover:bg-white/[0.06] opacity-60 group-hover:opacity-100 transition-all"
                             >
-                              <ExternalLink size={15} />
+                              <ExternalLink size={14} />
                             </button>
                           </div>
                         </div>
@@ -365,58 +315,55 @@ export default function DevWorkspace() {
           })}
 
           {filteredCategories.length === 0 && !isScanning && (
-            <Card className="p-12 text-center">
-              <Sparkles size={40} className="text-slate-300 dark:text-neutral-600 mx-auto mb-3" />
-              <p className="text-sm text-slate-500 dark:text-neutral-400">
+            <div className="p-12 text-center rounded-2xl glass-panel">
+              <Sparkles size={36} className="text-slate-300 dark:text-neutral-600 mx-auto mb-3" />
+              <p className="text-sm font-semibold text-slate-700 dark:text-neutral-300">
                 {searchQuery || sizeFilter !== 'all'
-                  ? 'No matching developer caches found.'
-                  : 'No scan results yet. Click "Scan Workspaces" to detect developer junk.'}
+                  ? t('devWorkspace.emptySearch')
+                  : t('devWorkspace.emptyClean')}
               </p>
-            </Card>
+            </div>
           )}
         </div>
       )}
 
       {/* Sticky Clean Bar with Dry Run Toggle */}
       {selectedItems.length > 0 && (
-        <div className="sticky bottom-0 -mx-8 px-8 py-4 bg-white/90 dark:bg-neutral-900/90 backdrop-blur-lg border-t border-slate-100 dark:border-neutral-800 shadow-lg">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="sticky bottom-0 -mx-8 px-8 py-3.5 glass-panel border-t border-black/[0.06] dark:border-white/[0.08] shadow-lg">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 max-w-6xl mx-auto">
             <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <AlertTriangle size={16} className="text-amber-500" />
-                <span className="text-sm font-medium text-slate-700 dark:text-neutral-200">
-                  {selectedItems.length} selected ({formatSize(selectedSize)})
+              <div className="flex items-center gap-2 text-xs font-bold text-slate-800 dark:text-neutral-200">
+                <AlertTriangle size={15} className="text-amber-500" />
+                <span>
+                  {selectedItems.length} {t('common.selected')} ({formatSize(selectedSize)})
                 </span>
               </div>
 
-              {/* Simulation Mode Switch */}
               <button
                 type="button"
-                onClick={toggleDryRun}
-                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border transition-colors ${
-                  isDryRun
-                    ? 'bg-sky-50 text-sky-700 border-sky-300 dark:bg-sky-500/20 dark:text-sky-300 dark:border-sky-500/40'
-                    : 'bg-slate-50 text-slate-600 border-slate-200 dark:bg-neutral-800 dark:text-neutral-400 dark:border-neutral-700 hover:border-slate-300'
+                onClick={toggleDeleteToTrash}
+                title="Toggle delete mode"
+                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border transition-colors cursor-pointer ${
+                  deleteToTrash
+                    ? 'bg-blue-500/10 text-blue-600 border-blue-500/30 dark:text-blue-400'
+                    : 'bg-rose-500/10 text-rose-600 border-rose-500/30 dark:text-rose-400'
                 }`}
               >
-                <Eye size={12} />
-                <span>Dry Run: {isDryRun ? 'ON (Preview)' : 'OFF'}</span>
+                <Trash2 size={11} />
+                <span>{t('common.mode')}: {deleteToTrash ? t('common.trashMode') : t('common.directDelete')}</span>
               </button>
             </div>
 
             <Button
               onClick={handleCleanClick}
               loading={isCleaning}
-              variant={isDryRun ? 'primary' : 'danger'}
-              icon={isDryRun ? <ShieldCheck size={16} /> : <Trash2 size={16} />}
+              variant={deleteToTrash ? 'primary' : 'danger'}
+              size="sm"
+              icon={<Trash2 size={14} />}
             >
-              {isCleaning
-                ? isDryRun
-                  ? 'Simulating...'
-                  : 'Cleaning...'
-                : isDryRun
-                ? `Simulate Clean (${formatSize(selectedSize)})`
-                : `Clean Selected (${formatSize(selectedSize)})`}
+              {deleteToTrash
+                ? `${t('devWorkspace.cleanToTrash')} (${formatSize(selectedSize)})`
+                : `${t('devWorkspace.cleanSelected')} (${formatSize(selectedSize)})`}
             </Button>
           </div>
         </div>
@@ -428,11 +375,23 @@ export default function DevWorkspace() {
         onClose={() => setShowConfirmModal(false)}
         onConfirm={executeClean}
         isLoading={isCleaning}
-        title="Confirm Dev Workspace Cleanup"
+        title={t('devWorkspace.title')}
         itemsCount={selectedItems.length}
         totalBytes={selectedSize}
         paths={selectedItems.map((i) => i.path)}
-        isDryRun={isDryRun}
+        useTrash={deleteToTrash}
+      />
+
+      {/* Interactive Progress Flow Modal */}
+      <CleaningFlowModal
+        isOpen={showCleaningFlow}
+        onClose={() => setShowCleaningFlow(false)}
+        isCleaning={isCleaning}
+        isDryRun={false}
+        totalBytes={cleanResult?.freedBytes || selectedSize}
+        totalItems={cleanResult?.cleaned || selectedItems.length}
+        paths={selectedItems.map((i) => i.path)}
+        title={t('devWorkspace.title')}
       />
     </div>
   );

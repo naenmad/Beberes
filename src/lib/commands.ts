@@ -7,6 +7,40 @@ export interface CleanResult {
   isSimulation?: boolean;
 }
 
+export interface TidyItem {
+  id: string;
+  path: string;
+  name: string;
+  size: number;
+  lastModified: string;
+  category: string;
+  targetFolder: string;
+  isRedundantInstaller: boolean;
+  installedAppName?: string | null;
+  selected?: boolean;
+}
+
+export interface TidyScanResult {
+  sourcePath: string;
+  items: TidyItem[];
+  totalFiles: number;
+  totalSize: number;
+  redundantInstallersCount: number;
+  redundantInstallersSize: number;
+}
+
+export interface TidyAction {
+  itemPath: string;
+  targetFolderName: string;
+}
+
+export interface TidyExecuteResult {
+  movedCount: number;
+  organizedBytes: number;
+  isSimulation: boolean;
+  errors: string[];
+}
+
 /**
  * Scan system directories (cache, logs, browser cache, trash).
  */
@@ -31,14 +65,17 @@ export async function getDiskInfo(): Promise<DiskInfo> {
 /**
  * Clean selected items by their file paths.
  * Optional `dryRun` simulates the process without actually deleting.
+ * Optional `useTrash` moves files to macOS Trash instead of permanent deletion.
  */
 export async function cleanSelectedItems(
   paths: string[],
-  dryRun: boolean = false
+  dryRun: boolean = false,
+  useTrash: boolean = false
 ): Promise<CleanResult> {
   return await invoke<CleanResult>('clean_selected_items', {
     paths,
     dryRun,
+    useTrash,
   });
 }
 
@@ -62,3 +99,166 @@ export async function scanCustomPaths(paths: string[]): Promise<ScanCategory[]> 
 export async function pickFolder(): Promise<string | null> {
   return await invoke<string | null>('pick_folder');
 }
+
+/**
+ * Scan a directory for loose unorganized files and redundant installers.
+ */
+export async function scanTidyDirectory(path: string): Promise<TidyScanResult> {
+  return await invoke<TidyScanResult>('scan_tidy_directory', { path });
+}
+
+/**
+ * Execute organization by moving selected files into category folders.
+ */
+export async function executeTidyOrganization(
+  sourceDir: string,
+  actions: TidyAction[],
+  dryRun: boolean = false
+): Promise<TidyExecuteResult> {
+  return await invoke<TidyExecuteResult>('execute_tidy_organization', {
+    sourceDir,
+    actions,
+    dryRun,
+  });
+}
+
+/**
+ * Delete or trash redundant installer files.
+ */
+export async function cleanRedundantInstallers(
+  paths: string[],
+  dryRun: boolean = false,
+  useTrash: boolean = true
+): Promise<CleanResult> {
+  return await invoke<CleanResult>('clean_redundant_installers', {
+    paths,
+    dryRun,
+    useTrash,
+  });
+}
+
+export interface AppLeftoverItem {
+  path: string;
+  name: string;
+  kind: string; // 'app_support' | 'cache' | 'preferences' | 'saved_state' | 'container'
+  size: number;
+}
+
+export interface AppItem {
+  id: string;
+  name: string;
+  bundleId: string;
+  version: string;
+  path: string;
+  appSize: number;
+  leftoversSize: number;
+  totalSize: number;
+  lastModified: string;
+  isSystemApp: boolean;
+  icon?: string | null;
+  leftovers: AppLeftoverItem[];
+}
+
+export interface UninstallResult {
+  freedBytes: number;
+  deletedCount: number;
+  isSimulation: boolean;
+  errors: string[];
+}
+
+/**
+ * Scan all installed applications and their residual leftover files.
+ */
+export async function scanInstalledApps(): Promise<AppItem[]> {
+  return await invoke<AppItem[]>('scan_installed_apps');
+}
+
+/**
+ * Safely uninstall an application and its chosen residual leftover files.
+ */
+export async function uninstallApp(
+  appPath: string,
+  leftoverPaths: string[],
+  dryRun: boolean = false,
+  useTrash: boolean = true
+): Promise<UninstallResult> {
+  return await invoke<UninstallResult>('uninstall_app', {
+    appPath,
+    leftoverPaths,
+    dryRun,
+    useTrash,
+  });
+}
+
+export interface SystemDetails {
+  osName: string;
+  osVersion: string;
+  arch: string;
+  hostname: string;
+  kernelVersion: string;
+  fileSystem: string;
+  iconCacheCount: number;
+  iconCacheBytes: number;
+}
+
+/**
+ * Get macOS hardware and system specification details.
+ */
+export async function getSystemDetails(): Promise<SystemDetails> {
+  return await invoke<SystemDetails>('get_system_details');
+}
+
+/**
+ * Clear cached application icons from disk (~/.cache/beberes/icons).
+ */
+export async function clearIconCache(): Promise<number> {
+  return await invoke<number>('clear_icon_cache');
+}
+
+export interface ReviewFileItem {
+  id: string;
+  name: string;
+  path: string;
+  size: number;
+  extension: string;
+  kind: string;
+  dimensions?: string | null;
+  last_modified: string;
+  created: string;
+}
+
+export interface ReviewScanResult {
+  directory_path: string;
+  directory_name: string;
+  total_files: number;
+  total_size: number;
+  items: ReviewFileItem[];
+}
+
+/**
+ * Scan directory files for Quick Review triage.
+ */
+export async function scanReviewFiles(
+  directory: string,
+  filterType?: string
+): Promise<ReviewScanResult> {
+  return await invoke<ReviewScanResult>('scan_review_files', {
+    directory,
+    filterType,
+  });
+}
+
+/**
+ * Read thumbnail/preview as base64 data URL for images.
+ */
+export async function readFileThumbnail(path: string): Promise<string> {
+  return await invoke<string>('read_file_thumbnail', { path });
+}
+
+/**
+ * Rename a file on disk.
+ */
+export async function renameFile(oldPath: string, newName: string): Promise<string> {
+  return await invoke<string>('rename_file', { oldPath, newName });
+}
+

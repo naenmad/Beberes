@@ -2,7 +2,13 @@ mod commands;
 mod utils;
 
 use commands::cleaner::{clean_selected_items, pick_folder, reveal_in_finder};
-use commands::scanner::{get_disk_info, scan_custom_paths, scan_dev_workspaces, scan_system_directories};
+use commands::organizer::{clean_redundant_installers, execute_tidy_organization, scan_tidy_directory};
+use commands::reviewer::{read_file_thumbnail, rename_file, scan_review_files};
+use commands::scanner::{
+    clear_icon_cache, get_disk_info, get_system_details, scan_custom_paths, scan_dev_workspaces,
+    scan_system_directories,
+};
+use commands::uninstaller::{scan_installed_apps, uninstall_app};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -13,9 +19,19 @@ pub fn run() {
             scan_dev_workspaces,
             scan_custom_paths,
             get_disk_info,
+            get_system_details,
+            clear_icon_cache,
             clean_selected_items,
             reveal_in_finder,
             pick_folder,
+            scan_tidy_directory,
+            execute_tidy_organization,
+            clean_redundant_installers,
+            scan_installed_apps,
+            uninstall_app,
+            scan_review_files,
+            read_file_thumbnail,
+            rename_file,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

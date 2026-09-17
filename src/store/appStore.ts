@@ -36,10 +36,39 @@ export interface CleanHistoryEntry {
   categoryNames?: string[];
 }
 
-export type ViewPage = 'dashboard' | 'system-clean' | 'dev-workspace' | 'settings';
+export type ViewPage =
+  | 'dashboard'
+  | 'quick-review'
+  | 'tidy-up'
+  | 'apps'
+  | 'system-clean'
+  | 'dev-workspace'
+  | 'settings';
+export type UiScale = 'compact' | 'normal' | 'large';
 
 const STORAGE_LIFETIME_KEY = 'beberes_lifetime_bytes_freed';
 const STORAGE_HISTORY_KEY = 'beberes_clean_history';
+const STORAGE_SCALE_KEY = 'beberes_ui_scale';
+const STORAGE_CONFIRM_KEY = 'beberes_always_confirm';
+const STORAGE_SAFETY_KEY = 'beberes_safety_notice';
+const STORAGE_WHITELIST_KEY = 'beberes_whitelist_paths';
+const STORAGE_CUSTOM_PATHS_KEY = 'beberes_custom_scan_paths';
+const STORAGE_LANG_KEY = 'beberes_language';
+
+const DEFAULT_WHITELIST = ['/System', '/Library/CoreServices', '/usr', '/bin', '/sbin'];
+
+function getStoredLanguage(): string {
+  try {
+    const val = localStorage.getItem(STORAGE_LANG_KEY);
+    if (val) return val;
+    if (typeof navigator !== 'undefined' && navigator.language && navigator.language.toLowerCase().startsWith('id')) {
+      return 'id';
+    }
+    return 'en';
+  } catch {
+    return 'en';
+  }
+}
 
 function getStoredLifetime(): number {
   try {
@@ -53,6 +82,34 @@ function getStoredLifetime(): number {
 function getStoredHistory(): CleanHistoryEntry[] {
   try {
     const val = localStorage.getItem(STORAGE_HISTORY_KEY);
+    return val ? JSON.parse(val) : [];
+  } catch {
+    return [];
+  }
+}
+
+function getStoredScale(): UiScale {
+  try {
+    const val = localStorage.getItem(STORAGE_SCALE_KEY);
+    if (val === 'compact' || val === 'normal' || val === 'large') return val;
+    return 'normal';
+  } catch {
+    return 'normal';
+  }
+}
+
+function getStoredWhitelist(): string[] {
+  try {
+    const val = localStorage.getItem(STORAGE_WHITELIST_KEY);
+    return val ? JSON.parse(val) : DEFAULT_WHITELIST;
+  } catch {
+    return DEFAULT_WHITELIST;
+  }
+}
+
+function getStoredCustomPaths(): string[] {
+  try {
+    const val = localStorage.getItem(STORAGE_CUSTOM_PATHS_KEY);
     return val ? JSON.parse(val) : [];
   } catch {
     return [];
@@ -92,12 +149,15 @@ interface AppState {
   diskInfo: DiskInfo | null;
   setDiskInfo: (info: DiskInfo) => void;
 
-  // Cleaning & Simulation
+  // Cleaning & Mode Settings
   isCleaning: boolean;
   setIsCleaning: (cleaning: boolean) => void;
   isDryRun: boolean;
   setIsDryRun: (dryRun: boolean) => void;
   toggleDryRun: () => void;
+  deleteToTrash: boolean;
+  setDeleteToTrash: (toTrash: boolean) => void;
+  toggleDeleteToTrash: () => void;
 
   // Lifetime Stats & History
   lifetimeBytesFreed: number;
@@ -110,12 +170,21 @@ interface AppState {
   getSelectedItems: (type: 'system' | 'dev') => ScanItem[];
 
   // Settings
+  language: string;
+  setLanguage: (lang: string) => void;
+  uiScale: UiScale;
+  setUiScale: (scale: UiScale) => void;
+  alwaysConfirmClean: boolean;
+  setAlwaysConfirmClean: (confirm: boolean) => void;
+  showSafetyNotice: boolean;
+  setShowSafetyNotice: (show: boolean) => void;
   whitelistPaths: string[];
   customScanPaths: string[];
   addWhitelistPath: (path: string) => void;
   removeWhitelistPath: (path: string) => void;
   addCustomScanPath: (path: string) => void;
   removeCustomScanPath: (path: string) => void;
+  resetAllSettings: () => void;
 }
 
 export const useAppStore = create<AppState>((set, get) => ({
@@ -124,8 +193,23 @@ export const useAppStore = create<AppState>((set, get) => ({
   setCurrentPage: (page) => set({ currentPage: page }),
 
   // Theme
-  isDarkMode: window.matchMedia('(prefers-color-scheme: dark)').matches,
-  toggleDarkMode: () => set((state) => ({ isDarkMode: !state.isDarkMode })),
+  isDarkMode: (() => {
+    try {
+      const saved = localStorage.getItem('beberes_theme');
+      if (saved === 'dark') return true;
+      if (saved === 'light') return false;
+      return window.matchMedia('(prefers-color-scheme: dark)').matches;
+    } catch {
+      return true;
+    }
+  })(),
+  toggleDarkMode: () => set((state) => {
+    const next = !state.isDarkMode;
+    try {
+      localStorage.setItem('beberes_theme', next ? 'dark' : 'light');
+    } catch {}
+    return { isDarkMode: next };
+  }),
 
   // Scanning
   isScanning: false,
@@ -200,12 +284,33 @@ export const useAppStore = create<AppState>((set, get) => ({
   diskInfo: null,
   setDiskInfo: (info) => set({ diskInfo: info }),
 
-  // Cleaning & Simulation
+  // Cleaning & Mode Settings
   isCleaning: false,
   setIsCleaning: (cleaning) => set({ isCleaning: cleaning }),
   isDryRun: false,
   setIsDryRun: (dryRun) => set({ isDryRun: dryRun }),
   toggleDryRun: () => set((state) => ({ isDryRun: !state.isDryRun })),
+  deleteToTrash: (() => {
+    try {
+      const saved = localStorage.getItem('beberes_delete_to_trash');
+      return saved === null ? true : saved === 'true';
+    } catch {
+      return true;
+    }
+  })(),
+  setDeleteToTrash: (toTrash) => {
+    try {
+      localStorage.setItem('beberes_delete_to_trash', String(toTrash));
+    } catch {}
+    set({ deleteToTrash: toTrash });
+  },
+  toggleDeleteToTrash: () => set((state) => {
+    const next = !state.deleteToTrash;
+    try {
+      localStorage.setItem('beberes_delete_to_trash', String(next));
+    } catch {}
+    return { deleteToTrash: next };
+  }),
 
   // Lifetime Stats & History
   lifetimeBytesFreed: getStoredLifetime(),
@@ -253,19 +358,99 @@ export const useAppStore = create<AppState>((set, get) => ({
     return categories.flatMap((cat) => cat.items.filter((item) => item.selected));
   },
 
-  // Settings
-  whitelistPaths: ['/System', '/Library/CoreServices', '/usr', '/bin', '/sbin'],
-  customScanPaths: [],
-  addWhitelistPath: (path) => set((state) => ({
-    whitelistPaths: [...state.whitelistPaths, path],
-  })),
-  removeWhitelistPath: (path) => set((state) => ({
-    whitelistPaths: state.whitelistPaths.filter((p) => p !== path),
-  })),
-  addCustomScanPath: (path) => set((state) => ({
-    customScanPaths: [...state.customScanPaths, path],
-  })),
-  removeCustomScanPath: (path) => set((state) => ({
-    customScanPaths: state.customScanPaths.filter((p) => p !== path),
-  })),
+  // Settings & Preferences
+  language: getStoredLanguage(),
+  setLanguage: (lang) => {
+    try {
+      localStorage.setItem(STORAGE_LANG_KEY, lang);
+    } catch {}
+    set({ language: lang });
+  },
+
+  uiScale: getStoredScale(),
+  setUiScale: (scale) => {
+    try {
+      localStorage.setItem(STORAGE_SCALE_KEY, scale);
+    } catch {}
+    set({ uiScale: scale });
+  },
+
+  alwaysConfirmClean: (() => {
+    try {
+      const val = localStorage.getItem(STORAGE_CONFIRM_KEY);
+      return val === null ? true : val === 'true';
+    } catch {
+      return true;
+    }
+  })(),
+  setAlwaysConfirmClean: (confirm) => {
+    try {
+      localStorage.setItem(STORAGE_CONFIRM_KEY, String(confirm));
+    } catch {}
+    set({ alwaysConfirmClean: confirm });
+  },
+
+  showSafetyNotice: (() => {
+    try {
+      const val = localStorage.getItem(STORAGE_SAFETY_KEY);
+      return val === null ? true : val === 'true';
+    } catch {
+      return true;
+    }
+  })(),
+  setShowSafetyNotice: (show) => {
+    try {
+      localStorage.setItem(STORAGE_SAFETY_KEY, String(show));
+    } catch {}
+    set({ showSafetyNotice: show });
+  },
+
+  whitelistPaths: getStoredWhitelist(),
+  customScanPaths: getStoredCustomPaths(),
+  addWhitelistPath: (path) => set((state) => {
+    const updated = [...state.whitelistPaths, path];
+    try {
+      localStorage.setItem(STORAGE_WHITELIST_KEY, JSON.stringify(updated));
+    } catch {}
+    return { whitelistPaths: updated };
+  }),
+  removeWhitelistPath: (path) => set((state) => {
+    const updated = state.whitelistPaths.filter((p) => p !== path);
+    try {
+      localStorage.setItem(STORAGE_WHITELIST_KEY, JSON.stringify(updated));
+    } catch {}
+    return { whitelistPaths: updated };
+  }),
+  addCustomScanPath: (path) => set((state) => {
+    const updated = [...state.customScanPaths, path];
+    try {
+      localStorage.setItem(STORAGE_CUSTOM_PATHS_KEY, JSON.stringify(updated));
+    } catch {}
+    return { customScanPaths: updated };
+  }),
+  removeCustomScanPath: (path) => set((state) => {
+    const updated = state.customScanPaths.filter((p) => p !== path);
+    try {
+      localStorage.setItem(STORAGE_CUSTOM_PATHS_KEY, JSON.stringify(updated));
+    } catch {}
+    return { customScanPaths: updated };
+  }),
+  resetAllSettings: () => {
+    try {
+      localStorage.removeItem(STORAGE_SCALE_KEY);
+      localStorage.removeItem(STORAGE_CONFIRM_KEY);
+      localStorage.removeItem(STORAGE_SAFETY_KEY);
+      localStorage.removeItem(STORAGE_WHITELIST_KEY);
+      localStorage.removeItem(STORAGE_CUSTOM_PATHS_KEY);
+      localStorage.setItem('beberes_delete_to_trash', 'true');
+    } catch {}
+    set({
+      uiScale: 'normal',
+      deleteToTrash: true,
+      alwaysConfirmClean: true,
+      showSafetyNotice: true,
+      whitelistPaths: DEFAULT_WHITELIST,
+      customScanPaths: [],
+    });
+  },
 }));

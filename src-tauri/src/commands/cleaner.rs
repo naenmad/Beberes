@@ -96,10 +96,15 @@ pub fn pick_folder() -> Result<Option<String>, String> {
 /// 2. Verifies path exists before deletion
 /// 3. Calculates total freed space (using allocated disk space)
 #[tauri::command]
-pub fn clean_selected_items(paths: Vec<String>, dry_run: Option<bool>) -> Result<CleanResult, String> {
+pub fn clean_selected_items(
+    paths: Vec<String>,
+    dry_run: Option<bool>,
+    use_trash: Option<bool>,
+) -> Result<CleanResult, String> {
     let mut cleaned: u64 = 0;
     let mut freed_bytes: u64 = 0;
     let is_dry_run = dry_run.unwrap_or(false);
+    let to_trash = use_trash.unwrap_or(false);
 
     for path_str in &paths {
         let path = Path::new(path_str);
@@ -127,21 +132,39 @@ pub fn clean_selected_items(paths: Vec<String>, dry_run: Option<bool>) -> Result
             continue;
         }
 
-        // Perform deletion
-        let result = if path.is_dir() {
-            fs::remove_dir_all(path)
-        } else {
-            fs::remove_file(path)
-        };
+        // Perform deletion (Move to macOS Trash or Permanent Delete)
+        let mut deleted_success = false;
 
-        match result {
-            Ok(_) => {
-                cleaned += 1;
-                freed_bytes += size;
+        if to_trash {
+            let trash_cmd = std::process::Command::new("osascript")
+                .arg("-e")
+                .arg(format!("tell application \"Finder\" to delete POSIX file \"{}\"", path_str))
+                .output();
+
+            if let Ok(out) = trash_cmd {
+                if out.status.success() {
+                    deleted_success = true;
+                }
             }
-            Err(e) => {
+        }
+
+        if !deleted_success {
+            let result = if path.is_dir() {
+                fs::remove_dir_all(path)
+            } else {
+                fs::remove_file(path)
+            };
+
+            if result.is_ok() {
+                deleted_success = true;
+            } else if let Err(e) = result {
                 eprintln!("Failed to delete {}: {}", path_str, e);
             }
+        }
+
+        if deleted_success {
+            cleaned += 1;
+            freed_bytes += size;
         }
     }
 
@@ -153,7 +176,7 @@ pub fn clean_selected_items(paths: Vec<String>, dry_run: Option<bool>) -> Result
 }
 
 /// Calculate directory physical size recursively.
-fn calculate_dir_size(path: &Path) -> u64 {
+pub fn calculate_dir_size(path: &Path) -> u64 {
     walkdir::WalkDir::new(path)
         .into_iter()
         .filter_map(|e| e.ok())

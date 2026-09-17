@@ -1,30 +1,33 @@
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useAppStore } from '../store/appStore';
+import { useTranslation } from '../lib/i18n';
 import { getDiskInfo, scanSystemDirectories, scanDevWorkspaces, cleanSelectedItems } from '../lib/commands';
 import type { CleanResult } from '../lib/commands';
 import { formatSize } from '../lib/utils';
 import Card, { CardBody } from '../components/ui/Card';
-import StorageRing from '../components/ui/StorageRing';
 import Button from '../components/ui/Button';
 import ConfirmModal from '../components/ui/ConfirmModal';
+import CleaningFlowModal from '../components/ui/CleaningFlowModal';
+import StorageBreakdownBar from '../components/ui/StorageBreakdownBar';
+import HealthGauge from '../components/ui/HealthGauge';
 import { CardSkeleton } from '../components/ui/SkeletonLoader';
 import {
-  HardDrive,
-  Trash2,
-  FolderOpen,
   Sparkles,
   Code2,
   ArrowRight,
   RefreshCw,
-  ShieldCheck,
-  Zap,
   Award,
   History,
   Clock,
   CheckCircle2,
+  FolderTree,
+  Zap,
+  Eye,
 } from 'lucide-react';
 
 export default function Dashboard() {
+  const { t } = useTranslation();
   const {
     diskInfo,
     setDiskInfo,
@@ -40,10 +43,12 @@ export default function Dashboard() {
     lifetimeBytesFreed,
     cleanHistory,
     recordCleanResult,
+    deleteToTrash,
   } = useAppStore();
 
   const [quickCleanResult, setQuickCleanResult] = useState<CleanResult | null>(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [showCleaningFlow, setShowCleaningFlow] = useState(false);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
 
   const totalSystemJunk = systemCategories.reduce((acc, cat) => acc + cat.size, 0);
@@ -91,12 +96,13 @@ export default function Dashboard() {
   const executeSmartClean = async () => {
     if (safePaths.length === 0) return;
 
+    setShowConfirmModal(false);
+    setShowCleaningFlow(true);
     setIsCleaning(true);
     try {
-      const result = await cleanSelectedItems(safePaths, false);
+      const result = await cleanSelectedItems(safePaths, false, deleteToTrash);
       setQuickCleanResult(result);
       recordCleanResult(result.freedBytes, safePaths.length, false, ['System Caches', 'Package Caches']);
-      setShowConfirmModal(false);
       await runFullScan();
     } catch (err) {
       console.error('Smart clean failed:', err);
@@ -111,222 +117,207 @@ export default function Dashboard() {
     }
   }, []);
 
-  const statCards = [
-    {
-      icon: <HardDrive size={20} />,
-      label: 'Total Storage',
-      value: diskInfo ? formatSize(diskInfo.totalSpace) : '--',
-      color: 'text-blue-500',
-      bgColor: 'bg-blue-50 dark:bg-blue-500/10',
-    },
-    {
-      icon: <FolderOpen size={20} />,
-      label: 'Used Space',
-      value: diskInfo ? formatSize(diskInfo.usedSpace) : '--',
-      color: 'text-amber-500',
-      bgColor: 'bg-amber-50 dark:bg-amber-500/10',
-    },
-    {
-      icon: <ShieldCheck size={20} />,
-      label: 'Free Space',
-      value: diskInfo ? formatSize(diskInfo.freeSpace) : '--',
-      color: 'text-emerald-500',
-      bgColor: 'bg-emerald-50 dark:bg-emerald-500/10',
-    },
-    {
-      icon: <Trash2 size={20} />,
-      label: 'Cleanable Junk',
-      value: formatSize(totalCleanable),
-      color: 'text-rose-500',
-      bgColor: 'bg-rose-50 dark:bg-rose-500/10',
-    },
-  ];
-
   return (
-    <div className="space-y-6 animate-fade-in pb-12">
-      {/* Quick Actions Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+    <div className="space-y-6 animate-fade-in pb-16">
+      {/* Top Action & Overview Bar */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold text-slate-800 dark:text-white tracking-tight">
-            System Overview
+          <h2 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">
+            {t('dashboard.title')}
           </h2>
-          <p className="text-sm text-slate-500 dark:text-neutral-400">
+          <p className="text-xs text-slate-500 dark:text-neutral-400 mt-0.5">
             {isScanning
-              ? 'Analyzing system & developer directories...'
+              ? t('dashboard.scanningDesc')
               : totalCleanable > 0
-              ? `Identified ${formatSize(totalCleanable)} across ${totalItemsCount} cleanable items`
-              : 'Scan completed. Your system is in optimal condition!'}
+              ? t('dashboard.detectedDesc', { size: formatSize(totalCleanable), count: totalItemsCount })
+              : t('dashboard.peakConditionDesc')}
           </p>
         </div>
+
         <div className="flex items-center gap-2">
           {cleanHistory.length > 0 && (
             <Button
               onClick={() => setShowHistoryModal(true)}
               variant="secondary"
-              icon={<History size={16} />}
+              size="sm"
+              icon={<History size={14} />}
             >
-              History
+              {t('common.history')}
             </Button>
           )}
+
           {totalCleanable > 0 && !isScanning && (
             <Button
               onClick={handleSmartCleanClick}
               loading={isCleaning}
               variant="danger"
-              icon={<Zap size={16} />}
+              size="sm"
+              icon={<Zap size={14} />}
             >
-              Smart Clean ({formatSize(totalCleanable)})
+              {t('dashboard.smartClean')} ({formatSize(totalCleanable)})
             </Button>
           )}
+
           <Button
             onClick={runFullScan}
             loading={isScanning}
-            icon={<RefreshCw size={16} />}
+            icon={<RefreshCw size={14} />}
             variant="secondary"
+            size="sm"
           >
-            {isScanning ? 'Scanning...' : 'Full Scan'}
+            {isScanning ? t('common.scanning') : t('dashboard.scanSystem')}
           </Button>
         </div>
       </div>
 
-      {/* Quick Clean Celebration Banner */}
-      {quickCleanResult && (
-        <div className="flex items-center justify-between gap-3 p-4 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 animate-fade-in">
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400">
-              <Sparkles size={20} />
-            </div>
-            <div>
-              <p className="text-sm font-semibold text-emerald-800 dark:text-emerald-300">
-                🎉 Smart Clean Completed! Reclaimed {formatSize(quickCleanResult.freedBytes)}
-              </p>
-              <p className="text-xs text-emerald-600 dark:text-emerald-400">
-                Cleaned {quickCleanResult.cleaned} items safely from your system.
-              </p>
-            </div>
-          </div>
-          <button
-            onClick={() => setQuickCleanResult(null)}
-            className="text-xs text-emerald-700 dark:text-emerald-400 hover:underline cursor-pointer"
-          >
-            Dismiss
-          </button>
-        </div>
-      )}
-
-      {/* Lifetime Space Reclaimed Badge */}
-      {lifetimeBytesFreed > 0 && (
-        <div className="flex items-center justify-between p-3.5 rounded-xl bg-gradient-to-r from-blue-500/10 via-indigo-500/10 to-emerald-500/10 border border-blue-200/50 dark:border-blue-500/20">
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-blue-500 text-white shadow-xs">
-              <Award size={18} />
-            </div>
-            <div>
-              <span className="text-xs font-medium text-slate-500 dark:text-neutral-400">
-                Lifetime Space Reclaimed with Beberes
-              </span>
-              <p className="text-base font-bold text-slate-800 dark:text-white">
-                {formatSize(lifetimeBytesFreed)}
-              </p>
-            </div>
-          </div>
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={() => setShowHistoryModal(true)}
-            icon={<History size={14} />}
-          >
-            {cleanHistory.length} clean sessions
-          </Button>
-        </div>
-      )}
-
-      {/* Storage Overview Ring */}
+      {/* Storage Breakdown Multi-color Bar (macOS System Settings Style) */}
       {diskInfo && (
-        <Card className="p-6">
-          <div className="flex flex-col sm:flex-row items-center gap-8">
-            <StorageRing
-              used={diskInfo.usedSpace}
-              total={diskInfo.totalSpace}
-              size={120}
-              strokeWidth={10}
-            />
-            <div className="flex-1 w-full">
-              <h3 className="text-lg font-semibold text-slate-800 dark:text-white mb-1">
-                Storage Status
-              </h3>
-              <p className="text-sm text-slate-500 dark:text-neutral-400 mb-4">
-                {diskInfo.diskName} — {formatSize(diskInfo.freeSpace)} available
-              </p>
-              <div className="grid grid-cols-2 gap-3">
-                {statCards.map((stat) => (
-                  <div key={stat.label} className="flex items-center gap-3">
-                    <div className={`p-2 rounded-lg ${stat.bgColor}`}>
-                      <span className={stat.color}>{stat.icon}</span>
-                    </div>
-                    <div>
-                      <p className="text-xs text-slate-400 dark:text-neutral-500">
-                        {stat.label}
-                      </p>
-                      <p className="text-sm font-semibold text-slate-800 dark:text-white">
-                        {stat.value}
-                      </p>
-                    </div>
-                  </div>
-                ))}
+        <StorageBreakdownBar
+          totalSpace={diskInfo.totalSpace}
+          usedSpace={diskInfo.usedSpace}
+          freeSpace={diskInfo.freeSpace}
+          systemJunkSize={totalSystemJunk}
+          devJunkSize={totalDevJunk}
+        />
+      )}
+
+      {/* Health Gauge & Lifetime Stat */}
+      {diskInfo && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <HealthGauge
+            freeSpace={diskInfo.freeSpace}
+            totalSpace={diskInfo.totalSpace}
+            cleanableJunk={totalCleanable}
+          />
+
+          {/* Lifetime Reclaimed Card */}
+          <div className="p-5 rounded-2xl glass-panel flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="p-3 rounded-2xl bg-blue-500/10 text-blue-500 dark:bg-blue-500/20 dark:text-blue-400 shadow-sm">
+                <Award size={24} />
+              </div>
+              <div>
+                <span className="text-xs font-semibold text-slate-400 dark:text-neutral-400">
+                  {t('dashboard.storageReclaimed')}
+                </span>
+                <p className="text-2xl font-extrabold text-slate-900 dark:text-white mt-0.5">
+                  {formatSize(lifetimeBytesFreed)}
+                </p>
+                <p className="text-[11px] text-slate-400 dark:text-neutral-500 mt-0.5">
+                  {t('settings.dataReset.sessionsCount', { count: cleanHistory.length })}
+                </p>
               </div>
             </div>
+
+            {cleanHistory.length > 0 && (
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => setShowHistoryModal(true)}
+                icon={<History size={13} />}
+              >
+                {t('common.history')}
+              </Button>
+            )}
           </div>
-        </Card>
+        </div>
       )}
 
-      {/* Category Quick Access */}
+      {/* Action Cards Grid */}
       {isScanning ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <CardSkeleton />
+          <CardSkeleton />
           <CardSkeleton />
           <CardSkeleton />
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Quick Review Card */}
+          <Card hoverable onClick={() => setCurrentPage('quick-review')}>
+            <CardBody>
+              <div className="flex items-start justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-2.5 rounded-xl bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400">
+                    <Eye size={20} />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                      {t('nav.quickReview')}
+                    </h3>
+                    <p className="text-xs text-slate-400 dark:text-neutral-500 mt-0.5">
+                      Fast Keyboard Triage
+                    </p>
+                  </div>
+                </div>
+                <ArrowRight size={16} className="text-slate-300 dark:text-neutral-600 mt-1" />
+              </div>
+              <p className="mt-4 text-xs text-slate-500 dark:text-neutral-400">
+                {t('dashboard.quickReviewDesc', 'Review and clean files one by one with fast keyboard shortcuts')}
+              </p>
+            </CardBody>
+          </Card>
+
+          {/* Tidy Up Card */}
+          <Card hoverable onClick={() => setCurrentPage('tidy-up')}>
+            <CardBody>
+              <div className="flex items-start justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+                    <FolderTree size={20} />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                      {t('nav.tidyUp')}
+                    </h3>
+                    <p className="text-xs text-slate-400 dark:text-neutral-500 mt-0.5">
+                      Desktop & Downloads
+                    </p>
+                  </div>
+                </div>
+                <ArrowRight size={16} className="text-slate-300 dark:text-neutral-600 mt-1" />
+              </div>
+              <p className="mt-4 text-xs text-slate-500 dark:text-neutral-400">
+                {t('dashboard.tidyUpDesc')}
+              </p>
+            </CardBody>
+          </Card>
+
           {/* System Clean Card */}
           <Card hoverable onClick={() => setCurrentPage('system-clean')}>
             <CardBody>
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="p-2.5 rounded-xl bg-blue-50 dark:bg-blue-500/10">
-                    <Sparkles size={22} className="text-blue-500" />
+                  <div className="p-2.5 rounded-xl bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400">
+                    <Sparkles size={20} />
                   </div>
                   <div>
-                    <h3 className="text-base font-semibold text-slate-800 dark:text-white">
-                      System Clean
+                    <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                      {t('nav.systemClean')}
                     </h3>
-                    <p className="text-sm text-slate-400 dark:text-neutral-500 mt-0.5">
+                    <p className="text-xs text-slate-400 dark:text-neutral-500 mt-0.5">
                       {systemCategories.length} categories found
                     </p>
                   </div>
                 </div>
-                <ArrowRight
-                  size={18}
-                  className="text-slate-300 dark:text-neutral-600 mt-1"
-                />
+                <ArrowRight size={16} className="text-slate-300 dark:text-neutral-600 mt-1" />
               </div>
-              {totalSystemJunk > 0 && (
+              {totalSystemJunk > 0 ? (
                 <div className="mt-4 flex items-center gap-2">
-                  <div className="flex-1 h-1.5 bg-slate-100 dark:bg-neutral-700 rounded-full overflow-hidden">
+                  <div className="flex-1 h-1.5 bg-slate-100 dark:bg-neutral-800 rounded-full overflow-hidden">
                     <div
-                      className="h-full bg-blue-500 rounded-full transition-all duration-300"
+                      className="h-full bg-blue-500 rounded-full"
                       style={{
-                        width: `${Math.min(
-                          (totalSystemJunk / (totalCleanable || 1)) * 100,
-                          100
-                        )}%`,
+                        width: `${Math.min((totalSystemJunk / (totalCleanable || 1)) * 100, 100)}%`,
                       }}
                     />
                   </div>
-                  <span className="text-sm font-semibold text-rose-500">
+                  <span className="text-xs font-bold text-rose-500">
                     {formatSize(totalSystemJunk)}
                   </span>
                 </div>
+              ) : (
+                <p className="mt-4 text-xs text-slate-400">System caches are clean.</p>
               )}
             </CardBody>
           </Card>
@@ -336,113 +327,123 @@ export default function Dashboard() {
             <CardBody>
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="p-2.5 rounded-xl bg-violet-50 dark:bg-violet-500/10">
-                    <Code2 size={22} className="text-violet-500" />
+                  <div className="p-2.5 rounded-xl bg-violet-50 dark:bg-violet-500/10 text-violet-600 dark:text-violet-400">
+                    <Code2 size={20} />
                   </div>
                   <div>
-                    <h3 className="text-base font-semibold text-slate-800 dark:text-white">
-                      Dev Workspace
+                    <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                      {t('nav.devWorkspace')}
                     </h3>
-                    <p className="text-sm text-slate-400 dark:text-neutral-500 mt-0.5">
-                      {devCategories.length} categories found
+                    <p className="text-xs text-slate-400 dark:text-neutral-500 mt-0.5">
+                      {devCategories.length} categories
                     </p>
                   </div>
                 </div>
-                <ArrowRight
-                  size={18}
-                  className="text-slate-300 dark:text-neutral-600 mt-1"
-                />
+                <ArrowRight size={16} className="text-slate-300 dark:text-neutral-600 mt-1" />
               </div>
-              {totalDevJunk > 0 && (
+              {totalDevJunk > 0 ? (
                 <div className="mt-4 flex items-center gap-2">
-                  <div className="flex-1 h-1.5 bg-slate-100 dark:bg-neutral-700 rounded-full overflow-hidden">
+                  <div className="flex-1 h-1.5 bg-slate-100 dark:bg-neutral-800 rounded-full overflow-hidden">
                     <div
-                      className="h-full bg-violet-500 rounded-full transition-all duration-300"
+                      className="h-full bg-violet-500 rounded-full"
                       style={{
-                        width: `${Math.min(
-                          (totalDevJunk / (totalCleanable || 1)) * 100,
-                          100
-                        )}%`,
+                        width: `${Math.min((totalDevJunk / (totalCleanable || 1)) * 100, 100)}%`,
                       }}
                     />
                   </div>
-                  <span className="text-sm font-semibold text-rose-500">
+                  <span className="text-xs font-bold text-rose-500">
                     {formatSize(totalDevJunk)}
                   </span>
                 </div>
+              ) : (
+                <p className="mt-4 text-xs text-slate-400">{t('devWorkspace.emptyClean')}</p>
               )}
             </CardBody>
           </Card>
         </div>
       )}
 
-      {/* Confirmation Modal for Smart Clean */}
+      {/* Confirmation Modal before Smart Clean */}
       <ConfirmModal
         isOpen={showConfirmModal}
         onClose={() => setShowConfirmModal(false)}
         onConfirm={executeSmartClean}
         isLoading={isCleaning}
-        title="Confirm Smart Cleanup"
+        title={t('dashboard.smartClean')}
         itemsCount={safePaths.length}
         totalBytes={totalCleanable}
         paths={safePaths}
-        isDryRun={false}
+        useTrash={deleteToTrash}
       />
 
-      {/* Clean History Modal */}
-      {showHistoryModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div
-            className="fixed inset-0 bg-black/40 backdrop-blur-xs"
-            onClick={() => setShowHistoryModal(false)}
-          />
-          <div className="relative w-full max-w-lg rounded-2xl bg-white dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 shadow-2xl p-6 overflow-hidden animate-scale-in">
-            <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-neutral-700/60">
-              <div className="flex items-center gap-2.5">
-                <div className="p-2 rounded-lg bg-blue-50 dark:bg-blue-500/10 text-blue-500">
-                  <History size={18} />
-                </div>
-                <div>
-                  <h3 className="text-base font-semibold text-slate-800 dark:text-white">
-                    Clean History
-                  </h3>
-                  <p className="text-xs text-slate-400 dark:text-neutral-400">
-                    Past cleanup sessions on this device
-                  </p>
-                </div>
-              </div>
-              <Button size="sm" variant="ghost" onClick={() => setShowHistoryModal(false)}>
-                Close
-              </Button>
-            </div>
+      {/* Interactive Cleaning Flow Modal */}
+      <CleaningFlowModal
+        isOpen={showCleaningFlow}
+        onClose={() => setShowCleaningFlow(false)}
+        isCleaning={isCleaning}
+        isDryRun={false}
+        totalBytes={quickCleanResult?.freedBytes || totalCleanable}
+        totalItems={quickCleanResult?.cleaned || safePaths.length}
+        paths={safePaths}
+        title={t('dashboard.smartClean')}
+      />
 
-            <div className="max-h-80 overflow-y-auto divide-y divide-slate-100 dark:divide-neutral-700/40 mt-3">
-              {cleanHistory.length === 0 ? (
-                <p className="text-center py-8 text-sm text-slate-400 dark:text-neutral-500">
-                  No clean sessions recorded yet.
-                </p>
-              ) : (
-                cleanHistory.map((item) => (
-                  <div key={item.id} className="py-3 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <CheckCircle2 size={16} className="text-emerald-500 shrink-0" />
-                      <div>
-                        <p className="text-sm font-semibold text-slate-800 dark:text-white">
-                          Freed {formatSize(item.freedBytes)}
-                        </p>
-                        <p className="text-xs text-slate-400 dark:text-neutral-400 flex items-center gap-1.5 mt-0.5">
-                          <Clock size={12} />
-                          {new Date(item.timestamp).toLocaleString()} • {item.itemsCount} items
-                        </p>
+      {/* Clean History Modal (Zero Emojis) */}
+      {showHistoryModal &&
+        createPortal(
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div
+              className="fixed inset-0 bg-black/50 backdrop-blur-xs"
+              onClick={() => setShowHistoryModal(false)}
+            />
+            <div className="relative w-full max-w-lg rounded-3xl bg-white dark:bg-neutral-800 p-6 shadow-2xl border border-slate-200 dark:border-neutral-700 overflow-hidden animate-scale-in z-10">
+              <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-neutral-700/60">
+                <div className="flex items-center gap-2.5">
+                  <div className="p-2 rounded-xl bg-blue-500/10 text-blue-500">
+                    <History size={18} />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                      {t('dashboard.historyModalTitle')}
+                    </h3>
+                    <p className="text-xs text-slate-400 dark:text-neutral-400">
+                      {t('dashboard.historyModalSubtitle')}
+                    </p>
+                  </div>
+                </div>
+                <Button size="sm" variant="ghost" onClick={() => setShowHistoryModal(false)}>
+                  {t('common.close')}
+                </Button>
+              </div>
+
+              <div className="max-h-80 overflow-y-auto divide-y divide-slate-100 dark:divide-neutral-700/60 mt-3">
+                {cleanHistory.length === 0 ? (
+                  <p className="text-center py-8 text-xs text-slate-400 dark:text-neutral-500">
+                    {t('dashboard.noHistory')}
+                  </p>
+                ) : (
+                  cleanHistory.map((item) => (
+                    <div key={item.id} className="py-3 flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <CheckCircle2 size={16} className="text-emerald-500 shrink-0" />
+                        <div>
+                          <p className="text-sm font-bold text-slate-800 dark:text-white">
+                            {t('dashboard.freed')} {formatSize(item.freedBytes)}
+                          </p>
+                          <p className="text-xs text-slate-400 dark:text-neutral-400 flex items-center gap-1.5 mt-0.5 font-mono">
+                            <Clock size={11} />
+                            {new Date(item.timestamp).toLocaleString()} • {item.itemsCount} {t('dashboard.items')}
+                          </p>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))
-              )}
+                  ))
+                )}
+              </div>
             </div>
-          </div>
-        </div>
-      )}
+          </div>,
+          document.body
+        )}
     </div>
   );
 }

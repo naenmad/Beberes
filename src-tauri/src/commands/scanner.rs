@@ -632,3 +632,82 @@ pub fn get_disk_info() -> DiskInfo {
 fn dirs_home() -> String {
     std::env::var("HOME").unwrap_or_else(|_| "/Users/unknown".to_string())
 }
+
+/// System hardware and OS details.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SystemDetails {
+    #[serde(rename = "osName")]
+    pub os_name: String,
+    #[serde(rename = "osVersion")]
+    pub os_version: String,
+    pub arch: String,
+    pub hostname: String,
+    #[serde(rename = "kernelVersion")]
+    pub kernel_version: String,
+    #[serde(rename = "fileSystem")]
+    pub file_system: String,
+    #[serde(rename = "iconCacheCount")]
+    pub icon_cache_count: u32,
+    #[serde(rename = "iconCacheBytes")]
+    pub icon_cache_bytes: u64,
+}
+
+/// Get macOS hardware and system specification details.
+#[tauri::command]
+pub fn get_system_details() -> SystemDetails {
+    let os_name = sysinfo::System::name().unwrap_or_else(|| "macOS".to_string());
+    let os_version = sysinfo::System::os_version().unwrap_or_else(|| "Unknown".to_string());
+    let arch = sysinfo::System::cpu_arch();
+    let hostname = sysinfo::System::host_name().unwrap_or_else(|| "Mac".to_string());
+    let kernel_version = sysinfo::System::kernel_version().unwrap_or_else(|| "".to_string());
+
+    let mut icon_cache_count = 0;
+    let mut icon_cache_bytes = 0;
+    if let Ok(home) = std::env::var("HOME") {
+        let icon_dir = Path::new(&home).join(".cache/beberes/icons");
+        if let Ok(entries) = fs::read_dir(&icon_dir) {
+            for entry in entries.flatten() {
+                if let Ok(meta) = entry.metadata() {
+                    icon_cache_count += 1;
+                    icon_cache_bytes += meta.len();
+                }
+            }
+        }
+    }
+
+    let disks = Disks::new_with_refreshed_list();
+    let file_system = disks
+        .list()
+        .first()
+        .map(|d| d.file_system().to_string_lossy().to_string())
+        .unwrap_or_else(|| "APFS".to_string());
+
+    SystemDetails {
+        os_name,
+        os_version,
+        arch,
+        hostname,
+        kernel_version,
+        file_system,
+        icon_cache_count,
+        icon_cache_bytes,
+    }
+}
+
+/// Clear cached application icons from disk.
+#[tauri::command]
+pub fn clear_icon_cache() -> Result<u32, String> {
+    let mut count = 0;
+    if let Ok(home) = std::env::var("HOME") {
+        let icon_dir = Path::new(&home).join(".cache/beberes/icons");
+        if icon_dir.exists() {
+            if let Ok(entries) = fs::read_dir(&icon_dir) {
+                for entry in entries.flatten() {
+                    let _ = fs::remove_file(entry.path());
+                    count += 1;
+                }
+            }
+        }
+    }
+    Ok(count)
+}
