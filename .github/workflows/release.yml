@@ -14,18 +14,54 @@ on:
 permissions:
   contents: write
 
+env:
+  ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: "true"
+
 jobs:
-  release:
+  create-release:
+    name: Create GitHub Release
+    runs-on: macos-latest
+    outputs:
+      release_tag: ${{ steps.set_tag.outputs.release_tag }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Determine Release Tag
+        id: set_tag
+        run: |
+          if [ -n "${{ github.ref_name }}" ] && [[ "${{ github.ref_name }}" == v* ]]; then
+            echo "release_tag=${{ github.ref_name }}" >> $GITHUB_OUTPUT
+          else
+            echo "release_tag=${{ github.event.inputs.tag || 'v1.0.0' }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Ensure GitHub Release Exists
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.set_tag.outputs.release_tag }}
+        run: |
+          echo "Preparing release for tag: $TAG"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Release $TAG already exists."
+          else
+            NOTES="See [CHANGELOG.md](https://github.com/naenmad/Beberes/blob/main/CHANGELOG.md) for full release notes and list of changes."
+            gh release create "$TAG" --title "Beberes $TAG (Apex)" --notes "$NOTES"
+          fi
+
+  build-tauri:
+    name: Build DMG (${{ matrix.arch_name }})
+    needs: create-release
     strategy:
       fail-fast: false
       matrix:
         include:
           - platform: 'macos-latest'
-            args: '--target aarch64-apple-darwin'
-            arch_name: 'arm64'
+            target: 'aarch64-apple-darwin'
+            arch_name: 'Apple-Silicon-arm64'
           - platform: 'macos-13'
-            args: '--target x86_64-apple-darwin'
-            arch_name: 'x64'
+            target: 'x86_64-apple-darwin'
+            arch_name: 'Intel-x64'
 
     runs-on: ${{ matrix.platform }}
 
@@ -36,13 +72,13 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: 'npm'
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
         with:
-          targets: ${{ matrix.args && contains(matrix.args, '--target') && replace(matrix.args, '--target ', '') || '' }}
+          targets: ${{ matrix.target }}
 
       - name: Rust Cache
         uses: swatinem/rust-cache@v2
@@ -52,20 +88,29 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build Tauri Application & Publish Release
-        uses: tauri-apps/tauri-action@v0
+      - name: Build Tauri Application
+        run: |
+          npx tauri build --target ${{ matrix.target }}
+
+      - name: Find and Upload DMG to GitHub Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tagName: ${{ github.ref_name || github.event.inputs.tag }}
-          releaseName: 'Beberes ${{ github.ref_name || github.event.inputs.tag }}'
-          releaseBody: |
-            See [CHANGELOG.md](https://github.com/naenmad/Beberes/blob/main/CHANGELOG.md) for detailed notes on this release.
+          TAG: ${{ needs.create-release.outputs.release_tag }}
+        run: |
+          echo "Scanning for DMG bundles in src-tauri/target/..."
+          DMG_FILES=$(find src-tauri/target -name "*.dmg" -type f)
+          if [ -z "$DMG_FILES" ]; then
+            echo "Error: No DMG file found!"
+            find src-tauri/target -name "bundle" -type d || true
+            exit 1
+          fi
+          for dmg in $DMG_FILES; do
+            echo "Uploading $dmg to GitHub Release $TAG..."
+            gh release upload "$TAG" "$dmg" --clobber
+          done
 
-            ### Downloads
-            Download the appropriate installer below:
-            - **Apple Silicon (M1/M2/M3/M4)**: `Beberes_*_aarch64.dmg`
-            - **Intel Macs (x86_64)**: `Beberes_*_x64.dmg`
-          releaseDraft: false
-          prerelease: false
-          args: ${{ matrix.args }}
+      - name: Upload DMG as Workflow Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: beberes-dmg-${{ matrix.arch_name }}
+          path: src-tauri/target/**/bundle/dmg/*.dmg
