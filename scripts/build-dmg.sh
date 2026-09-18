@@ -9,7 +9,9 @@ bun run tauri build --bundles app
 
 APP_PATH="src-tauri/target/release/bundle/macos/Beberes.app"
 DMG_DIR="src-tauri/target/release/bundle/dmg"
-DMG_PATH="${DMG_DIR}/Beberes_1.0.0_aarch64.dmg"
+VERSION=$(grep -m1 '"version":' package.json | cut -d '"' -f 4)
+ARCH=$(uname -m)
+DMG_PATH="${DMG_DIR}/Beberes_${VERSION}_${ARCH}.dmg"
 ICON_PATH="src-tauri/icons/icon.icns"
 BG_PATH="src-tauri/icons/dmg-background.png"
 
