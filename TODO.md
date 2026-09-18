@@ -1,67 +1,48 @@
 # Beberes Development Roadmap & TODO
 
-Daftar rencana fitur, peningkatan arsitektur sistem, dan penyempurnaan UI/UX untuk rilis mendatang.
+Daftar rencana pematangan repositori, presentasi visual kelas dunia, dan infrastruktur distribusi open-source.
 
 ---
 
-## 1. Prioritas Utama (Immediate UX Polish)
-
-- [x] **Hold Cmd+Q to Quit**
-  - Mencegah penutupan aplikasi yang tidak disengaja saat proses pembersihan atau pemindaian berjalan.
-  - Menampilkan HUD melayang di tengah layar dengan indikator melingkar (radial progress) selama 1,2 detik.
-  - Membatalkan keluar jika tombol dilepas sebelum waktu habis; keluar secara aman (*graceful exit*) jika ditahan hingga penuh.
-  - Menyediakan sakelar toggle konfigurasi di Settings (Umum).
-
-- [x] **macOS Standard Window Behavior: Close to Hide**
-  - Mengikuti standar macOS Human Interface Guidelines (HIG).
-  - Mengklik tombol merah (x) pada jendela utama hanya menyembunyikan window (`window.hide()`), bukan menghentikan proses aplikasi.
-  - Mengklik ikon di Dock akan menampilkan kembali jendela secara instan tanpa harus restart.
+## 1. Visual Showcase & Tangkapan Layar (Screenshots & Mockups)
+- [x] **Tangkapan Layar & Frame Mockup Antarmuka macOS**
+  - Membuat direktori `docs/screenshots/` untuk menyimpan aset tampilan UI beresolusi tinggi.
+  - Menyiapkan screenshot showcase untuk modul-modul unggulan:
+    - `dashboard-hero.png`: *Storage & System Overview Dashboard* (dengan status kapasitas, ring meter, dan milestone bar).
+    - `developer-workspace.png`: *Developer Workspace Clean* (pembersihan Cargo target, Docker VMs, node_modules).
+    - `confirm-cleanup.png`: *Smart Safety Whitelist* (dialog konfirmasi interaktif perlindungan direktori sistem).
+  - Menyematkan galeri visual di `README.md` dengan tata letak rapi, modern, dan informatif.
 
 ---
 
-## 2. Integrasi Sistem macOS & Backend Rust
-
-- [x] **Menu Bar / Status Tray Menu**
-  - Ikon status bar Beberes di Menu Bar atas macOS.
-  - Menu kontekstual status tray native macOS.
-  - Aksi cepat: Tombol *Quick Smart Clean*, pintasan buka jendela utama, dan keluar dari aplikasi.
-
-- [x] **Peringatan Ambang Batas Disk Rendah (Low Disk Space Alert)**
-  - Pemeriksaan berkala di latar belakang untuk memantau kapasitas penyimpanan sistem.
-  - Banner peringatan proaktif jika ruang kosong tersisa di bawah 10% atau 15 GB.
-  - Sakelar toggle konfigurasi di Settings.
-
-- [x] **Thermal & Battery Throttling Awareness**
-  - Deteksi status baterai dan mode hemat daya (*Low Power Mode*) di macOS melalui perintah `pmset`.
-  - Menyesuaikan thread pool Rayon secara dinamis agar pemindaian tidak menyebabkan panas berlebih dan tidak menguras daya saat menggunakan baterai di bawah 20%.
-  - Indikator status daya dan pembatasan beban kerja pada TopBar.
+## 2. Dukungan Komunitas & Donasi (GitHub Sponsors & Funding)
+- [x] **Konfigurasi Resmi GitHub Funding (`.github/FUNDING.yml`)**
+  - Mengaktifkan tombol pink native "Sponsor this project" di header repositori GitHub.
+  - Mengonfigurasi platform donasi:
+    - GitHub Sponsors: `naenmad`
+    - Trakteer: `https://trakteer.id/naenmad`
+    - Ko-fi: `https://ko-fi.com/naenmad`
+- [x] **Seksi Sponsor di `README.md`**
+  - Menambahkan bagian *"Support & Sponsoring"* di bagian bawah README dengan tombol dan link donasi yang elegan.
 
 ---
 
-## 3. Fitur Kenyamanan & Polish Antarmuka
-
-- [x] **Audio Haptic Feedback (Sound Effects Khas macOS)**
-  - Efek suara sintetis Web Audio API saat pembersihan berhasil diselesaikan (*trash empty / clean whoosh*).
-  - Efek nada konfirmasi ringan saat pemindaian dan pembersihan sistem selesai.
-  - Opsi pengaturan untuk mematikan suara (*Mute sound effects*) di Settings.
-
-- [x] **Peringatan Keamanan Berkas Kritis (Smart Safety Warning)**
-  - Memberikan indikator peringatan khusus jika ada berkas di atas 5 GB atau berkas yang baru saja dimodifikasi dalam kurun waktu 24 jam terakhir.
-  - Dialog konfirmasi tambahan sebelum menghapus berkas kritis di Large & Duplicates dan Quick Review.
-
-- [x] **Statistik Dampak Kumulatif (Impact Stats & Milestones)**
-  - Pelacakan total gigabyte yang berhasil dikosongkan sejak aplikasi pertama kali dipasang.
-  - Jumlah siklus pembersihan dan total berkas yang berhasil diproses pada Dashboard dan Settings.
+## 3. Kebijakan Keamanan & Kepatuhan Open Source (Security Policy)
+- [x] **Dokumen `SECURITY.md`**
+  - Menjelaskan kebijakan pelaporan celah keamanan secara bertanggung jawab (*responsible disclosure*).
+  - Menegaskan prinsip privasi Beberes (100% lokal, zero telemetri, tanpa koneksi cloud).
+  - Panduan bagi peneliti keamanan untuk melaporkan temuan melalui GitHub Private Vulnerability Reporting.
 
 ---
 
-## 4. Distribusi & Installer Experience (macOS Native Standard)
+## 4. Rencana Distribusi Paket (Homebrew Cask Tap)
+- [x] **Panduan & Formula Homebrew Cask**
+  - Menambahkan instruksi instalasi via `brew tap naenmad/beberes && brew install --cask beberes` di `README.md`.
+  - Menyiapkan spesifikasi Cask ruby template di `docs/Cask/beberes.rb` untuk repository `homebrew-beberes`.
 
-- [x] **Zero-Asset Lightweight DMG Packaging**
-  - Mengeliminasi background bitmap statis yang pecah atau terpotong saat jendela Finder diubah ukurannya (resize).
-  - Menurunkan ukuran installer DMG menjadi hanya ~2.6 MB (kompresi UDZO murni).
-  - Tata letak Finder simetris, rapi, dan otomatis beradaptasi dengan Light / Dark mode macOS.
-- [x] **In-App Responsive "Move to Applications" Flow**
-  - Deteksi otomatis saat aplikasi dijalankan di luar `/Applications` (misal dari DMG yang di-mount atau folder Downloads).
-  - Dialog interaktif responsif berbasis web & glassmorphism yang menjelaskan keuntungan memindahkan aplikasi (auto-update, izin keamanan, Spotlight).
-  - Aksi 1-klik untuk menyalin secara aman dengan `/usr/bin/ditto`, meluncurkan aplikasi dari `/Applications`, dan menutup proses lama.
+---
+
+## 5. Metadata Repositori & Badge Polish
+- [x] **Penyempurnaan Header & Lencana GitHub**
+  - Menambahkan lencana status GitHub Sponsors pink, Latest Release, License GPL-3.0, Tauri v2, Rust 2021, macOS (Apple Silicon & Intel), dan 100% Local First.
+  - Menyusun navigasi daftar isi README yang lengkap.
