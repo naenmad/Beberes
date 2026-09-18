@@ -1239,6 +1239,32 @@ pub fn get_system_power_status() -> crate::utils::PowerStatus {
     crate::utils::get_power_status()
 }
 
+/// Execute Homebrew cleanup --prune=all to purge stale downloaded bottles and lockfiles
+#[tauri::command]
+pub fn run_brew_cleanup() -> Result<String, String> {
+    use std::process::Command;
+    let brew_bin = if Path::new("/opt/homebrew/bin/brew").exists() {
+        "/opt/homebrew/bin/brew"
+    } else if Path::new("/usr/local/bin/brew").exists() {
+        "/usr/local/bin/brew"
+    } else {
+        "brew"
+    };
+
+    let output = Command::new(brew_bin)
+        .arg("cleanup")
+        .arg("--prune=all")
+        .output()
+        .map_err(|e| format!("Homebrew not found or failed to execute: {}", e))?;
+
+    if output.status.success() {
+        Ok(String::from_utf8_lossy(&output.stdout).to_string())
+    } else {
+        Err(String::from_utf8_lossy(&output.stderr).to_string())
+    }
+}
+
+
 #[cfg(test)]
 mod tests {
     use super::*;

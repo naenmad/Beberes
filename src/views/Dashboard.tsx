@@ -171,9 +171,16 @@ export default function Dashboard() {
     setShowCleaningFlow(true);
     setIsCleaning(true);
     try {
-      const result = await cleanSelectedItems(safePaths, false, deleteToTrash);
+      const [result, memRes] = await Promise.all([
+        cleanSelectedItems(safePaths, false, deleteToTrash),
+        purgeInactiveMemory().catch(() => null),
+      ]);
       setQuickCleanResult(result);
-      recordCleanResult(result.freedBytes, safePaths.length, false, ['System Caches', 'Package Caches']);
+      const tags = ['System Caches', 'Package Caches'];
+      if (memRes && memRes.freed_bytes > 0) {
+        tags.push(`RAM (${formatSize(memRes.freed_bytes)})`);
+      }
+      recordCleanResult(result.freedBytes, safePaths.length, false, tags);
       await runFullScan();
     } catch (err) {
       console.error('Smart clean failed:', err);
@@ -291,6 +298,8 @@ export default function Dashboard() {
             freeSpace={diskInfo.freeSpace}
             totalSpace={diskInfo.totalSpace}
             cleanableJunk={totalCleanable}
+            onMasterClean={handleSmartCleanClick}
+            isCleaning={isCleaning}
           />
 
           {/* Cumulative Impact Stats Card */}

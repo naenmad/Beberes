@@ -10,7 +10,8 @@ use commands::organizer::{clean_redundant_installers, execute_tidy_organization,
 use commands::reviewer::{read_file_thumbnail, read_text_preview, rename_file, scan_review_files};
 use commands::scanner::{
     clear_icon_cache, get_all_disks, get_disk_info, get_disk_info_by_mount, get_system_details,
-    get_system_power_status, scan_custom_paths, scan_dev_workspaces, scan_system_directories,
+    get_system_power_status, run_brew_cleanup, scan_custom_paths, scan_dev_workspaces,
+    scan_system_directories,
 };
 use commands::shredder::shred_paths;
 use commands::startup::{delete_startup_item, scan_startup_items, toggle_startup_item};
@@ -24,6 +25,8 @@ use commands::snapshots::{delete_all_apfs_snapshots, delete_apfs_snapshot, list_
 use commands::memory::{get_memory_status, purge_inactive_memory};
 use commands::browser::scan_browser_caches;
 use commands::maintenance::{clean_maintenance_items, scan_maintenance_items};
+use commands::orphaned::{clean_orphaned_leftovers, scan_orphaned_leftovers};
+use commands::smart_rules::{archive_old_downloads, consolidate_desktop_screenshots, get_smart_rules_stats};
 
 #[tauri::command]
 fn exit_app(app: tauri::AppHandle) {
@@ -255,6 +258,12 @@ pub fn run() {
             scan_browser_caches,
             scan_maintenance_items,
             clean_maintenance_items,
+            run_brew_cleanup,
+            scan_orphaned_leftovers,
+            clean_orphaned_leftovers,
+            get_smart_rules_stats,
+            archive_old_downloads,
+            consolidate_desktop_screenshots,
         ])
         .build(tauri::generate_context!())
         .expect("error while building tauri application");

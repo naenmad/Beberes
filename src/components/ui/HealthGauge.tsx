@@ -1,12 +1,20 @@
-import { ShieldCheck, ShieldAlert, Sparkles } from 'lucide-react';
+import { ShieldCheck, ShieldAlert, Sparkles, Zap } from 'lucide-react';
 
 interface HealthGaugeProps {
   freeSpace: number;
   totalSpace: number;
   cleanableJunk: number;
+  onMasterClean?: () => void;
+  isCleaning?: boolean;
 }
 
-export default function HealthGauge({ freeSpace, totalSpace, cleanableJunk }: HealthGaugeProps) {
+export default function HealthGauge({
+  freeSpace,
+  totalSpace,
+  cleanableJunk,
+  onMasterClean,
+  isCleaning,
+}: HealthGaugeProps) {
   // Compute health score (0-100)
   // Higher free space and lower junk -> higher score
   const freePercent = totalSpace > 0 ? (freeSpace / totalSpace) * 100 : 50;
@@ -77,25 +85,40 @@ export default function HealthGauge({ freeSpace, totalSpace, cleanableJunk }: He
           <span className="text-xl font-extrabold text-slate-900 dark:text-white leading-none">
             {score}%
           </span>
-          <span className="text-[10px] text-slate-400 font-medium mt-0.5">Health</span>
+          <span className="text-[10px] text-slate-400 font-medium mt-0.5">Hygiene</span>
         </div>
       </div>
 
-      {/* Description */}
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-1.5 mb-1">
-          {isOptimal ? (
-            <ShieldCheck size={16} className={color} />
-          ) : isFair ? (
-            <Sparkles size={16} className={color} />
-          ) : (
-            <ShieldAlert size={16} className={color} />
-          )}
-          <h4 className={`text-sm font-bold ${color}`}>{statusLabel}</h4>
+      {/* Description & Master Action */}
+      <div className="flex-1 min-w-0 flex flex-col justify-between">
+        <div>
+          <div className="flex items-center gap-1.5 mb-1">
+            {isOptimal ? (
+              <ShieldCheck size={16} className={color} />
+            ) : isFair ? (
+              <Sparkles size={16} className={color} />
+            ) : (
+              <ShieldAlert size={16} className={color} />
+            )}
+            <h4 className={`text-sm font-bold ${color}`}>{statusLabel}</h4>
+          </div>
+          <p className="text-xs text-slate-500 dark:text-neutral-400 leading-relaxed">
+            {statusDesc}
+          </p>
         </div>
-        <p className="text-xs text-slate-500 dark:text-neutral-400 leading-relaxed">
-          {statusDesc}
-        </p>
+
+        {onMasterClean && cleanableJunk > 0 && (
+          <div className="mt-3 pt-2.5 border-t border-black/5 dark:border-white/5">
+            <button
+              onClick={onMasterClean}
+              disabled={isCleaning}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-xs transition-colors cursor-pointer disabled:opacity-50"
+            >
+              <Zap size={13} />
+              <span>{isCleaning ? 'Membersihkan...' : 'Bereskan Sekaligus'}</span>
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

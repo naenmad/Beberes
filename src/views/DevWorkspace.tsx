@@ -1,6 +1,6 @@
 import { useAppStore } from '../store/appStore';
 import { useTranslation } from '../lib/i18n';
-import { scanDevWorkspaces, cleanSelectedItems, revealInFinder } from '../lib/commands';
+import { scanDevWorkspaces, cleanSelectedItems, revealInFinder, runBrewCleanup } from '../lib/commands';
 import type { CleanResult } from '../lib/commands';
 import { formatSize } from '../lib/utils';
 import Card, { CardHeader, CardBody } from '../components/ui/Card';
@@ -22,6 +22,9 @@ import {
   Filter,
   Sparkles,
   Code2,
+  Terminal,
+  RefreshCw,
+  X,
 } from 'lucide-react';
 import {
   RustIcon,
@@ -85,6 +88,29 @@ export default function DevWorkspace() {
   const [sizeFilter, setSizeFilter] = useState<SizeFilter>('all');
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showCleaningFlow, setShowCleaningFlow] = useState(false);
+
+  // Homebrew Pruner State
+  const [isCleaningBrew, setIsCleaningBrew] = useState(false);
+  const [brewOutput, setBrewOutput] = useState<string | null>(null);
+  const [showBrewLog, setShowBrewLog] = useState(false);
+
+  const handleBrewCleanup = async () => {
+    setIsCleaningBrew(true);
+    setBrewOutput(null);
+    try {
+      const res = await runBrewCleanup();
+      setBrewOutput(
+        res.trim() || 'Homebrew cleanup selesai: Semua bottle lama dan lockfile kadaluarsa telah dibersihkan.'
+      );
+      setShowBrewLog(true);
+      await runScan();
+    } catch (err: any) {
+      setBrewOutput(`Gagal menjalankan brew cleanup: ${err}`);
+      setShowBrewLog(true);
+    } finally {
+      setIsCleaningBrew(false);
+    }
+  };
 
   const selectedSize = getSelectedSize('dev');
   const selectedItems = getSelectedItems('dev');
@@ -195,6 +221,72 @@ export default function DevWorkspace() {
           ) : undefined
         }
       />
+
+      {/* Homebrew & Global Tooling Hygiene Card */}
+      <Card className="p-4! border-indigo-500/20 bg-indigo-500/[0.03]">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-10 h-10 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center shrink-0">
+              <Terminal size={18} className="text-indigo-600 dark:text-indigo-400" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h4 className="text-xs font-bold text-slate-900 dark:text-white">
+                  Pemeliharaan Global Homebrew & Bottle Cache
+                </h4>
+                <span className="px-2 py-0.5 rounded text-[9px] font-semibold bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
+                  brew cleanup --prune=all
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-500 dark:text-neutral-400 mt-0.5">
+                Bersihkan unduhan bottle usang, lockfile kadaluarsa, dan berkas sementara Homebrew di macOS.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
+            {brewOutput && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowBrewLog(!showBrewLog)}
+                className="text-xs"
+              >
+                {showBrewLog ? 'Tutup Log' : 'Lihat Log Output'}
+              </Button>
+            )}
+
+            <Button
+              variant="secondary"
+              size="sm"
+              disabled={isCleaningBrew}
+              onClick={handleBrewCleanup}
+              className="flex items-center gap-1.5"
+            >
+              <RefreshCw size={13} className={isCleaningBrew ? 'animate-spin' : ''} />
+              <span>{isCleaningBrew ? 'Membersihkan...' : 'Prune Homebrew'}</span>
+            </Button>
+          </div>
+        </div>
+
+        {brewOutput && showBrewLog && (
+          <div className="mt-3 pt-3 border-t border-black/5 dark:border-white/5">
+            <div className="flex items-center justify-between mb-1.5 text-[11px] text-slate-400">
+              <span>Output Konsol Homebrew:</span>
+              <button
+                type="button"
+                onClick={() => setShowBrewLog(false)}
+                className="text-slate-400 hover:text-slate-700 dark:hover:text-white cursor-pointer"
+              >
+                <X size={12} />
+              </button>
+            </div>
+            <pre className="p-2.5 rounded-xl bg-black/5 dark:bg-black/40 text-[11px] font-mono text-slate-700 dark:text-neutral-300 max-h-36 overflow-y-auto whitespace-pre-wrap">
+              {brewOutput}
+            </pre>
+          </div>
+        )}
+      </Card>
 
       {/* Actions & Search Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">

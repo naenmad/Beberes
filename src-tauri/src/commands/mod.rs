@@ -14,4 +14,6 @@ pub mod snapshots;
 pub mod memory;
 pub mod browser;
 pub mod maintenance;
+pub mod orphaned;
+pub mod smart_rules;
 

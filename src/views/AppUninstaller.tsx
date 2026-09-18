@@ -5,8 +5,11 @@ import {
   scanInstalledApps,
   uninstallApp,
   revealInFinder,
+  scanOrphanedLeftovers,
+  cleanOrphanedLeftovers,
   type AppItem,
   type UninstallResult,
+  type OrphanedLeftoverItem,
 } from '../lib/commands';
 import { formatSize } from '../lib/utils';
 import Card, { CardBody } from '../components/ui/Card';
@@ -27,17 +30,24 @@ import {
   HardDrive,
   PackageOpen,
   Layers,
-  Database,
   SlidersHorizontal,
+  Ghost,
+  RefreshCw,
+  Sparkles,
+  CheckCheck,
 } from 'lucide-react';
 
 type AppFilter = 'all' | 'user' | 'large' | 'system';
 type SortOption = 'size' | 'name' | 'recent';
+type ViewMode = 'installed' | 'orphaned';
 
 export default function AppUninstaller() {
   const { t } = useTranslation();
   const { deleteToTrash, recordCleanResult, globalRefreshTrigger } = useAppStore();
 
+  const [viewMode, setViewMode] = useState<ViewMode>('installed');
+
+  // Installed Apps State
   const [apps, setApps] = useState<AppItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -61,13 +71,21 @@ export default function AppUninstaller() {
     appName: '',
   });
 
+  // Orphaned Leftovers State
+  const [orphanedItems, setOrphanedItems] = useState<OrphanedLeftoverItem[]>([]);
+  const [isLoadingOrphaned, setIsLoadingOrphaned] = useState(false);
+  const [selectedOrphanedIds, setSelectedOrphanedIds] = useState<Set<string>>(new Set());
+  const [orphanedSearchQuery, setOrphanedSearchQuery] = useState('');
+  const [isCleaningOrphaned, setIsCleaningOrphaned] = useState(false);
+  const [showOrphanedConfirm, setShowOrphanedConfirm] = useState(false);
+  const [showOrphanedCleaningFlow, setShowOrphanedCleaningFlow] = useState(false);
+
   const runScan = async () => {
     setIsLoading(true);
     try {
       const data = await scanInstalledApps();
       setApps(data);
 
-      // Initialize selected leftovers for all apps
       const map: Record<string, Set<string>> = {};
       for (const app of data) {
         map[app.id] = new Set(app.leftovers.map((l) => l.path));
@@ -80,8 +98,22 @@ export default function AppUninstaller() {
     }
   };
 
+  const runOrphanedScan = async () => {
+    setIsLoadingOrphaned(true);
+    try {
+      const res = await scanOrphanedLeftovers();
+      setOrphanedItems(res.items);
+      setSelectedOrphanedIds(new Set(res.items.map((i) => i.id)));
+    } catch (err) {
+      console.error('Failed to scan orphaned leftovers:', err);
+    } finally {
+      setIsLoadingOrphaned(false);
+    }
+  };
+
   useEffect(() => {
     runScan();
+    runOrphanedScan();
   }, [globalRefreshTrigger]);
 
   const toggleExpand = (appId: string) => {
@@ -107,16 +139,16 @@ export default function AppUninstaller() {
     try {
       await revealInFinder(path);
     } catch (err) {
-      console.error('Failed to reveal app in Finder:', err);
+      console.error('Failed to reveal item in Finder:', err);
     }
   };
 
-  // Filter & Search
+  // Filter & Sort Installed Apps
   const filteredApps = useMemo(() => {
     return apps.filter((app) => {
       if (filter === 'user' && app.isSystemApp) return false;
       if (filter === 'system' && !app.isSystemApp) return false;
-      if (filter === 'large' && app.totalSize < 1024 * 1024 * 1024) return false; // < 1 GB
+      if (filter === 'large' && app.totalSize < 1024 * 1024 * 1024) return false;
 
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase();
@@ -130,7 +162,6 @@ export default function AppUninstaller() {
     });
   }, [apps, filter, searchQuery]);
 
-  // Sort
   const sortedApps = useMemo(() => {
     const list = [...filteredApps];
     if (sortBy === 'size') {
@@ -141,16 +172,57 @@ export default function AppUninstaller() {
     return list;
   }, [filteredApps, sortBy]);
 
-  // Overall statistics
   const stats = useMemo(() => {
     const totalApps = apps.length;
     const userApps = apps.filter((a) => !a.isSystemApp).length;
     const totalBytes = apps.reduce((sum, a) => sum + a.totalSize, 0);
-    const totalLeftovers = apps.reduce((sum, a) => sum + a.leftoversSize, 0);
+    const totalLeftovers = apps.reduce(
+      (sum, a) => sum + a.leftovers.reduce((lSum, l) => lSum + l.size, 0),
+      0
+    );
     return { totalApps, userApps, totalBytes, totalLeftovers };
   }, [apps]);
 
-  // Trigger Uninstall Flow
+  // Orphaned Leftovers filtering & statistics
+  const filteredOrphaned = useMemo(() => {
+    if (!orphanedSearchQuery.trim()) return orphanedItems;
+    const q = orphanedSearchQuery.toLowerCase();
+    return orphanedItems.filter(
+      (item) =>
+        item.name.toLowerCase().includes(q) ||
+        item.inferredApp.toLowerCase().includes(q) ||
+        item.path.toLowerCase().includes(q) ||
+        item.kind.toLowerCase().includes(q)
+    );
+  }, [orphanedItems, orphanedSearchQuery]);
+
+  const orphanedStats = useMemo(() => {
+    const totalCount = orphanedItems.length;
+    const totalSize = orphanedItems.reduce((acc, i) => acc + i.size, 0);
+    const selectedItems = orphanedItems.filter((i) => selectedOrphanedIds.has(i.id));
+    const selectedCount = selectedItems.length;
+    const selectedSize = selectedItems.reduce((acc, i) => acc + i.size, 0);
+    return { totalCount, totalSize, selectedCount, selectedSize, selectedItems };
+  }, [orphanedItems, selectedOrphanedIds]);
+
+  const toggleSelectAllOrphaned = () => {
+    if (selectedOrphanedIds.size === filteredOrphaned.length) {
+      setSelectedOrphanedIds(new Set());
+    } else {
+      setSelectedOrphanedIds(new Set(filteredOrphaned.map((i) => i.id)));
+    }
+  };
+
+  const toggleOrphanedItem = (id: string) => {
+    setSelectedOrphanedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  // Trigger Uninstall Flow for Installed App
   const handleInitiateUninstall = (app: AppItem) => {
     if (app.isSystemApp) return;
 
@@ -194,6 +266,7 @@ export default function AppUninstaller() {
         [`App: ${targetApp.name}`]
       );
       await runScan();
+      await runOrphanedScan();
     } catch (err) {
       console.error('Failed to uninstall app:', err);
     } finally {
@@ -201,340 +274,570 @@ export default function AppUninstaller() {
     }
   };
 
+  // Trigger Clean Flow for Orphaned Leftovers
+  const handleInitiateCleanOrphaned = () => {
+    if (orphanedStats.selectedCount === 0) return;
+    setShowOrphanedConfirm(true);
+  };
+
+  const handleExecuteCleanOrphaned = async () => {
+    if (orphanedStats.selectedCount === 0) return;
+    setShowOrphanedConfirm(false);
+    setShowOrphanedCleaningFlow(true);
+    setIsCleaningOrphaned(true);
+
+    try {
+      const paths = orphanedStats.selectedItems.map((i) => i.path);
+      const cleaned = await cleanOrphanedLeftovers(paths);
+      recordCleanResult(
+        orphanedStats.selectedSize,
+        cleaned,
+        false,
+        orphanedStats.selectedItems.map((i) => `Orphaned: ${i.inferredApp}`)
+      );
+      await runOrphanedScan();
+    } catch (err) {
+      console.error('Failed to clean orphaned leftovers:', err);
+    } finally {
+      setIsCleaningOrphaned(false);
+    }
+  };
+
   return (
     <div className="space-y-6 animate-fade-in pb-20">
       {/* Top Banner & Title */}
       <PageHeader
-        icon={<AppWindow size={20} />}
-        iconColor="text-blue-500"
-        title={t('apps.title')}
-        subtitle={t('apps.subtitle')}
+        icon={viewMode === 'installed' ? <AppWindow size={20} /> : <Ghost size={20} />}
+        iconColor={viewMode === 'installed' ? 'text-blue-500' : 'text-amber-500'}
+        title={viewMode === 'installed' ? t('apps.title') : 'Sisa Aplikasi Terhapus (Orphaned)'}
+        subtitle={
+          viewMode === 'installed'
+            ? t('apps.subtitle')
+            : 'Pindai dan bersihkan folder sisa, cache, dan data aplikasi yang sudah lama dihapus dari sistem macOS.'
+        }
         badge={
-          <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400">
-            {t('apps.installedCount', '{count} installed', { count: apps.length })}
+          <span
+            className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
+              viewMode === 'installed'
+                ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400'
+                : 'bg-amber-500/10 text-amber-600 dark:text-amber-400'
+            }`}
+          >
+            {viewMode === 'installed'
+              ? t('apps.installedCount', '{count} installed', { count: apps.length })
+              : `${orphanedStats.totalCount} sisa ditemukan (${formatSize(orphanedStats.totalSize)})`}
           </span>
         }
       />
 
-      {/* Summary KPI Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <Card className="p-3.5!">
-          <div className="flex items-center gap-2 text-slate-400 dark:text-neutral-500 text-xs font-medium">
-            <AppWindow size={14} className="text-blue-500" />
-            <span>{t('apps.statTotalApps')}</span>
-          </div>
-          <p className="text-xl font-bold text-slate-900 dark:text-white mt-1">
-            {stats.totalApps}
-          </p>
-          <span className="text-[10px] text-slate-400">
-            {t('apps.statUserApps', '{count} user-installed', { count: stats.userApps })}
+      {/* Mode Switcher Tabs */}
+      <div className="flex items-center gap-2 p-1.5 rounded-2xl glass-panel w-fit border border-black/5 dark:border-white/5">
+        <button
+          onClick={() => setViewMode('installed')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+            viewMode === 'installed'
+              ? 'bg-blue-600 text-white shadow-sm'
+              : 'text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white'
+          }`}
+        >
+          <AppWindow size={15} />
+          <span>Aplikasi Terpasang</span>
+          <span
+            className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold ${
+              viewMode === 'installed'
+                ? 'bg-white/20 text-white'
+                : 'bg-slate-200 dark:bg-neutral-700 text-slate-700 dark:text-neutral-300'
+            }`}
+          >
+            {apps.length}
           </span>
-        </Card>
+        </button>
 
-        <Card className="p-3.5!">
-          <div className="flex items-center gap-2 text-slate-400 dark:text-neutral-500 text-xs font-medium">
-            <HardDrive size={14} className="text-indigo-500" />
-            <span>{t('apps.statFootprint')}</span>
-          </div>
-          <p className="text-xl font-bold text-slate-900 dark:text-white mt-1">
-            {formatSize(stats.totalBytes)}
-          </p>
-          <span className="text-[10px] text-slate-400">
-            {t('apps.statFootprintDesc')}
-          </span>
-        </Card>
-
-        <Card className="p-3.5!">
-          <div className="flex items-center gap-2 text-slate-400 dark:text-neutral-500 text-xs font-medium">
-            <Layers size={14} className="text-amber-500" />
-            <span>{t('apps.statResidual')}</span>
-          </div>
-          <p className="text-xl font-bold text-slate-900 dark:text-white mt-1">
-            {formatSize(stats.totalLeftovers)}
-          </p>
-          <span className="text-[10px] text-slate-400">
-            {t('apps.statResidualDesc')}
-          </span>
-        </Card>
-
-        <Card className="p-3.5!">
-          <div className="flex items-center gap-2 text-slate-400 dark:text-neutral-500 text-xs font-medium">
-            <ShieldCheck size={14} className="text-emerald-500" />
-            <span>{t('apps.statSystemShield')}</span>
-          </div>
-          <p className="text-xl font-bold text-emerald-600 dark:text-emerald-400 mt-1">
-            {t('apps.statActive')}
-          </p>
-          <span className="text-[10px] text-slate-400">
-            {t('apps.statSystemShieldDesc')}
-          </span>
-        </Card>
-      </div>
-
-      {/* Filter Tabs & Search Bar */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-        {/* Filter Pills */}
-        <div className="flex items-center gap-1 p-1 rounded-xl glass-pill w-fit overflow-x-auto">
-          {(['all', 'user', 'large', 'system'] as AppFilter[]).map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setFilter(tab)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer capitalize ${
-                filter === tab
-                  ? 'bg-white dark:bg-neutral-700 text-blue-600 dark:text-blue-400 shadow-xs'
-                  : 'text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white'
+        <button
+          onClick={() => {
+            setViewMode('orphaned');
+            if (orphanedItems.length === 0) runOrphanedScan();
+          }}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+            viewMode === 'orphaned'
+              ? 'bg-amber-600 text-white shadow-sm'
+              : 'text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white'
+          }`}
+        >
+          <Ghost size={15} />
+          <span>Sisa Aplikasi Dihapus</span>
+          {orphanedStats.totalCount > 0 && (
+            <span
+              className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold ${
+                viewMode === 'orphaned'
+                  ? 'bg-white/20 text-white'
+                  : 'bg-amber-500/20 text-amber-600 dark:text-amber-400'
               }`}
             >
-              {tab === 'all'
-                ? t('apps.filterAll')
-                : tab === 'user'
-                ? t('apps.filterUser')
-                : tab === 'large'
-                ? t('apps.filterLarge')
-                : t('apps.filterSystem')}
-            </button>
-          ))}
-        </div>
-
-        {/* Search & Sort */}
-        <div className="flex items-center gap-2">
-          <div className="relative flex-1 sm:w-64">
-            <Search
-              size={13}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
-            />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder={t('apps.searchPlaceholder')}
-              className="w-full pl-8 pr-3 py-1.5 text-xs rounded-xl bg-white dark:bg-neutral-800 border border-black/6 dark:border-white/8 text-slate-800 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-500"
-            />
-          </div>
-
-          <button
-            onClick={() => setSortBy(sortBy === 'size' ? 'name' : 'size')}
-            title={t('apps.sortBy', 'Sort by {sort}', { sort: sortBy === 'size' ? t('apps.sortSize') : t('apps.sortName') })}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl glass-panel text-xs font-semibold text-slate-600 dark:text-neutral-300 cursor-pointer hover:text-slate-900 dark:hover:text-white"
-          >
-            <SlidersHorizontal size={12} />
-            <span>{sortBy === 'size' ? t('apps.sortSize') : t('apps.sortName')}</span>
-          </button>
-        </div>
+              {orphanedStats.totalCount}
+            </span>
+          )}
+        </button>
       </div>
 
-      {/* App List */}
-      {isLoading ? (
-        <div className="space-y-3">
-          <CardSkeleton />
-          <CardSkeleton />
-          <CardSkeleton />
-        </div>
-      ) : sortedApps.length === 0 ? (
-        <div className="p-12 text-center rounded-2xl glass-panel">
-          <PackageOpen size={36} className="mx-auto text-slate-300 dark:text-neutral-600 mb-2" />
-          <h3 className="text-sm font-bold text-slate-700 dark:text-neutral-300">
-            {t('apps.emptySearchTitle')}
-          </h3>
-          <p className="text-xs text-slate-400 mt-1">
-            {t('apps.emptySearchDesc')}
-          </p>
-        </div>
-      ) : (
-        <div className="space-y-3">
-          {sortedApps.map((app) => {
-            const isExpanded = expandedAppIds.has(app.id);
-            const selectedLeftovers = selectedLeftoversMap[app.id] || new Set();
-            const totalLeftoversSize = app.leftovers
-              .filter((l) => selectedLeftovers.has(l.path))
-              .reduce((sum, l) => sum + l.size, 0);
-            const totalActionSize = app.appSize + totalLeftoversSize;
+      {/* VIEW 1: INSTALLED APPLICATIONS */}
+      {viewMode === 'installed' && (
+        <>
+          {/* Summary KPI Cards */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <Card className="p-3.5!">
+              <div className="flex items-center gap-2 text-slate-400 dark:text-neutral-500 text-xs font-medium">
+                <AppWindow size={14} className="text-blue-500" />
+                <span>{t('apps.statTotalApps')}</span>
+              </div>
+              <p className="text-xl font-bold text-slate-900 dark:text-white mt-1">
+                {stats.totalApps}
+              </p>
+              <span className="text-[10px] text-slate-400">
+                {t('apps.statUserApps', '{count} user-installed', { count: stats.userApps })}
+              </span>
+            </Card>
 
-            return (
-              <Card key={app.id} className="overflow-hidden">
-                <CardBody className="p-4!">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    {/* App Header & Basic Info */}
-                    <div className="flex items-start gap-3.5 min-w-0">
-                      <div className="w-10 h-10 rounded-2xl bg-black/4 dark:bg-white/6 border border-black/6 dark:border-white/8 flex items-center justify-center shrink-0 shadow-xs overflow-hidden">
-                        {app.icon ? (
-                          <img
-                            src={app.icon}
-                            alt={app.name}
-                            className="w-full h-full object-contain p-0.5 rounded-2xl"
-                            onError={(e) => {
-                              (e.target as HTMLElement).style.display = 'none';
-                            }}
-                          />
-                        ) : (
-                          <AppWindow size={20} className="text-blue-600 dark:text-blue-400" />
-                        )}
-                      </div>
+            <Card className="p-3.5!">
+              <div className="flex items-center gap-2 text-slate-400 dark:text-neutral-500 text-xs font-medium">
+                <HardDrive size={14} className="text-indigo-500" />
+                <span>{t('apps.statFootprint')}</span>
+              </div>
+              <p className="text-xl font-bold text-slate-900 dark:text-white mt-1">
+                {formatSize(stats.totalBytes)}
+              </p>
+              <span className="text-[10px] text-slate-400">
+                {t('apps.statFootprintDesc')}
+              </span>
+            </Card>
 
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <h3 className="text-sm font-bold text-slate-900 dark:text-white truncate">
-                            {app.name}
-                          </h3>
-                          <span className="text-[10px] text-slate-400 font-mono">
-                            v{app.version}
-                          </span>
+            <Card className="p-3.5!">
+              <div className="flex items-center gap-2 text-slate-400 dark:text-neutral-500 text-xs font-medium">
+                <Layers size={14} className="text-amber-500" />
+                <span>{t('apps.statResidual')}</span>
+              </div>
+              <p className="text-xl font-bold text-slate-900 dark:text-white mt-1">
+                {formatSize(stats.totalLeftovers)}
+              </p>
+              <span className="text-[10px] text-slate-400">
+                {t('apps.statResidualDesc')}
+              </span>
+            </Card>
 
-                          {app.isSystemApp ? (
-                            <span className="flex items-center gap-1 text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
-                              <ShieldCheck size={10} />
-                              {t('apps.systemAppBadge')}
-                            </span>
-                          ) : (
-                            <span className="text-[10px] font-medium text-slate-500 dark:text-neutral-400 bg-black/3 dark:bg-white/5 px-2 py-0.5 rounded-full">
-                              {t('apps.userAppBadge')}
-                            </span>
-                          )}
+            <Card className="p-3.5!">
+              <div className="flex items-center gap-2 text-slate-400 dark:text-neutral-500 text-xs font-medium">
+                <ShieldCheck size={14} className="text-emerald-500" />
+                <span>{t('apps.statSystemShield')}</span>
+              </div>
+              <p className="text-xl font-bold text-emerald-600 dark:text-emerald-400 mt-1">
+                {t('apps.statActive')}
+              </p>
+              <span className="text-[10px] text-slate-400">
+                {t('apps.statSystemShieldDesc')}
+              </span>
+            </Card>
+          </div>
+
+          {/* Filter Tabs & Search Bar */}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+            {/* Filter Pills */}
+            <div className="flex items-center gap-1 p-1 rounded-xl glass-pill w-fit overflow-x-auto">
+              {(['all', 'user', 'large', 'system'] as AppFilter[]).map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => setFilter(tab)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer capitalize ${
+                    filter === tab
+                      ? 'bg-white dark:bg-neutral-700 text-blue-600 dark:text-blue-400 shadow-xs'
+                      : 'text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white'
+                  }`}
+                >
+                  {tab === 'all'
+                    ? t('apps.filterAll')
+                    : tab === 'user'
+                    ? t('apps.filterUser')
+                    : tab === 'large'
+                    ? t('apps.filterLarge')
+                    : t('apps.filterSystem')}
+                </button>
+              ))}
+            </div>
+
+            {/* Search & Sort */}
+            <div className="flex items-center gap-2">
+              <div className="relative flex-1 sm:w-64">
+                <Search
+                  size={13}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+                />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder={t('apps.searchPlaceholder')}
+                  className="w-full pl-8 pr-3 py-1.5 text-xs rounded-xl bg-white dark:bg-neutral-800 border border-black/6 dark:border-white/8 text-slate-800 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                />
+              </div>
+
+              <button
+                onClick={() => setSortBy(sortBy === 'size' ? 'name' : 'size')}
+                title={t('apps.sortBy', 'Sort by {sort}', { sort: sortBy === 'size' ? t('apps.sortSize') : t('apps.sortName') })}
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl glass-panel text-xs font-semibold text-slate-600 dark:text-neutral-300 cursor-pointer hover:text-slate-900 dark:hover:text-white"
+              >
+                <SlidersHorizontal size={12} />
+                <span>{sortBy === 'size' ? t('apps.sortSize') : t('apps.sortName')}</span>
+              </button>
+            </div>
+          </div>
+
+          {/* App List */}
+          {isLoading ? (
+            <div className="space-y-3">
+              <CardSkeleton />
+              <CardSkeleton />
+              <CardSkeleton />
+            </div>
+          ) : sortedApps.length === 0 ? (
+            <div className="p-12 text-center rounded-2xl glass-panel">
+              <PackageOpen size={36} className="mx-auto text-slate-300 dark:text-neutral-600 mb-2" />
+              <h3 className="text-sm font-bold text-slate-700 dark:text-neutral-300">
+                {t('apps.emptySearchTitle')}
+              </h3>
+              <p className="text-xs text-slate-400 mt-1">
+                {t('apps.emptySearchDesc')}
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {sortedApps.map((app) => {
+                const isExpanded = expandedAppIds.has(app.id);
+                const selectedLeftovers = selectedLeftoversMap[app.id] || new Set();
+                const totalLeftoversSize = app.leftovers
+                  .filter((l) => selectedLeftovers.has(l.path))
+                  .reduce((sum, l) => sum + l.size, 0);
+                const currentTotalToFree = app.appSize + totalLeftoversSize;
+
+                return (
+                  <Card key={app.id} className="overflow-hidden transition-all">
+                    <CardBody className="p-4">
+                      <div className="flex items-center justify-between gap-4">
+                        {/* App Icon + Info */}
+                        <div className="flex items-center gap-3.5 min-w-0">
+                          <div className="w-11 h-11 rounded-2xl bg-blue-500/10 dark:bg-blue-400/10 border border-blue-500/20 flex items-center justify-center shrink-0">
+                            <AppWindow size={22} className="text-blue-600 dark:text-blue-400" />
+                          </div>
+
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-2">
+                              <h3 className="text-sm font-bold text-slate-900 dark:text-white truncate">
+                                {app.name}
+                              </h3>
+                              {app.isSystemApp && (
+                                <span className="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-slate-100 dark:bg-neutral-800 text-slate-500 dark:text-neutral-400 border border-black/5 dark:border-white/5">
+                                  {t('apps.systemAppBadge')}
+                                </span>
+                              )}
+                              {app.version && (
+                                <span className="text-[11px] text-slate-400 font-mono">
+                                  v{app.version}
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-xs text-slate-400 font-mono truncate max-w-md mt-0.5">
+                              {app.path}
+                            </p>
+                          </div>
                         </div>
 
-                        <p className="text-xs text-slate-400 dark:text-neutral-400 font-mono truncate mt-0.5">
-                          {app.bundleId || app.path}
-                        </p>
-                      </div>
-                    </div>
+                        {/* Size & Actions */}
+                        <div className="flex items-center gap-3 shrink-0">
+                          <div className="text-right">
+                            <p className="text-sm font-bold text-slate-900 dark:text-white">
+                              {formatSize(currentTotalToFree)}
+                            </p>
+                            {app.leftovers.length > 0 && (
+                              <button
+                                type="button"
+                                onClick={() => toggleExpand(app.id)}
+                                className="flex items-center gap-1 text-[11px] text-blue-600 dark:text-blue-400 hover:underline cursor-pointer ml-auto mt-0.5"
+                              >
+                                <span>{app.leftovers.length} data pendukung</span>
+                                {isExpanded ? <ChevronDown size={11} /> : <ChevronRight size={11} />}
+                              </button>
+                            )}
+                          </div>
 
-                    {/* Size & Actions */}
-                    <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0">
-                      <div className="text-right">
-                        <span className="text-sm font-bold text-slate-800 dark:text-neutral-200">
-                          {formatSize(app.totalSize)}
-                        </span>
-                        {app.leftovers.length > 0 && (
-                          <p className="text-[10px] text-slate-400">
-                            {t('apps.sizeBreakdown', '{bin} binary + {data} data', {
-                              bin: formatSize(app.appSize),
-                              data: formatSize(app.leftoversSize),
+                          <button
+                            type="button"
+                            onClick={(e) => handleReveal(e, app.path)}
+                            title={t('common.revealInFinder')}
+                            className="p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer"
+                          >
+                            <ExternalLink size={14} />
+                          </button>
+
+                          <Button
+                            variant={app.isSystemApp ? 'ghost' : 'danger'}
+                            size="sm"
+                            disabled={app.isSystemApp}
+                            onClick={() => handleInitiateUninstall(app)}
+                            className="flex items-center gap-1.5"
+                          >
+                            <Trash2 size={13} />
+                            <span>{app.isSystemApp ? t('apps.protectedBtn') : t('apps.uninstallBtn')}</span>
+                          </Button>
+                        </div>
+                      </div>
+
+                      {/* Expandable Leftovers Section */}
+                      {isExpanded && app.leftovers.length > 0 && (
+                        <div className="mt-4 pt-3 border-t border-black/5 dark:border-white/5 space-y-2">
+                          <div className="flex items-center justify-between text-xs text-slate-500 font-medium">
+                            <span>Pilih berkas residual yang ingin ikut dihapus:</span>
+                            <span>{formatSize(totalLeftoversSize)}</span>
+                          </div>
+
+                          <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+                            {app.leftovers.map((item) => {
+                              const isChecked = selectedLeftovers.has(item.path);
+                              return (
+                                <label
+                                  key={item.path}
+                                  className="flex items-center justify-between p-2 rounded-xl bg-black/[0.02] dark:bg-white/[0.02] hover:bg-black/[0.04] dark:hover:bg-white/[0.04] cursor-pointer text-xs"
+                                >
+                                  <div className="flex items-center gap-2 min-w-0">
+                                    <Checkbox
+                                      checked={isChecked}
+                                      onChange={() => toggleLeftoverSelection(app.id, item.path)}
+                                    />
+                                    <span className="px-1.5 py-0.5 rounded text-[9px] font-semibold bg-slate-100 dark:bg-neutral-700 text-slate-600 dark:text-neutral-300 capitalize shrink-0">
+                                      {item.kind.replace('_', ' ')}
+                                    </span>
+                                    <span
+                                      className="font-mono text-slate-600 dark:text-neutral-400 truncate"
+                                      title={item.path}
+                                    >
+                                      {item.path}
+                                    </span>
+                                  </div>
+                                  <div className="flex items-center gap-2 shrink-0 ml-2">
+                                    <span className="font-semibold text-slate-600 dark:text-neutral-400">
+                                      {formatSize(item.size)}
+                                    </span>
+                                    <button
+                                      type="button"
+                                      onClick={(e) => handleReveal(e, item.path)}
+                                      title={t('common.revealInFinder')}
+                                      className="p-1 text-slate-400 hover:text-slate-700 dark:hover:text-white"
+                                    >
+                                      <ExternalLink size={11} />
+                                    </button>
+                                  </div>
+                                </label>
+                              );
                             })}
-                          </p>
-                        )}
-                      </div>
-
-                      {/* Reveal in Finder */}
-                      <button
-                        onClick={(e) => handleReveal(e, app.path)}
-                        title={t('common.revealInFinder')}
-                        className="p-2 rounded-xl text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-black/4 dark:hover:bg-white/6 transition-colors cursor-pointer"
-                      >
-                        <ExternalLink size={14} />
-                      </button>
-
-                      {/* Expand Residual Leftovers */}
-                      {app.leftovers.length > 0 && (
-                        <button
-                          onClick={() => toggleExpand(app.id)}
-                          title="Inspect residual leftover files"
-                          className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-black/2 dark:bg-white/4 text-slate-600 dark:text-neutral-300 hover:bg-black/5 dark:hover:bg-white/8 text-xs font-semibold cursor-pointer transition-colors"
-                        >
-                          <span>{t('apps.dataFilesCount', '{count} data files', { count: app.leftovers.length })}</span>
-                          {isExpanded ? <ChevronDown size={13} /> : <ChevronRight size={13} />}
-                        </button>
+                          </div>
+                        </div>
                       )}
+                    </CardBody>
+                  </Card>
+                );
+              })}
+            </div>
+          )}
+        </>
+      )}
 
-                      {/* Uninstall Button */}
-                      {!app.isSystemApp ? (
-                        <Button
-                          onClick={() => handleInitiateUninstall(app)}
-                          variant="danger"
-                          size="sm"
-                          icon={<Trash2 size={13} />}
-                        >
-                          {t('apps.uninstall')}
-                        </Button>
-                      ) : (
-                        <button
-                          disabled
-                          title={t('apps.systemAppLockTooltip')}
-                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium text-slate-400 bg-black/2 dark:bg-white/2 border border-black/4 dark:border-white/4 cursor-not-allowed opacity-60"
-                        >
-                          <ShieldCheck size={13} />
-                          <span>{t('apps.protected')}</span>
-                        </button>
-                      )}
-                    </div>
-                  </div>
+      {/* VIEW 2: ORPHANED APP LEFTOVERS */}
+      {viewMode === 'orphaned' && (
+        <div className="space-y-4">
+          {/* Orphaned KPI Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <Card className="p-4!">
+              <div className="flex items-center gap-2 text-slate-400 dark:text-neutral-500 text-xs font-medium">
+                <Ghost size={14} className="text-amber-500" />
+                <span>Total Berkas Ditinggalkan</span>
+              </div>
+              <p className="text-2xl font-bold text-slate-900 dark:text-white mt-1">
+                {orphanedStats.totalCount}
+              </p>
+              <span className="text-[10px] text-slate-400">
+                Dari aplikasi yang sudah tidak terpasang di Mac
+              </span>
+            </Card>
 
-                  {/* Leftover Data Drawer */}
-                  {isExpanded && app.leftovers.length > 0 && (
-                    <div className="mt-4 pt-3 border-t border-black/4 dark:border-white/6 space-y-2">
-                      <div className="flex items-center justify-between text-xs text-slate-500 dark:text-neutral-400 px-1">
-                        <span className="font-semibold flex items-center gap-1.5">
-                          <Database size={12} className="text-blue-500" />
-                          {t('apps.leftoversDrawerTitle')}
-                        </span>
-                        <span>{t('apps.selectedTotal', 'Selected: {size}', { size: formatSize(totalActionSize) })}</span>
-                      </div>
+            <Card className="p-4!">
+              <div className="flex items-center gap-2 text-slate-400 dark:text-neutral-500 text-xs font-medium">
+                <HardDrive size={14} className="text-indigo-500" />
+                <span>Ruang Dapat Dipulihkan</span>
+              </div>
+              <p className="text-2xl font-bold text-slate-900 dark:text-white mt-1">
+                {formatSize(orphanedStats.totalSize)}
+              </p>
+              <span className="text-[10px] text-slate-400">
+                Application Support, Caches, & Saved State
+              </span>
+            </Card>
 
-                      <div className="space-y-1 rounded-2xl bg-black/2 dark:bg-white/3 p-2 border border-black/4 dark:border-white/6">
-                        {/* Main App binary row */}
-                        <div className="flex items-center justify-between text-xs py-1.5 px-2 rounded-lg bg-white/60 dark:bg-neutral-800/60">
-                          <div className="flex items-center gap-2 truncate">
-                            <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400">
-                              {t('apps.appBundle')}
-                            </span>
-                            <span className="font-mono text-slate-700 dark:text-neutral-300 truncate" title={app.path}>
-                              {app.path}
+            <Card className="p-4!">
+              <div className="flex items-center gap-2 text-slate-400 dark:text-neutral-500 text-xs font-medium">
+                <ShieldCheck size={14} className="text-emerald-500" />
+                <span>Perlindungan Sistem macOS</span>
+              </div>
+              <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-1">
+                100% Aman
+              </p>
+              <span className="text-[10px] text-slate-400">
+                Identitas com.apple.* dan sistem dilindungi secara ketat
+              </span>
+            </Card>
+          </div>
+
+          {/* Action Bar & Search */}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-3 rounded-2xl glass-panel">
+            <div className="flex items-center gap-2">
+              <button
+                onClick={toggleSelectAllOrphaned}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 text-xs font-semibold text-slate-700 dark:text-neutral-200 transition-colors cursor-pointer"
+              >
+                <CheckCheck size={13} />
+                <span>
+                  {selectedOrphanedIds.size === filteredOrphaned.length
+                    ? 'Batal Pilih Semua'
+                    : 'Pilih Semua'}
+                </span>
+              </button>
+
+              <button
+                onClick={runOrphanedScan}
+                disabled={isLoadingOrphaned}
+                title="Pindai Ulang"
+                className="p-2 rounded-xl bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 text-slate-600 dark:text-neutral-300 transition-colors cursor-pointer disabled:opacity-50"
+              >
+                <RefreshCw size={13} className={isLoadingOrphaned ? 'animate-spin' : ''} />
+              </button>
+
+              <span className="text-xs text-slate-400 font-medium">
+                {orphanedStats.selectedCount} terpilih ({formatSize(orphanedStats.selectedSize)})
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <div className="relative flex-1 sm:w-64">
+                <Search
+                  size={13}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+                />
+                <input
+                  type="text"
+                  value={orphanedSearchQuery}
+                  onChange={(e) => setOrphanedSearchQuery(e.target.value)}
+                  placeholder="Cari sisa aplikasi atau folder..."
+                  className="w-full pl-8 pr-3 py-1.5 text-xs rounded-xl bg-white dark:bg-neutral-800 border border-black/6 dark:border-white/8 text-slate-800 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-amber-500"
+                />
+              </div>
+
+              <Button
+                variant="danger"
+                size="sm"
+                disabled={orphanedStats.selectedCount === 0 || isCleaningOrphaned}
+                onClick={handleInitiateCleanOrphaned}
+                className="flex items-center gap-1.5 shrink-0"
+              >
+                <Trash2 size={13} />
+                <span>Bereskan Sisa ({formatSize(orphanedStats.selectedSize)})</span>
+              </Button>
+            </div>
+          </div>
+
+          {/* Orphaned Items List */}
+          {isLoadingOrphaned ? (
+            <div className="space-y-3">
+              <CardSkeleton />
+              <CardSkeleton />
+              <CardSkeleton />
+            </div>
+          ) : filteredOrphaned.length === 0 ? (
+            <div className="p-12 text-center rounded-2xl glass-panel">
+              <Sparkles size={36} className="mx-auto text-emerald-500 mb-2" />
+              <h3 className="text-sm font-bold text-slate-700 dark:text-neutral-300">
+                Sistem Bersih dan Tertata
+              </h3>
+              <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
+                Tidak ditemukan sisa berkas dari aplikasi yang telah dihapus. Library macOS Anda dalam kondisi prima.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {filteredOrphaned.map((item) => {
+                const isSelected = selectedOrphanedIds.has(item.id);
+                return (
+                  <Card
+                    key={item.id}
+                    className={`transition-all ${
+                      isSelected
+                        ? 'border-amber-500/30 bg-amber-500/[0.02]'
+                        : 'opacity-80 hover:opacity-100'
+                    }`}
+                  >
+                    <CardBody className="p-3.5 flex items-center justify-between gap-4">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <Checkbox
+                          checked={isSelected}
+                          onChange={() => toggleOrphanedItem(item.id)}
+                        />
+
+                        <div className="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center shrink-0">
+                          <Ghost size={18} className="text-amber-600 dark:text-amber-400" />
+                        </div>
+
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2">
+                            <h4 className="text-xs font-bold text-slate-900 dark:text-white truncate">
+                              {item.inferredApp}
+                            </h4>
+                            <span className="px-2 py-0.5 rounded text-[9px] font-semibold bg-slate-100 dark:bg-neutral-800 text-slate-600 dark:text-neutral-300 border border-black/5 dark:border-white/5 shrink-0">
+                              {item.kind}
                             </span>
                           </div>
-                          <span className="font-bold text-slate-700 dark:text-neutral-300 shrink-0 ml-2">
-                            {formatSize(app.appSize)}
+                          <p
+                            className="text-[11px] text-slate-400 font-mono truncate max-w-lg mt-0.5"
+                            title={item.path}
+                          >
+                            {item.path}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-3 shrink-0">
+                        <div className="text-right">
+                          <p className="text-xs font-bold text-slate-900 dark:text-white">
+                            {formatSize(item.size)}
+                          </p>
+                          <span className="text-[10px] text-slate-400">
+                            {item.lastModified}
                           </span>
                         </div>
 
-                        {/* Leftover paths */}
-                        {app.leftovers.map((item) => {
-                          const isChecked = selectedLeftovers.has(item.path);
-                          return (
-                            <label
-                              key={item.path}
-                              className="flex items-center justify-between text-xs py-1.5 px-2 rounded-lg hover:bg-black/2 dark:hover:bg-white/4 cursor-pointer transition-colors"
-                            >
-                              <div className="flex items-center gap-2 truncate min-w-0">
-                                <Checkbox
-                                  checked={isChecked}
-                                  onChange={() => toggleLeftoverSelection(app.id, item.path)}
-                                />
-                                <span className="px-1.5 py-0.5 rounded text-[9px] font-semibold bg-slate-100 dark:bg-neutral-700 text-slate-600 dark:text-neutral-300 capitalize shrink-0">
-                                  {item.kind.replace('_', ' ')}
-                                </span>
-                                <span
-                                  className="font-mono text-slate-600 dark:text-neutral-400 truncate"
-                                  title={item.path}
-                                >
-                                  {item.path}
-                                </span>
-                              </div>
-                              <div className="flex items-center gap-2 shrink-0 ml-2">
-                                <span className="font-semibold text-slate-600 dark:text-neutral-400">
-                                  {formatSize(item.size)}
-                                </span>
-                                <button
-                                  type="button"
-                                  onClick={(e) => handleReveal(e, item.path)}
-                                  title={t('common.revealInFinder')}
-                                  className="p-1 text-slate-400 hover:text-slate-700 dark:hover:text-white"
-                                >
-                                  <ExternalLink size={11} />
-                                </button>
-                              </div>
-                            </label>
-                          );
-                        })}
+                        <button
+                          type="button"
+                          onClick={(e) => handleReveal(e, item.path)}
+                          title={t('common.revealInFinder')}
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer"
+                        >
+                          <ExternalLink size={13} />
+                        </button>
                       </div>
-                    </div>
-                  )}
-                </CardBody>
-              </Card>
-            );
-          })}
+                    </CardBody>
+                  </Card>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
 
-      {/* Uninstall Confirmation Modal */}
+      {/* Installed App Uninstall Confirmation Modal */}
       {targetApp && (
         <ConfirmModal
           isOpen={showConfirmModal}
@@ -555,7 +858,7 @@ export default function AppUninstaller() {
         />
       )}
 
-      {/* Interactive Progress Flow Modal */}
+      {/* Installed App Cleaning Flow Modal */}
       <CleaningFlowModal
         isOpen={showCleaningFlow}
         onClose={() => setShowCleaningFlow(false)}
@@ -566,6 +869,34 @@ export default function AppUninstaller() {
         totalItems={activeUninstallStats.totalItems}
         paths={activeUninstallStats.paths}
         title={t('apps.uninstallingFlowTitle', 'Uninstalling {name}', { name: activeUninstallStats.appName })}
+      />
+
+      {/* Orphaned Leftovers Confirm Modal */}
+      <ConfirmModal
+        isOpen={showOrphanedConfirm}
+        onClose={() => setShowOrphanedConfirm(false)}
+        onConfirm={handleExecuteCleanOrphaned}
+        isLoading={isCleaningOrphaned}
+        actionType="clean"
+        title="Bersihkan Sisa Aplikasi Terhapus"
+        itemsCount={orphanedStats.selectedCount}
+        totalBytes={orphanedStats.selectedSize}
+        paths={orphanedStats.selectedItems.map((i) => i.path)}
+        useTrash={false}
+        confirmText={`Hapus Permanen ${orphanedStats.selectedCount} Berkas (${formatSize(orphanedStats.selectedSize)})`}
+      />
+
+      {/* Orphaned Leftovers Cleaning Flow Modal */}
+      <CleaningFlowModal
+        isOpen={showOrphanedCleaningFlow}
+        onClose={() => setShowOrphanedCleaningFlow(false)}
+        isCleaning={isCleaningOrphaned}
+        isDryRun={false}
+        mode="clean"
+        totalBytes={orphanedStats.selectedSize}
+        totalItems={orphanedStats.selectedCount}
+        paths={orphanedStats.selectedItems.map((i) => i.path)}
+        title="Membersihkan Berkas Sisa Aplikasi..."
       />
     </div>
   );

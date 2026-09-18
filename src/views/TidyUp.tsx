@@ -9,8 +9,12 @@ import {
   pickFolder,
   scanMaintenanceItems,
   cleanMaintenanceItems,
+  getSmartRulesStats,
+  archiveOldDownloads,
+  consolidateDesktopScreenshots,
   type TidyScanResult,
   type MaintenanceScanResult,
+  type SmartRulesStats,
 } from '../lib/commands';
 import { formatSize } from '../lib/utils';
 import Button from '../components/ui/Button';
@@ -42,6 +46,8 @@ import {
   FolderMinus,
   Link2Off,
   CheckCircle2,
+  Sparkles,
+  RefreshCw,
 } from 'lucide-react';
 
 const categoryMeta: Record<string, { icon: React.ReactNode; color: string; bgColor: string }> = {
@@ -90,7 +96,54 @@ export default function TidyUp() {
 
   const [activeTab, setActiveTab] = useState<ActiveTargetTab>('downloads');
   const [customPath, setCustomPath] = useState('');
-  const [tidyMode, setTidyMode] = useState<'organize' | 'maintenance'>('organize');
+  const [tidyMode, setTidyMode] = useState<'organize' | 'smart_rules' | 'maintenance'>('organize');
+
+  // Smart Automation Rules state
+  const [smartStats, setSmartStats] = useState<SmartRulesStats | null>(null);
+  const [isLoadingSmartStats, setIsLoadingSmartStats] = useState(false);
+  const [isExecutingRule, setIsExecutingRule] = useState<'downloads' | 'screenshots' | null>(null);
+
+  const loadSmartStats = async () => {
+    setIsLoadingSmartStats(true);
+    try {
+      const res = await getSmartRulesStats();
+      setSmartStats(res);
+    } catch (err) {
+      console.error('Failed to load smart rules stats:', err);
+    } finally {
+      setIsLoadingSmartStats(false);
+    }
+  };
+
+  const handleArchiveOldDownloads = async () => {
+    setIsExecutingRule('downloads');
+    try {
+      const moved = await archiveOldDownloads(30);
+      setMaintenanceToast(`Berhasil mengarsipkan ${moved} berkas unduhan lama ke ~/Archive/Downloads`);
+      setTimeout(() => setMaintenanceToast(null), 4000);
+      await loadSmartStats();
+    } catch (err: any) {
+      setMaintenanceToast(`Gagal mengarsipkan unduhan: ${err}`);
+      setTimeout(() => setMaintenanceToast(null), 4000);
+    } finally {
+      setIsExecutingRule(null);
+    }
+  };
+
+  const handleConsolidateScreenshots = async () => {
+    setIsExecutingRule('screenshots');
+    try {
+      const moved = await consolidateDesktopScreenshots();
+      setMaintenanceToast(`Berhasil mengumpulkan ${moved} tangkapan layar ke ~/Pictures/Screenshots`);
+      setTimeout(() => setMaintenanceToast(null), 4000);
+      await loadSmartStats();
+    } catch (err: any) {
+      setMaintenanceToast(`Gagal mengumpulkan screenshot: ${err}`);
+      setTimeout(() => setMaintenanceToast(null), 4000);
+    } finally {
+      setIsExecutingRule(null);
+    }
+  };
 
   // Organize state
   const [currentScan, setCurrentScan] = useState<TidyScanResult | null>(null);
@@ -157,6 +210,8 @@ export default function TidyUp() {
   useEffect(() => {
     if (tidyMode === 'organize') {
       runScan(currentPath);
+    } else if (tidyMode === 'smart_rules') {
+      loadSmartStats();
     } else {
       runMaintenanceScan(currentPath);
     }
@@ -373,6 +428,20 @@ export default function TidyUp() {
           >
             <FolderTree size={13} />
             <span>{t('tidyUp.modeOrganize', 'Organize Files')}</span>
+          </button>
+          <button
+            onClick={() => {
+              setTidyMode('smart_rules');
+              loadSmartStats();
+            }}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+              tidyMode === 'smart_rules'
+                ? 'bg-white dark:bg-neutral-700 text-amber-600 dark:text-amber-400 shadow-xs'
+                : 'text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white'
+            }`}
+          >
+            <Sparkles size={13} />
+            <span>Aturan Otomasi Pintar</span>
           </button>
           <button
             onClick={() => setTidyMode('maintenance')}
@@ -833,6 +902,122 @@ export default function TidyUp() {
               )}
             </div>
           )}
+        </div>
+      )}
+
+      {/* SMART AUTOMATION RULES MODE */}
+      {tidyMode === 'smart_rules' && (
+        <div className="space-y-4">
+          <div className="p-4 rounded-2xl border border-blue-500/20 bg-blue-500/[0.03] flex items-start justify-between gap-3.5">
+            <div className="flex items-start gap-3.5 min-w-0">
+              <div className="w-10 h-10 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center shrink-0">
+                <Sparkles size={20} className="text-blue-600 dark:text-blue-400" />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                  Otomasi Kebersihan Ruang Kerja macOS
+                </h3>
+                <p className="text-xs text-slate-500 dark:text-neutral-400 mt-1">
+                  Aturan 1-klik untuk menjaga kebersihan folder harian secara otomatis. Memindahkan berkas lama dan tangkapan layar ke lokasi arsip tanpa pernah menghapus data penting Anda.
+                </p>
+              </div>
+            </div>
+
+            <button
+              onClick={loadSmartStats}
+              disabled={isLoadingSmartStats}
+              title="Pindai Ulang Aturan"
+              className="p-2 rounded-xl bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 text-slate-600 dark:text-neutral-300 transition-colors cursor-pointer shrink-0 disabled:opacity-50"
+            >
+              <RefreshCw size={14} className={isLoadingSmartStats ? 'animate-spin' : ''} />
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Rule 1: Old Downloads Archiver */}
+            <div className="p-5 rounded-2xl glass-panel flex flex-col justify-between space-y-4">
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <div className="p-2.5 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400">
+                      <Archive size={18} />
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-bold text-slate-900 dark:text-white">
+                        Arsip Unduhan Lama
+                      </h4>
+                      <span className="text-[10px] text-slate-400">Umur berkas &gt; 30 hari</span>
+                    </div>
+                  </div>
+                  <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400">
+                    {smartStats?.old_downloads_count ?? 0} berkas ({formatSize(smartStats?.old_downloads_size ?? 0)})
+                  </span>
+                </div>
+
+                <p className="text-xs text-slate-500 dark:text-neutral-400 leading-relaxed">
+                  Pindahkan berkas di folder Unduhan yang tidak dibuka lebih dari 30 hari ke <code className="font-mono text-[11px] bg-black/5 dark:bg-white/5 px-1 py-0.5 rounded">~/Archive/Downloads/</code>. Menjaga folder Downloads Anda tetap bersih dan teratur.
+                </p>
+              </div>
+
+              <div className="pt-3 border-t border-black/5 dark:border-white/5 flex items-center justify-between">
+                <span className="text-[11px] text-slate-400">
+                  Target: ~/Archive/Downloads/
+                </span>
+                <Button
+                  variant="primary"
+                  size="sm"
+                  disabled={!smartStats || smartStats.old_downloads_count === 0 || isExecutingRule === 'downloads'}
+                  onClick={handleArchiveOldDownloads}
+                  className="flex items-center gap-1.5"
+                >
+                  <Archive size={13} />
+                  <span>{isExecutingRule === 'downloads' ? 'Mengarsipkan...' : 'Arsipkan Sekarang'}</span>
+                </Button>
+              </div>
+            </div>
+
+            {/* Rule 2: Desktop Screenshots Consolidator */}
+            <div className="p-5 rounded-2xl glass-panel flex flex-col justify-between space-y-4">
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <div className="p-2.5 rounded-xl bg-pink-500/10 text-pink-600 dark:text-pink-400">
+                      <Camera size={18} />
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-bold text-slate-900 dark:text-white">
+                        Konsolidasi Screenshot Desktop
+                      </h4>
+                      <span className="text-[10px] text-slate-400">Screen Shot / Tangkapan Layar</span>
+                    </div>
+                  </div>
+                  <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-pink-500/10 text-pink-600 dark:text-pink-400">
+                    {smartStats?.screenshots_count ?? 0} tangkapan ({formatSize(smartStats?.screenshots_size ?? 0)})
+                  </span>
+                </div>
+
+                <p className="text-xs text-slate-500 dark:text-neutral-400 leading-relaxed">
+                  Kumpulkan tangkapan layar macOS yang berserakan di Desktop dan rapikan ke <code className="font-mono text-[11px] bg-black/5 dark:bg-white/5 px-1 py-0.5 rounded">~/Pictures/Screenshots/</code> secara otomatis.
+                </p>
+              </div>
+
+              <div className="pt-3 border-t border-black/5 dark:border-white/5 flex items-center justify-between">
+                <span className="text-[11px] text-slate-400">
+                  Target: ~/Pictures/Screenshots/
+                </span>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  disabled={!smartStats || smartStats.screenshots_count === 0 || isExecutingRule === 'screenshots'}
+                  onClick={handleConsolidateScreenshots}
+                  className="flex items-center gap-1.5"
+                >
+                  <Camera size={13} />
+                  <span>{isExecutingRule === 'screenshots' ? 'Memindahkan...' : 'Kumpulkan ke Pictures'}</span>
+                </Button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 

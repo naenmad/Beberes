@@ -608,4 +608,61 @@ export async function cleanMaintenanceItems(paths: string[]): Promise<number> {
   return await invoke<number>('clean_maintenance_items', { paths });
 }
 
+// ==========================================
+// 11. Orphaned App Leftovers Commands
+// ==========================================
+export interface OrphanedLeftoverItem {
+  id: string;
+  path: string;
+  name: string;
+  inferredApp: string;
+  kind: string;
+  size: number;
+  lastModified: string;
+  selected?: boolean;
+}
+
+export interface OrphanedScanResult {
+  items: OrphanedLeftoverItem[];
+  totalSize: number;
+  totalCount: number;
+}
+
+export async function scanOrphanedLeftovers(): Promise<OrphanedScanResult> {
+  return await invoke<OrphanedScanResult>('scan_orphaned_leftovers');
+}
+
+export async function cleanOrphanedLeftovers(paths: string[]): Promise<number> {
+  return await invoke<number>('clean_orphaned_leftovers', { paths });
+}
+
+// ==========================================
+// 12. Smart Automation Rules Commands
+// ==========================================
+export interface SmartRulesStats {
+  old_downloads_count: number;
+  old_downloads_size: number;
+  screenshots_count: number;
+  screenshots_size: number;
+}
+
+export async function getSmartRulesStats(): Promise<SmartRulesStats> {
+  return await invoke<SmartRulesStats>('get_smart_rules_stats');
+}
+
+export async function archiveOldDownloads(days?: number): Promise<number> {
+  return await invoke<number>('archive_old_downloads', { days: days ?? 30 });
+}
+
+export async function consolidateDesktopScreenshots(): Promise<number> {
+  return await invoke<number>('consolidate_desktop_screenshots');
+}
+
+// ==========================================
+// 13. Homebrew & Developer Tooling Pruner
+// ==========================================
+export async function runBrewCleanup(): Promise<string> {
+  return await invoke<string>('run_brew_cleanup');
+}
+
 
