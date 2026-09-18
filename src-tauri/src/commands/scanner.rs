@@ -828,3 +828,9 @@ pub fn clear_icon_cache() -> Result<u32, String> {
     }
     Ok(count)
 }
+
+/// Retrieve current macOS battery and thermal workload status.
+#[tauri::command]
+pub fn get_system_power_status() -> crate::utils::PowerStatus {
+    crate::utils::get_power_status()
+}

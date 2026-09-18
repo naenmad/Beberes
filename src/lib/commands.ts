@@ -461,4 +461,21 @@ export async function optimizeGitRepo(repoPath: string, deleteMergedBranches: bo
   return await invoke<number>('optimize_git_repo', { repoPath, deleteMergedBranches });
 }
 
+// ==========================================
+// 5. System Power & Lifecycle Commands
+// ==========================================
+export interface PowerStatus {
+  is_on_battery: boolean;
+  battery_percentage: number;
+  is_throttled: boolean;
+}
+
+export async function exitApp(): Promise<void> {
+  return await invoke<void>('exit_app');
+}
+
+export async function getSystemPowerStatus(): Promise<PowerStatus> {
+  return await invoke<PowerStatus>('get_system_power_status');
+}
+
 

@@ -35,6 +35,45 @@ pub fn is_whitelisted(path: &str) -> bool {
     WHITELIST.iter().any(|w| path.starts_with(w))
 }
 
+#[derive(serde::Serialize, serde::Deserialize, Clone, Debug)]
+pub struct PowerStatus {
+    pub is_on_battery: bool,
+    pub battery_percentage: u32,
+    pub is_throttled: bool,
+}
+
+/// Check macOS power state via pmset to adjust background workload.
+pub fn get_power_status() -> PowerStatus {
+    #[cfg(target_os = "macos")]
+    {
+        if let Ok(output) = std::process::Command::new("pmset").arg("-g").arg("batt").output() {
+            let text = String::from_utf8_lossy(&output.stdout);
+            let is_on_battery = text.contains("Battery Power");
+            let mut pct = 100;
+            for part in text.split_whitespace() {
+                if part.ends_with("%;") || part.ends_with('%') {
+                    let num_str: String = part.chars().filter(|c| c.is_ascii_digit()).collect();
+                    if let Ok(val) = num_str.parse::<u32>() {
+                        pct = val;
+                        break;
+                    }
+                }
+            }
+            let is_throttled = is_on_battery && pct <= 20;
+            return PowerStatus {
+                is_on_battery,
+                battery_percentage: pct,
+                is_throttled,
+            };
+        }
+    }
+    PowerStatus {
+        is_on_battery: false,
+        battery_percentage: 100,
+        is_throttled: false,
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
