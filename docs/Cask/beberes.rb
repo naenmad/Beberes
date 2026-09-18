@@ -1,11 +1,8 @@
 cask "beberes" do
-  arch arm: "aarch64", intel: "x64"
-
   version "1.0.0"
-  sha256 arm:   "0000000000000000000000000000000000000000000000000000000000000000",
-         intel: "0000000000000000000000000000000000000000000000000000000000000000"
+  sha256 "671e04583c3d9604c562141591aca78ad90fdcdfeb07f9148157576b245a33c4"
 
-  url "https://github.com/naenmad/Beberes/releases/download/v#{version}/Beberes_#{version}_#{arch}.dmg"
+  url "https://github.com/naenmad/Beberes/releases/download/v#{version}/Beberes_#{version}_aarch64.dmg"
   name "Beberes"
   desc "High-Performance System Cleaner & Storage Optimizer for macOS"
   homepage "https://github.com/naenmad/Beberes"
