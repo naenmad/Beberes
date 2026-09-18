@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { getAllDisks, getDiskInfoByMount } from '../lib/commands';
+import { playSuccessChime } from '../lib/sound';
 
 // Types
 export interface ScanCategory {
@@ -472,6 +473,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   cleanHistory: getStoredHistory(),
   recordCleanResult: (freedBytes, itemsCount, isSimulation, categoryNames = []) => {
     if (isSimulation || freedBytes <= 0) return;
+    playSuccessChime();
     const newLifetime = get().lifetimeBytesFreed + freedBytes;
     const newEntry: CleanHistoryEntry = {
       id: `${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,

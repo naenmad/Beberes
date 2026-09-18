@@ -9,6 +9,7 @@ import {
   revealInFinder,
   type TrashScanResult,
 } from '../lib/commands';
+import { playTrashWhoosh } from '../lib/sound';
 import { formatSize } from '../lib/utils';
 import Button from '../components/ui/Button';
 import Checkbox from '../components/ui/Checkbox';
@@ -94,6 +95,7 @@ export default function TrashManager() {
     setIsProcessing(true);
     try {
       const freed = await emptyMacTrash();
+      playTrashWhoosh();
       recordCleanResult(
         freed > 0 ? freed : data.total_size,
         data.total_items,
@@ -116,6 +118,7 @@ export default function TrashManager() {
     try {
       const paths = Array.from(selectedPaths);
       const freed = await deleteSpecificTrashItems(paths);
+      playTrashWhoosh();
       recordCleanResult(
         freed,
         paths.length,
