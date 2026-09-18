@@ -1,9 +1,12 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { convertFileSrc } from '@tauri-apps/api/core';
 import { useAppStore } from '../store/appStore';
 import { useTranslation } from '../lib/i18n';
 import {
   scanReviewFiles,
   readFileThumbnail,
+  readTextPreview,
+  openFileWithDefaultApp,
   renameFile,
   cleanSelectedItems,
   revealInFinder,
@@ -68,9 +71,11 @@ export default function QuickReview() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Preview thumbnail cache
+  // Preview media & thumbnail cache
+  const [assetUrl, setAssetUrl] = useState<string | null>(null);
   const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(null);
-  const [isLoadingThumb, setIsLoadingThumb] = useState(false);
+  const [textPreview, setTextPreview] = useState<string | null>(null);
+  const [isLoadingPreview, setIsLoadingPreview] = useState(false);
   const [showFullscreen, setShowFullscreen] = useState(false);
 
   // Rename modal
@@ -126,30 +131,91 @@ export default function QuickReview() {
     return items[currentIndex];
   }, [items, currentIndex]);
 
-  // Fetch thumbnail whenever currentItem changes
+  // Fetch media preview / thumbnail / text whenever currentItem changes
   useEffect(() => {
     let isMounted = true;
     setThumbnailUrl(null);
+    setAssetUrl(null);
+    setTextPreview(null);
 
-    if (!currentItem) return;
+    if (!currentItem) {
+      setIsLoadingPreview(false);
+      return;
+    }
 
-    if (currentItem.kind === 'image') {
-      setIsLoadingThumb(true);
-      readFileThumbnail(currentItem.path)
-        .then((url) => {
+    const ext = currentItem.extension?.toLowerCase() || '';
+    const kind = currentItem.kind;
+    const src = convertFileSrc(currentItem.path);
+    setAssetUrl(src);
+
+    const isImage =
+      kind === 'image' ||
+      ['png', 'jpg', 'jpeg', 'webp', 'gif', 'svg', 'bmp', 'ico', 'heic', 'heif'].includes(ext);
+    const isTextOrCode =
+      kind === 'code' ||
+      [
+        'txt',
+        'md',
+        'json',
+        'log',
+        'csv',
+        'xml',
+        'yml',
+        'yaml',
+        'toml',
+        'sh',
+        'js',
+        'ts',
+        'tsx',
+        'jsx',
+        'py',
+        'rs',
+        'go',
+        'html',
+        'css',
+        'sql',
+        'ini',
+        'conf',
+        'env',
+      ].includes(ext);
+
+    if (isImage) {
+      setIsLoadingPreview(true);
+      if (currentItem.size <= 20 * 1024 * 1024) {
+        readFileThumbnail(currentItem.path)
+          .then((url) => {
+            if (isMounted) {
+              setThumbnailUrl(url);
+              setIsLoadingPreview(false);
+            }
+          })
+          .catch(() => {
+            if (isMounted) {
+              setThumbnailUrl(src);
+              setIsLoadingPreview(false);
+            }
+          });
+      } else {
+        setThumbnailUrl(src);
+        setIsLoadingPreview(false);
+      }
+    } else if (isTextOrCode) {
+      setIsLoadingPreview(true);
+      readTextPreview(currentItem.path, 16384)
+        .then((text) => {
           if (isMounted) {
-            setThumbnailUrl(url);
-            setIsLoadingThumb(false);
+            setTextPreview(text);
+            setIsLoadingPreview(false);
           }
         })
         .catch(() => {
           if (isMounted) {
-            setThumbnailUrl(null);
-            setIsLoadingThumb(false);
+            setTextPreview(null);
+            setIsLoadingPreview(false);
           }
         });
     } else {
-      setIsLoadingThumb(false);
+      setIsLoadingPreview(false);
     }
 
     return () => {
@@ -722,16 +788,83 @@ export default function QuickReview() {
           )}
 
           {/* Media / Preview Screen */}
-          <div className="relative w-full h-80 sm:h-96 rounded-2xl bg-black/3 dark:bg-black/40 border border-black/4 dark:border-white/6 flex items-center justify-center overflow-hidden group">
-            {isLoadingThumb ? (
+          <div className="relative w-full h-80 sm:h-96 rounded-2xl bg-black/3 dark:bg-black/40 border border-black/4 dark:border-white/6 flex items-center justify-center overflow-hidden group select-none">
+            {/* Quick Open in Default macOS App Floating Action */}
+            <button
+              type="button"
+              onClick={() => openFileWithDefaultApp(currentItem.path)}
+              title="Open in Default macOS Application"
+              className="absolute top-3 right-3 flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-black/60 hover:bg-black/80 text-white text-[11px] font-medium opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-xs cursor-pointer shadow-md z-20"
+            >
+              <ExternalLink size={11} />
+              <span>Open in App</span>
+            </button>
+
+            {isLoadingPreview ? (
               <div className="flex flex-col items-center gap-2 text-slate-400">
                 <RefreshCw size={24} className="animate-spin text-blue-500" />
-                <span className="text-xs">{t('quickReview.loadingPreview')}</span>
+                <span className="text-xs">{t('quickReview.loadingPreview', 'Loading preview...')}</span>
               </div>
-            ) : thumbnailUrl ? (
+            ) : currentItem.extension?.toLowerCase() === 'pdf' && assetUrl ? (
+              /* 1. Native PDF Preview via WKWebView / PDFKit */
+              <div className="relative w-full h-full p-2 flex flex-col items-center justify-center">
+                <iframe
+                  src={assetUrl}
+                  title={currentItem.name}
+                  className="w-full h-full rounded-xl border border-black/5 dark:border-white/10 shadow-inner bg-white"
+                />
+                <button
+                  onClick={() => setShowFullscreen(true)}
+                  title="Expand to Fullscreen (Space)"
+                  className="absolute bottom-4 right-4 p-2 rounded-xl bg-black/60 hover:bg-black/80 text-white opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-xs cursor-pointer shadow-lg z-10"
+                >
+                  <Maximize2 size={14} />
+                </button>
+              </div>
+            ) : (currentItem.kind === 'video' ||
+                ['mp4', 'mov', 'm4v', 'webm', 'avi', 'mkv'].includes(
+                  currentItem.extension?.toLowerCase() || ''
+                )) &&
+              assetUrl ? (
+              /* 2. Native Video Player */
+              <div className="relative w-full h-full flex items-center justify-center p-2 bg-black/80">
+                <video
+                  src={assetUrl}
+                  controls
+                  playsInline
+                  className="max-w-full max-h-full rounded-xl object-contain shadow-xl"
+                />
+                <button
+                  onClick={() => setShowFullscreen(true)}
+                  title="Expand Video (Space)"
+                  className="absolute bottom-4 right-4 p-2 rounded-xl bg-black/60 hover:bg-black/80 text-white opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-xs cursor-pointer shadow-lg z-10"
+                >
+                  <Maximize2 size={14} />
+                </button>
+              </div>
+            ) : (currentItem.kind === 'audio' ||
+                ['mp3', 'wav', 'aac', 'flac', 'm4a', 'ogg'].includes(
+                  currentItem.extension?.toLowerCase() || ''
+                )) &&
+              assetUrl ? (
+              /* 3. Native Audio Player Card */
+              <div className="flex flex-col items-center justify-center p-6 text-center w-full max-w-md">
+                <div className="w-20 h-20 rounded-full bg-linear-to-br from-indigo-500/20 to-purple-500/20 border border-indigo-500/30 flex items-center justify-center shadow-lg mb-3 animate-pulse">
+                  <Music size={32} className="text-indigo-500" />
+                </div>
+                <h4 className="text-sm font-bold text-slate-800 dark:text-neutral-200 truncate max-w-xs">
+                  {currentItem.name}
+                </h4>
+                <span className="text-[11px] font-mono text-slate-400 mt-0.5">
+                  {formatSize(currentItem.size)}
+                </span>
+                <audio src={assetUrl} controls className="w-full mt-4 shadow-xs" />
+              </div>
+            ) : thumbnailUrl || (currentItem.kind === 'image' && assetUrl) ? (
+              /* 4. Image Preview */
               <div className="relative w-full h-full flex items-center justify-center p-4">
                 <img
-                  src={thumbnailUrl}
+                  src={thumbnailUrl || assetUrl || ''}
                   alt={currentItem.name}
                   className="max-w-full max-h-full object-contain rounded-lg shadow-md cursor-pointer hover:scale-[1.01] transition-transform"
                   onClick={() => setShowFullscreen(true)}
@@ -744,8 +877,13 @@ export default function QuickReview() {
                   <Maximize2 size={14} />
                 </button>
               </div>
+            ) : textPreview !== null ? (
+              /* 5. Code & Text Preview */
+              <div className="w-full h-full p-4 overflow-auto text-left font-mono text-xs bg-slate-950/80 text-emerald-400 rounded-xl border border-white/10 select-text">
+                <pre className="whitespace-pre-wrap break-words">{textPreview || '(Empty file)'}</pre>
+              </div>
             ) : (
-              /* Non-image File Icon Box */
+              /* 6. Unsupported / Default File Card */
               <div className="flex flex-col items-center justify-center gap-3 p-6 text-center">
                 <div className="w-20 h-20 rounded-3xl bg-black/4 dark:bg-white/6 flex items-center justify-center border border-black/6 dark:border-white/8 shadow-xs">
                   {getFileKindIcon(currentItem.kind)}
@@ -756,6 +894,14 @@ export default function QuickReview() {
                   </span>
                   <p className="text-xs text-slate-400 mt-1 capitalize">{currentItem.kind} File</p>
                 </div>
+                <button
+                  type="button"
+                  onClick={() => openFileWithDefaultApp(currentItem.path)}
+                  className="mt-2 flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-black/5 hover:bg-black/10 dark:bg-white/6 dark:hover:bg-white/12 text-slate-700 dark:text-neutral-200 border border-black/8 dark:border-white/10 text-xs font-semibold cursor-pointer transition-all active:scale-[0.98]"
+                >
+                  <ExternalLink size={12} />
+                  <span>Open with Default App</span>
+                </button>
               </div>
             )}
           </div>
@@ -813,21 +959,21 @@ export default function QuickReview() {
             </div>
           </div>
 
-          {/* Primary Action Button Row (With Keyboard Badges) */}
+          {/* Primary Action Button Row (Swapped: Keep on Left / F, Trash on Right / J) */}
           <div className="mt-6 grid grid-cols-3 gap-3">
-            {/* Trash Action */}
+            {/* Keep Action (Left - F) */}
             <button
-              onClick={handleTrash}
-              className="flex items-center justify-center gap-2 py-3 px-4 rounded-2xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/20 hover:border-rose-500/40 transition-all font-semibold text-xs cursor-pointer shadow-xs active:scale-[0.98]"
+              onClick={handleKeep}
+              className="flex items-center justify-center gap-2 py-3 px-4 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-500/20 transition-all font-semibold text-xs cursor-pointer active:scale-[0.98]"
             >
-              <Trash2 size={16} />
-              <span>{t('quickReview.actionTrash')}</span>
-              <kbd className="ml-1.5 px-1.5 py-0.5 rounded-md bg-rose-500/20 text-[10px] font-mono font-bold text-rose-700 dark:text-rose-300">
-                J
+              <Check size={16} strokeWidth={2.5} />
+              <span>{t('quickReview.actionKeep')}</span>
+              <kbd className="ml-1.5 px-1.5 py-0.5 rounded-md bg-white/20 text-[10px] font-mono font-bold text-white">
+                F
               </kbd>
             </button>
 
-            {/* Rename Action */}
+            {/* Rename Action (Center - R) */}
             <button
               onClick={handleOpenRename}
               className="flex items-center justify-center gap-2 py-3 px-4 rounded-2xl bg-black/4 hover:bg-black/8 dark:bg-white/6 dark:hover:bg-white/12 text-slate-700 dark:text-neutral-200 border border-black/6 dark:border-white/8 transition-all font-semibold text-xs cursor-pointer shadow-xs active:scale-[0.98]"
@@ -839,15 +985,15 @@ export default function QuickReview() {
               </kbd>
             </button>
 
-            {/* Keep Action */}
+            {/* Trash Action (Right - J) */}
             <button
-              onClick={handleKeep}
-              className="flex items-center justify-center gap-2 py-3 px-4 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-500/20 transition-all font-semibold text-xs cursor-pointer active:scale-[0.98]"
+              onClick={handleTrash}
+              className="flex items-center justify-center gap-2 py-3 px-4 rounded-2xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/20 hover:border-rose-500/40 transition-all font-semibold text-xs cursor-pointer shadow-xs active:scale-[0.98]"
             >
-              <Check size={16} strokeWidth={2.5} />
-              <span>{t('quickReview.actionKeep')}</span>
-              <kbd className="ml-1.5 px-1.5 py-0.5 rounded-md bg-white/20 text-[10px] font-mono font-bold text-white">
-                F
+              <Trash2 size={16} />
+              <span>{t('quickReview.actionTrash')}</span>
+              <kbd className="ml-1.5 px-1.5 py-0.5 rounded-md bg-rose-500/20 text-[10px] font-mono font-bold text-rose-700 dark:text-rose-300">
+                J
               </kbd>
             </button>
           </div>
@@ -876,19 +1022,29 @@ export default function QuickReview() {
             </div>
 
             <span className="text-[11px] font-medium text-slate-400">
-              {t('quickReview.shortcutsTip', 'Tip: Press J to delete, F to keep, Space to preview')}
+              {t('quickReview.shortcutsTip', 'Tip: Press F to keep, J to delete, Space to preview')}
             </span>
           </div>
         </div>
       ) : null}
 
       {/* Fullscreen Quick Look Modal */}
-      {showFullscreen && currentItem && thumbnailUrl && (
+      {showFullscreen && currentItem && (
         <div
           onClick={() => setShowFullscreen(false)}
           className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex flex-col items-center justify-center p-6 animate-fade-in cursor-zoom-out"
         >
-          <div className="absolute top-4 right-4 flex items-center gap-2">
+          <div className="absolute top-4 right-4 flex items-center gap-2 z-50">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                openFileWithDefaultApp(currentItem.path);
+              }}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-medium transition-colors cursor-pointer"
+            >
+              <ExternalLink size={13} />
+              <span>Open in App</span>
+            </button>
             <button
               onClick={() => setShowFullscreen(false)}
               className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer"
@@ -897,11 +1053,50 @@ export default function QuickReview() {
             </button>
           </div>
 
-          <img
-            src={thumbnailUrl}
-            alt={currentItem.name}
-            className="max-w-full max-h-[85vh] object-contain rounded-xl shadow-2xl"
-          />
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="flex items-center justify-center max-w-full max-h-full cursor-default"
+          >
+            {currentItem.extension?.toLowerCase() === 'pdf' && assetUrl ? (
+              <iframe
+                src={assetUrl}
+                title={currentItem.name}
+                className="w-[85vw] h-[82vh] rounded-2xl bg-white border-0 shadow-2xl"
+              />
+            ) : (currentItem.kind === 'video' ||
+                ['mp4', 'mov', 'm4v', 'webm', 'avi', 'mkv'].includes(
+                  currentItem.extension?.toLowerCase() || ''
+                )) &&
+              assetUrl ? (
+              <video
+                src={assetUrl}
+                controls
+                autoPlay
+                className="max-w-[90vw] max-h-[82vh] rounded-2xl shadow-2xl bg-black"
+              />
+            ) : (currentItem.kind === 'audio' ||
+                ['mp3', 'wav', 'aac', 'flac', 'm4a', 'ogg'].includes(
+                  currentItem.extension?.toLowerCase() || ''
+                )) &&
+              assetUrl ? (
+              <div className="p-8 rounded-3xl glass-panel max-w-md w-full text-center text-white">
+                <Music size={48} className="mx-auto text-indigo-400 mb-4 animate-pulse" />
+                <h4 className="text-base font-bold truncate">{currentItem.name}</h4>
+                <p className="text-xs text-slate-400 mt-1">{formatSize(currentItem.size)}</p>
+                <audio src={assetUrl} controls autoPlay className="w-full mt-6" />
+              </div>
+            ) : textPreview !== null ? (
+              <div className="w-[85vw] max-w-4xl max-h-[80vh] overflow-auto p-6 bg-slate-950 text-emerald-400 rounded-2xl font-mono text-xs border border-white/10 select-text shadow-2xl">
+                <pre className="whitespace-pre-wrap break-words">{textPreview}</pre>
+              </div>
+            ) : (
+              <img
+                src={thumbnailUrl || assetUrl || ''}
+                alt={currentItem.name}
+                className="max-w-full max-h-[82vh] object-contain rounded-xl shadow-2xl"
+              />
+            )}
+          </div>
 
           <div className="mt-4 text-center text-white/80 text-xs">
             <p className="font-bold">{currentItem.name}</p>

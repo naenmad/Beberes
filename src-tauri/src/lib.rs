@@ -7,7 +7,7 @@ use commands::finder::scan_finder_items;
 use commands::git_sweeper::{optimize_git_repo, scan_git_repos};
 use commands::installer::{check_is_in_applications_dir, move_to_applications_and_relaunch};
 use commands::organizer::{clean_redundant_installers, execute_tidy_organization, scan_tidy_directory};
-use commands::reviewer::{read_file_thumbnail, rename_file, scan_review_files};
+use commands::reviewer::{read_file_thumbnail, read_text_preview, rename_file, scan_review_files};
 use commands::scanner::{
     clear_icon_cache, get_all_disks, get_disk_info, get_disk_info_by_mount, get_system_details,
     get_system_power_status, scan_custom_paths, scan_dev_workspaces, scan_system_directories,
@@ -126,6 +126,7 @@ pub fn run() {
             uninstall_app,
             scan_review_files,
             read_file_thumbnail,
+            read_text_preview,
             rename_file,
             scan_finder_items,
             scan_trash_contents,

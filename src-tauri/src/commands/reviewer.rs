@@ -240,3 +240,19 @@ pub fn rename_file(old_path: String, new_name: String) -> Result<String, String>
 
     Ok(target.to_string_lossy().to_string())
 }
+
+#[tauri::command]
+pub fn read_text_preview(path: String, max_bytes: Option<usize>) -> Result<String, String> {
+    use std::io::Read;
+    let p = Path::new(&path);
+    if !p.exists() || !p.is_file() {
+        return Err("File not found".to_string());
+    }
+    let limit = max_bytes.unwrap_or(32 * 1024);
+    let mut file = fs::File::open(p).map_err(|e| e.to_string())?;
+    let mut buffer = vec![0u8; limit];
+    let n = file.read(&mut buffer).map_err(|e| e.to_string())?;
+    buffer.truncate(n);
+    let s = String::from_utf8_lossy(&buffer).to_string();
+    Ok(s)
+}

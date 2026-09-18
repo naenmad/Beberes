@@ -291,6 +291,25 @@ export async function readFileThumbnail(path: string): Promise<string> {
 }
 
 /**
+ * Read snippet of text file for inline code/text preview.
+ */
+export async function readTextPreview(path: string, maxBytes?: number): Promise<string> {
+  return await invoke<string>('read_text_preview', { path, maxBytes });
+}
+
+/**
+ * Open any file with its default system application via tauri opener.
+ */
+export async function openFileWithDefaultApp(path: string): Promise<void> {
+  try {
+    const { openPath } = await import('@tauri-apps/plugin-opener');
+    await openPath(path);
+  } catch (err) {
+    console.error('Failed to open file in default app:', err);
+  }
+}
+
+/**
  * Rename a file on disk.
  */
 export async function renameFile(oldPath: string, newName: string): Promise<string> {
