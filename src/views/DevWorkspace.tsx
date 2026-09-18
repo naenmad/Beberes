@@ -15,11 +15,6 @@ import {
   FolderOpen,
   ChevronDown,
   ChevronRight,
-  Package,
-  Box,
-  Container,
-  Hammer,
-  Layers,
   Search,
   ExternalLink,
   CheckSquare,
@@ -27,30 +22,40 @@ import {
   Filter,
   Sparkles,
   Code2,
-  Zap,
-  Terminal,
-  Coffee,
-  Cpu,
-  Gem,
-  Boxes,
-  Binary,
 } from 'lucide-react';
-import { useState, useMemo, useEffect } from 'react';
+import {
+  RustIcon,
+  FlutterIcon,
+  GoIcon,
+  NodeIcon,
+  PythonIcon,
+  XcodeIcon,
+  JavaIcon,
+  PhpIcon,
+  DockerIcon,
+  AiModelsIcon,
+  RubyIcon,
+  DotNetIcon,
+  CppIcon,
+  PackageCacheIcon,
+} from '../components/icons/TechBrandIcons';
+import { useState, useMemo, useEffect, useRef } from 'react';
 
 const categoryIcons: Record<string, React.ReactNode> = {
-  xcode_cache: <Hammer size={18} className="text-sky-500" />,
-  package_cache: <Layers size={18} className="text-indigo-500" />,
-  node_modules: <Package size={18} className="text-emerald-500" />,
-  cargo_target: <Box size={18} className="text-orange-500" />,
-  docker_volumes: <Container size={18} className="text-blue-500" />,
-  flutter_cache: <Zap size={18} className="text-cyan-500" />,
-  golang_cache: <Terminal size={18} className="text-teal-500" />,
-  maven_cache: <Coffee size={18} className="text-amber-500" />,
-  composer_cache: <Code2 size={18} className="text-violet-500" />,
-  ai_models: <Cpu size={18} className="text-rose-500" />,
-  ruby_cache: <Gem size={18} className="text-red-500" />,
-  nuget_cache: <Boxes size={18} className="text-purple-500" />,
-  cpp_cache: <Binary size={18} className="text-slate-500" />,
+  xcode_cache: <XcodeIcon size={18} />,
+  package_cache: <PackageCacheIcon size={18} />,
+  node_modules: <NodeIcon size={18} />,
+  cargo_target: <RustIcon size={18} />,
+  docker_volumes: <DockerIcon size={18} />,
+  flutter_cache: <FlutterIcon size={18} />,
+  golang_cache: <GoIcon size={18} />,
+  maven_cache: <JavaIcon size={18} />,
+  composer_cache: <PhpIcon size={18} />,
+  ai_models: <AiModelsIcon size={18} />,
+  ruby_cache: <RubyIcon size={18} />,
+  nuget_cache: <DotNetIcon size={18} />,
+  cpp_cache: <CppIcon size={18} />,
+  python_cache: <PythonIcon size={18} />,
 };
 
 type SizeFilter = 'all' | '100mb' | '1gb';
@@ -110,9 +115,13 @@ export default function DevWorkspace() {
     }
   };
 
+  const lastRefreshRef = useRef(globalRefreshTrigger);
   useEffect(() => {
-    runScan();
-  }, [globalRefreshTrigger]);
+    if (devCategories.length === 0 || lastRefreshRef.current !== globalRefreshTrigger) {
+      lastRefreshRef.current = globalRefreshTrigger;
+      runScan();
+    }
+  }, [globalRefreshTrigger, devCategories.length]);
 
   const handleCleanClick = () => {
     if (selectedItems.length === 0) return;

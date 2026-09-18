@@ -30,7 +30,7 @@ export default function DiskVisualizer() {
   const { t } = useTranslation();
   const { selectedDiskMount, globalRefreshTrigger } = useAppStore();
 
-  const [currentPath, setCurrentPath] = useState<string>(selectedDiskMount || '/');
+  const [currentPath, setCurrentPath] = useState<string>('~');
   const [history, setHistory] = useState<string[]>([]);
   const [rootNode, setRootNode] = useState<DiskTreeNode | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -40,6 +40,9 @@ export default function DiskVisualizer() {
     try {
       const tree = await scanDirectoryTree(path, 2);
       setRootNode(tree);
+      if (tree && tree.path) {
+        setCurrentPath(tree.path);
+      }
     } catch (err) {
       console.error('Failed to scan disk tree:', err);
     } finally {
@@ -48,9 +51,10 @@ export default function DiskVisualizer() {
   }, []);
 
   useEffect(() => {
-    setCurrentPath(selectedDiskMount);
+    // If an external volume is selected, use it, otherwise default to user home
+    const initial = (selectedDiskMount && selectedDiskMount !== '/') ? selectedDiskMount : '~';
     setHistory([]);
-    loadTree(selectedDiskMount);
+    loadTree(initial);
   }, [selectedDiskMount, loadTree, globalRefreshTrigger]);
 
   const handleNavigateInto = (node: DiskTreeNode) => {
@@ -96,6 +100,39 @@ export default function DiskVisualizer() {
           ) : undefined
         }
       />
+
+      {/* Quick Location Shortcuts */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs">
+        <span className="font-medium text-slate-400 shrink-0">Quick jump:</span>
+        <button
+          type="button"
+          onClick={() => { setHistory((prev) => [...prev, currentPath]); loadTree('~'); }}
+          className="px-2.5 py-1 rounded-lg font-medium bg-black/4 dark:bg-white/5 hover:bg-blue-500/10 hover:text-blue-500 dark:hover:text-blue-400 transition-colors cursor-pointer shrink-0"
+        >
+          Home (~)
+        </button>
+        <button
+          type="button"
+          onClick={() => { setHistory((prev) => [...prev, currentPath]); loadTree('~/Downloads'); }}
+          className="px-2.5 py-1 rounded-lg font-medium bg-black/4 dark:bg-white/5 hover:bg-blue-500/10 hover:text-blue-500 dark:hover:text-blue-400 transition-colors cursor-pointer shrink-0"
+        >
+          Downloads
+        </button>
+        <button
+          type="button"
+          onClick={() => { setHistory((prev) => [...prev, currentPath]); loadTree('~/Developer'); }}
+          className="px-2.5 py-1 rounded-lg font-medium bg-black/4 dark:bg-white/5 hover:bg-blue-500/10 hover:text-blue-500 dark:hover:text-blue-400 transition-colors cursor-pointer shrink-0"
+        >
+          Developer
+        </button>
+        <button
+          type="button"
+          onClick={() => { setHistory((prev) => [...prev, currentPath]); loadTree('/Applications'); }}
+          className="px-2.5 py-1 rounded-lg font-medium bg-black/4 dark:bg-white/5 hover:bg-blue-500/10 hover:text-blue-500 dark:hover:text-blue-400 transition-colors cursor-pointer shrink-0"
+        >
+          Applications
+        </button>
+      </div>
 
       {/* Breadcrumb Navigation Bar */}
       <div className="flex items-center justify-between gap-2 p-2 rounded-2xl glass-panel border border-black/4 dark:border-white/6 overflow-x-auto">

@@ -17,7 +17,22 @@ pub struct DiskTreeNode {
     pub file_count: usize,
 }
 
+fn should_skip(path: &Path) -> bool {
+    let s = path.to_string_lossy();
+    s == "/Volumes"
+        || s == "/dev"
+        || s == "/proc"
+        || s.starts_with("/System/Volumes")
+        || s.ends_with("/.Trash")
+        || s.ends_with("/.Spotlight-V100")
+        || s.ends_with("/.DocumentRevisions-V100")
+        || s.ends_with("/.fseventsd")
+}
+
 fn calculate_allocated_size(path: &Path) -> (u64, usize) {
+    if should_skip(path) {
+        return (0, 0);
+    }
     if path.is_file() {
         let size = path.metadata().map(|m| m.len()).unwrap_or(0);
         return (size, 1);
@@ -27,8 +42,11 @@ fn calculate_allocated_size(path: &Path) -> (u64, usize) {
     let mut file_count = 0usize;
 
     for entry in WalkDir::new(path)
+        .same_file_system(true)
+        .max_depth(4)
         .min_depth(1)
         .into_iter()
+        .filter_entry(|e| !should_skip(e.path()))
         .filter_map(|e| e.ok())
     {
         if entry.file_type().is_file() {
@@ -50,6 +68,18 @@ fn build_tree(path: &Path, current_depth: usize, max_depth: usize) -> DiskTreeNo
 
     let is_dir = path.is_dir();
 
+    if should_skip(path) {
+        return DiskTreeNode {
+            id: path.to_string_lossy().to_string(),
+            name,
+            path: path.to_string_lossy().to_string(),
+            size: 0,
+            is_dir,
+            children: Vec::new(),
+            file_count: 0,
+        };
+    }
+
     if !is_dir || current_depth >= max_depth {
         let (size, file_count) = calculate_allocated_size(path);
         return DiskTreeNode {
@@ -64,7 +94,11 @@ fn build_tree(path: &Path, current_depth: usize, max_depth: usize) -> DiskTreeNo
     }
 
     let direct_entries: Vec<PathBuf> = match fs::read_dir(path) {
-        Ok(rd) => rd.filter_map(|e| e.ok()).map(|e| e.path()).collect(),
+        Ok(rd) => rd
+            .filter_map(|e| e.ok())
+            .map(|e| e.path())
+            .filter(|p| !should_skip(p))
+            .collect(),
         Err(_) => Vec::new(),
     };
 
@@ -94,15 +128,25 @@ fn build_tree(path: &Path, current_depth: usize, max_depth: usize) -> DiskTreeNo
 
 #[tauri::command]
 pub async fn scan_directory_tree(
-    path: String,
+    mut path: String,
     max_depth: Option<usize>,
 ) -> Result<DiskTreeNode, String> {
+    if path.is_empty() || path == "~" {
+        if let Ok(home) = std::env::var("HOME") {
+            path = home;
+        }
+    } else if path.starts_with("~/") {
+        if let Ok(home) = std::env::var("HOME") {
+            path = format!("{}{}", home, &path[1..]);
+        }
+    }
+
     let target = PathBuf::from(&path);
     if !target.exists() {
         return Err(format!("Directory not found: {}", path));
     }
 
-    let depth = max_depth.unwrap_or(2).min(4);
+    let depth = max_depth.unwrap_or(2).min(3);
     let root_node = tokio::task::spawn_blocking(move || build_tree(&target, 0, depth))
         .await
         .map_err(|e| e.to_string())?;

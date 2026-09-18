@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useAppStore } from './store/appStore';
 import MainLayout from './components/layout/MainLayout';
 import Dashboard from './views/Dashboard';
@@ -18,6 +18,17 @@ import Settings from './views/Settings';
 // Beberes macOS Modern Clean Architecture
 export default function App() {
   const { currentPage, isDarkMode, uiScale, autoCheckUpdate, checkForUpdates } = useAppStore();
+  const [visitedPages, setVisitedPages] = useState<Set<string>>(new Set([currentPage]));
+
+  // Track visited pages to lazily mount them and keep them alive for instant tab switching
+  useEffect(() => {
+    setVisitedPages((prev) => {
+      if (prev.has(currentPage)) return prev;
+      const next = new Set(prev);
+      next.add(currentPage);
+      return next;
+    });
+  }, [currentPage]);
 
   // Check for updates on startup
   useEffect(() => {
@@ -41,42 +52,47 @@ export default function App() {
     document.documentElement.classList.add(`scale-${uiScale}`);
   }, [uiScale]);
 
-  const renderPage = () => {
-    switch (currentPage) {
-      case 'dashboard':
-        return <Dashboard />;
-      case 'disk-visualizer':
-        return <DiskVisualizer />;
-      case 'quick-review':
-        return <QuickReview />;
-      case 'large-duplicates':
-        return <LargeAndDuplicates />;
-      case 'trash-manager':
-        return <TrashManager />;
-      case 'tidy-up':
-        return <TidyUp />;
-      case 'apps':
-        return <AppUninstaller />;
-      case 'system-clean':
-        return <SystemClean />;
-      case 'dev-workspace':
-        return <DevWorkspace />;
-      case 'startup-manager':
-        return <StartupManager />;
-      case 'file-shredder':
-        return <FileShredder />;
-      case 'git-sweeper':
-        return <GitSweeper />;
-      case 'settings':
-        return <Settings />;
-      default:
-        return <Dashboard />;
-    }
-  };
-
   return (
     <MainLayout>
-      {renderPage()}
+      <div className={currentPage === 'dashboard' ? 'block animate-fade-in' : 'hidden'}>
+        {visitedPages.has('dashboard') && <Dashboard />}
+      </div>
+      <div className={currentPage === 'disk-visualizer' ? 'block animate-fade-in' : 'hidden'}>
+        {visitedPages.has('disk-visualizer') && <DiskVisualizer />}
+      </div>
+      <div className={currentPage === 'quick-review' ? 'block animate-fade-in' : 'hidden'}>
+        {visitedPages.has('quick-review') && <QuickReview />}
+      </div>
+      <div className={currentPage === 'large-duplicates' ? 'block animate-fade-in' : 'hidden'}>
+        {visitedPages.has('large-duplicates') && <LargeAndDuplicates />}
+      </div>
+      <div className={currentPage === 'trash-manager' ? 'block animate-fade-in' : 'hidden'}>
+        {visitedPages.has('trash-manager') && <TrashManager />}
+      </div>
+      <div className={currentPage === 'tidy-up' ? 'block animate-fade-in' : 'hidden'}>
+        {visitedPages.has('tidy-up') && <TidyUp />}
+      </div>
+      <div className={currentPage === 'apps' ? 'block animate-fade-in' : 'hidden'}>
+        {visitedPages.has('apps') && <AppUninstaller />}
+      </div>
+      <div className={currentPage === 'system-clean' ? 'block animate-fade-in' : 'hidden'}>
+        {visitedPages.has('system-clean') && <SystemClean />}
+      </div>
+      <div className={currentPage === 'dev-workspace' ? 'block animate-fade-in' : 'hidden'}>
+        {visitedPages.has('dev-workspace') && <DevWorkspace />}
+      </div>
+      <div className={currentPage === 'startup-manager' ? 'block animate-fade-in' : 'hidden'}>
+        {visitedPages.has('startup-manager') && <StartupManager />}
+      </div>
+      <div className={currentPage === 'file-shredder' ? 'block animate-fade-in' : 'hidden'}>
+        {visitedPages.has('file-shredder') && <FileShredder />}
+      </div>
+      <div className={currentPage === 'git-sweeper' ? 'block animate-fade-in' : 'hidden'}>
+        {visitedPages.has('git-sweeper') && <GitSweeper />}
+      </div>
+      <div className={currentPage === 'settings' ? 'block animate-fade-in' : 'hidden'}>
+        {visitedPages.has('settings') && <Settings />}
+      </div>
     </MainLayout>
   );
 }

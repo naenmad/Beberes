@@ -25,7 +25,7 @@ import {
   Square,
   Filter,
 } from 'lucide-react';
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 
 const categoryIcons: Record<string, React.ReactNode> = {
   system_cache: <FolderOpen size={18} className="text-blue-500" />,
@@ -91,9 +91,13 @@ export default function SystemClean() {
     }
   };
 
+  const lastRefreshRef = useRef(globalRefreshTrigger);
   useEffect(() => {
-    runScan();
-  }, [globalRefreshTrigger]);
+    if (systemCategories.length === 0 || lastRefreshRef.current !== globalRefreshTrigger) {
+      lastRefreshRef.current = globalRefreshTrigger;
+      runScan();
+    }
+  }, [globalRefreshTrigger, systemCategories.length]);
 
   const handleCleanClick = () => {
     if (selectedItems.length === 0) return;
