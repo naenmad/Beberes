@@ -1,6 +1,7 @@
 mod commands;
 mod utils;
 
+use tauri::Manager;
 use commands::cleaner::{clean_selected_items, pick_files, pick_folder, reveal_in_finder};
 use commands::finder::scan_finder_items;
 use commands::git_sweeper::{optimize_git_repo, scan_git_repos};
@@ -27,7 +28,7 @@ fn exit_app(app: tauri::AppHandle) {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    tauri::Builder::default()
+    let app = tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .on_window_event(|window, event| {
             if let tauri::WindowEvent::CloseRequested { api, .. } = event {
@@ -35,6 +36,7 @@ pub fn run() {
                 {
                     api.prevent_close();
                     let _ = window.hide();
+                    let _ = window.app_handle().hide();
                 }
             }
         })
@@ -48,13 +50,18 @@ pub fn run() {
             let quit_i = MenuItem::with_id(app, "quit", "Quit Beberes", true, None::<&str>)?;
             let menu = Menu::with_items(app, &[&show_i, &smart_clean_i, &quit_i])?;
 
-            let _tray = TrayIconBuilder::new()
+            let _tray = TrayIconBuilder::with_id("tray")
+                .icon(app.default_window_icon().expect("missing default window icon").clone())
+                .icon_as_template(false)
+                .tooltip("Beberes")
                 .menu(&menu)
                 .show_menu_on_left_click(false)
                 .on_menu_event(|app, event| match event.id.as_ref() {
                     "show" => {
+                        let _ = app.show();
                         if let Some(window) = app.get_webview_window("main") {
                             let _ = window.show();
+                            let _ = window.unminimize();
                             let _ = window.set_focus();
                         }
                     }
@@ -83,7 +90,9 @@ pub fn run() {
                                 if is_visible {
                                     let _ = window.hide();
                                 } else {
+                                    let _ = app.show();
                                     let _ = window.show();
+                                    let _ = window.unminimize();
                                     let _ = window.set_focus();
                                 }
                             }
@@ -132,6 +141,20 @@ pub fn run() {
             check_is_in_applications_dir,
             move_to_applications_and_relaunch,
         ])
-        .run(tauri::generate_context!())
-        .expect("error while running tauri application");
+        .build(tauri::generate_context!())
+        .expect("error while building tauri application");
+
+    app.run(|app_handle, event| {
+        #[cfg(target_os = "macos")]
+        if let tauri::RunEvent::Reopen { has_visible_windows, .. } = event {
+            if !has_visible_windows {
+                let _ = app_handle.show();
+                if let Some(window) = app_handle.get_webview_window("main") {
+                    let _ = window.show();
+                    let _ = window.unminimize();
+                    let _ = window.set_focus();
+                }
+            }
+        }
+    });
 }
