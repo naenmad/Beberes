@@ -82,6 +82,67 @@ export default function App() {
     };
   }, [setCurrentPage, triggerGlobalRefresh]);
 
+  // Global Keyboard Shortcuts (Cmd+1..9, Cmd+,, Cmd+R)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const isMeta = e.metaKey || e.ctrlKey;
+      if (!isMeta) return;
+
+      switch (e.key) {
+        case '1':
+          e.preventDefault();
+          setCurrentPage('dashboard');
+          break;
+        case '2':
+          e.preventDefault();
+          setCurrentPage('system-clean');
+          break;
+        case '3':
+          e.preventDefault();
+          setCurrentPage('dev-workspace');
+          break;
+        case '4':
+          e.preventDefault();
+          setCurrentPage('tidy-up');
+          break;
+        case '5':
+          e.preventDefault();
+          setCurrentPage('disk-visualizer');
+          break;
+        case '6':
+          e.preventDefault();
+          setCurrentPage('apps');
+          break;
+        case '7':
+          e.preventDefault();
+          setCurrentPage('quick-review');
+          break;
+        case '8':
+          e.preventDefault();
+          setCurrentPage('large-duplicates');
+          break;
+        case '9':
+          e.preventDefault();
+          setCurrentPage('trash-manager');
+          break;
+        case ',':
+          e.preventDefault();
+          setCurrentPage('settings');
+          break;
+        case 'r':
+        case 'R':
+          e.preventDefault();
+          triggerGlobalRefresh();
+          break;
+        default:
+          break;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [setCurrentPage, triggerGlobalRefresh]);
+
   // Check for updates on startup
   useEffect(() => {
     if (autoCheckUpdate) {

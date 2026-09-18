@@ -196,3 +196,46 @@
   opacity: 0;
   animation: fade-in 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
+
+/* Accessibility: Focus-Visible Outlines */
+:focus-visible {
+  outline: 2px solid #0071e3 !important;
+  outline-offset: 2px !important;
+}
+
+/* Accessibility: macOS Prefers Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Accessibility: macOS Prefers More Contrast */
+@media (prefers-contrast: more) {
+  .glass-panel {
+    border-color: rgba(0, 0, 0, 0.25) !important;
+  }
+  .dark .glass-panel {
+    border-color: rgba(255, 255, 255, 0.3) !important;
+  }
+  .glass-pill {
+    border-color: rgba(0, 0, 0, 0.2) !important;
+  }
+  .dark .glass-pill {
+    border-color: rgba(255, 255, 255, 0.25) !important;
+  }
+  .text-slate-400,
+  .text-slate-500 {
+    color: #334155 !important;
+  }
+  .dark .text-neutral-400,
+  .dark .text-neutral-500 {
+    color: #e2e8f0 !important;
+  }
+}
+

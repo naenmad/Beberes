@@ -31,6 +31,7 @@ import {
   Filter,
   Compass,
   Shield,
+  ShieldCheck,
   Flame,
 } from 'lucide-react';
 import { useState, useMemo, useEffect, useRef } from 'react';
@@ -46,6 +47,19 @@ const categoryIcons: Record<string, React.ReactNode> = {
   browser_firefox: <Flame size={18} className="text-orange-600" />,
   browser_edge: <Globe size={18} className="text-blue-600" />,
   trash: <Trash2 size={18} className="text-rose-500" />,
+};
+
+const categorySafetyInfo: Record<string, string> = {
+  system_cache: 'Safe to clean: System-level temporary files that macOS regenerates automatically on demand.',
+  user_logs: 'Safe to clean: Historical runtime diagnostic logs. Reclaims storage with zero effect on personal documents.',
+  browser_cache: 'Safe to clean: Cached web assets, shader caches, and temporary data. Passwords and cookies are preserved.',
+  browser_safari: 'Safe to clean: Safari web cache and preview assets. Passwords, bookmarks, and logins are never touched.',
+  browser_chrome: 'Safe to clean: Google Chrome shader cache, code cache, and temporary service workers. Logins are preserved.',
+  browser_arc: 'Safe to clean: Arc Browser disk caches and temporary rendering data.',
+  browser_brave: 'Safe to clean: Brave temporary browser caches and shield caches.',
+  browser_firefox: 'Safe to clean: Mozilla Firefox HTTP disk cache and startup cache.',
+  browser_edge: 'Safe to clean: Microsoft Edge web disk cache and GPU cache.',
+  trash: 'Safe to clean: Files currently sitting in macOS Trash.',
 };
 
 type SizeFilter = 'all' | '50mb' | '500mb';
@@ -294,6 +308,12 @@ export default function SystemClean() {
 
                 {isExpanded && (
                   <CardBody className="py-2!">
+                    {categorySafetyInfo[category.id] && (
+                      <div className="flex items-center gap-2 p-2.5 mb-2 rounded-xl bg-blue-500/5 dark:bg-blue-500/10 border border-blue-500/15 text-[11px] text-blue-800 dark:text-blue-300">
+                        <ShieldCheck size={14} className="text-blue-500 shrink-0" />
+                        <span>{categorySafetyInfo[category.id]}</span>
+                      </div>
+                    )}
                     <div className="divide-y divide-black/4 dark:divide-white/6">
                       {category.items.map((item) => (
                         <div

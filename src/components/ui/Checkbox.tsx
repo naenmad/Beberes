@@ -21,10 +21,12 @@ export default function Checkbox({
         type="button"
         role="checkbox"
         aria-checked={indeterminate ? 'mixed' : checked}
+        aria-label={label || 'Select item'}
         onClick={() => onChange(!checked)}
         className={`
           w-4.5 h-4.5 rounded-md border-2 flex items-center justify-center
           transition-all duration-150 shrink-0 cursor-pointer
+          focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1 focus-visible:outline-none
           ${
             checked || indeterminate
               ? 'bg-blue-500 border-blue-500 text-white'

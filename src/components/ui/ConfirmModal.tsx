@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import Button from './Button';
 import { formatSize } from '../../lib/utils';
@@ -52,6 +52,17 @@ export default function ConfirmModal({
   const { t } = useTranslation();
   const [showAllPaths, setShowAllPaths] = useState(false);
 
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && !isLoading) {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, isLoading, onClose]);
+
   if (!isOpen) return null;
 
   const isOrganize = actionType === 'organize';
@@ -67,7 +78,12 @@ export default function ConfirmModal({
       />
 
       {/* Modal Dialog */}
-      <div className="relative w-full max-w-lg rounded-3xl bg-white dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 shadow-2xl overflow-hidden animate-scale-in z-10">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="confirm-modal-title"
+        className="relative w-full max-w-lg rounded-3xl bg-white dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 shadow-2xl overflow-hidden animate-scale-in z-10"
+      >
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-neutral-700/60">
           <div className="flex items-center gap-3">
@@ -91,7 +107,7 @@ export default function ConfirmModal({
               )}
             </div>
             <div>
-              <h3 className="text-base font-semibold text-slate-900 dark:text-white">
+              <h3 id="confirm-modal-title" className="text-base font-semibold text-slate-900 dark:text-white">
                 {modalTitle}
               </h3>
               <p className="text-xs text-slate-400 dark:text-neutral-400">
