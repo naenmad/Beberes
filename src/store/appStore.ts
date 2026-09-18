@@ -39,6 +39,36 @@ export interface DiskDetail {
   fileSystem: string;
 }
 
+export interface CleanRecord {
+  id: string;
+  timestamp: string;
+  bytesFreed: number;
+  itemsCount: number;
+  isTrashMode: boolean;
+  categories: string[];
+}
+
+export interface UpdateInfo {
+  available: boolean;
+  latestVersion: string;
+  releaseUrl: string;
+  releaseNotes: string;
+  publishedAt?: string;
+}
+
+function compareSemver(v1: string, v2: string): number {
+  const parse = (v: string) => v.replace(/^v/, '').split('.').map((p) => parseInt(p, 10) || 0);
+  const p1 = parse(v1);
+  const p2 = parse(v2);
+  for (let i = 0; i < Math.max(p1.length, p2.length); i++) {
+    const num1 = p1[i] || 0;
+    const num2 = p2[i] || 0;
+    if (num1 > num2) return 1;
+    if (num1 < num2) return -1;
+  }
+  return 0;
+}
+
 export interface CleanHistoryEntry {
   id: string;
   timestamp: number;
@@ -180,10 +210,20 @@ interface AppState {
   isDarkMode: boolean;
   toggleDarkMode: () => void;
 
-  // Scanning
+  // Application Updates
+  updateInfo: UpdateInfo | null;
+  isCheckingUpdate: boolean;
+  updateCheckError: string | null;
+  autoCheckUpdate: boolean;
+  setAutoCheckUpdate: (enabled: boolean) => void;
+  checkForUpdates: (manual?: boolean) => Promise<void>;
+
+  // Scanning & Global Refresh
   isScanning: boolean;
   scanProgress: number;
   scanningStage: string;
+  globalRefreshTrigger: number;
+  triggerGlobalRefresh: () => void;
   setIsScanning: (scanning: boolean) => void;
   setScanProgress: (progress: number) => void;
   setScanningStage: (stage: string) => void;
@@ -287,10 +327,12 @@ export const useAppStore = create<AppState>((set, get) => ({
     return { isDarkMode: next };
   }),
 
-  // Scanning
+  // Scanning & Global Refresh
   isScanning: false,
   scanProgress: 0,
   scanningStage: '',
+  globalRefreshTrigger: 0,
+  triggerGlobalRefresh: () => set((state) => ({ globalRefreshTrigger: state.globalRefreshTrigger + 1 })),
   setIsScanning: (scanning) => set({ isScanning: scanning }),
   setScanProgress: (progress) => set({ scanProgress: progress }),
   setScanningStage: (stage) => set({ scanningStage: stage }),
@@ -550,5 +592,54 @@ export const useAppStore = create<AppState>((set, get) => ({
       whitelistPaths: DEFAULT_WHITELIST,
       customScanPaths: [],
     });
+  },
+
+  // Updates Implementation
+  updateInfo: null,
+  isCheckingUpdate: false,
+  updateCheckError: null,
+  autoCheckUpdate: (() => {
+    try {
+      return localStorage.getItem('beberes_auto_check_update') !== 'false';
+    } catch {
+      return true;
+    }
+  })(),
+  setAutoCheckUpdate: (enabled: boolean) => {
+    try {
+      localStorage.setItem('beberes_auto_check_update', enabled ? 'true' : 'false');
+    } catch {}
+    set({ autoCheckUpdate: enabled });
+  },
+  checkForUpdates: async (manual = false) => {
+    set({ isCheckingUpdate: true, updateCheckError: null });
+    try {
+      const res = await fetch('https://api.github.com/repos/naenmad/Beberes/releases/latest', {
+        headers: { Accept: 'application/vnd.github.v3+json' },
+      });
+      if (!res.ok) {
+        throw new Error(`GitHub API returned ${res.status}`);
+      }
+      const data = await res.json();
+      const rawTag = data.tag_name || '';
+      const cleanTag = rawTag.replace(/^v/, '');
+      const available = compareSemver(cleanTag, '1.0.0') > 0;
+      set({
+        updateInfo: {
+          available,
+          latestVersion: cleanTag || '1.0.0',
+          releaseUrl: data.html_url || 'https://github.com/naenmad/Beberes/releases',
+          releaseNotes: data.body || '',
+          publishedAt: data.published_at,
+        },
+        isCheckingUpdate: false,
+        updateCheckError: null,
+      });
+    } catch (err: any) {
+      set({
+        isCheckingUpdate: false,
+        updateCheckError: manual ? (err?.message || 'Failed to check for updates') : null,
+      });
+    }
   },
 }));

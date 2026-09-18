@@ -10,7 +10,7 @@
 
 <p align="center">
   <a href="https://github.com/naenmad/Beberes/releases"><img src="https://img.shields.io/github/v/release/naenmad/Beberes?color=2563eb&label=Latest%20Release" alt="Latest Release" /></a>
-  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-059669.svg" alt="License" /></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-GPL--3.0-059669.svg" alt="License" /></a>
   <a href="https://tauri.app/"><img src="https://img.shields.io/badge/Tauri-v2-24C8D8.svg?logo=tauri&logoColor=white" alt="Tauri v2" /></a>
   <a href="https://www.rust-lang.org/"><img src="https://img.shields.io/badge/Rust-2021-DEA584.svg?logo=rust&logoColor=white" alt="Rust" /></a>
   <a href="https://www.apple.com/macos/"><img src="https://img.shields.io/badge/Platform-macOS%20(Apple%20Silicon%20%26%20Intel)-111827.svg?logo=apple&logoColor=white" alt="Platform" /></a>
@@ -180,5 +180,5 @@ We welcome contributions of all kinds from the community!
 
 ## License
 
-This project is licensed under the [MIT License](LICENSE).
+This project is licensed under the [GNU General Public License v3.0](LICENSE).
 Copyright (c) 2026 naenmad.

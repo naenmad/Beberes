@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAppStore } from '../store/appStore';
-import { pickFolder, getSystemDetails, clearIconCache } from '../lib/commands';
+import { pickFolder, getSystemDetails, clearIconCache, openExternalUrl } from '../lib/commands';
 import type { SystemDetails } from '../lib/commands';
 import { formatSize } from '../lib/utils';
 import { useTranslation } from '../lib/i18n';
@@ -30,6 +30,8 @@ import {
   Check,
   Globe,
   Sparkles,
+  ArrowDownCircle,
+  ExternalLink,
 } from 'lucide-react';
 
 type SettingsTab = 'general' | 'appearance' | 'folders' | 'system' | 'data';
@@ -63,6 +65,14 @@ export default function Settings() {
     cleanHistory,
     clearCleanHistory,
     resetAllSettings,
+
+    // Software Updates
+    updateInfo,
+    isCheckingUpdate,
+    updateCheckError,
+    autoCheckUpdate,
+    setAutoCheckUpdate,
+    checkForUpdates,
   } = useAppStore();
 
   const { t, language, setLanguage, supportedLanguages } = useTranslation();
@@ -225,6 +235,124 @@ export default function Settings() {
       {/* 1. GENERAL & SAFETY */}
       {activeTab === 'general' && (
         <div className="space-y-6">
+          {/* Software Updates Card */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between w-full">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-xl bg-blue-50 dark:bg-blue-500/10 text-blue-500">
+                    <ArrowDownCircle size={20} />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-semibold text-slate-800 dark:text-white">
+                      {t('updates.title', 'Software Updates')}
+                    </h3>
+                    <p className="text-xs text-slate-400 dark:text-neutral-500">
+                      {t('updates.subtitle', 'Check for releases and improvements')}
+                    </p>
+                  </div>
+                </div>
+
+                <Button
+                  onClick={() => checkForUpdates(true)}
+                  loading={isCheckingUpdate}
+                  variant="secondary"
+                  size="sm"
+                  icon={<RefreshCw size={13} className={isCheckingUpdate ? 'animate-spin' : ''} />}
+                >
+                  {isCheckingUpdate ? t('updates.checking', 'Checking GitHub...') : t('updates.checkBtn', 'Check for Updates')}
+                </Button>
+              </div>
+            </CardHeader>
+            <CardBody className="space-y-3.5">
+              {/* Version & Status */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-2xl bg-black/2 dark:bg-white/3 border border-black/4 dark:border-white/6">
+                <div className="flex items-center gap-3">
+                  <img src="/icon-beberes.webp" alt="Logo" className="w-10 h-10 rounded-xl drop-shadow-xs" />
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-bold text-slate-900 dark:text-white">Beberes</span>
+                      <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400">
+                        v1.0.0 (Apex)
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-slate-500 dark:text-neutral-400 mt-0.5">
+                      {updateInfo?.available
+                        ? t('updates.availableDesc', { version: updateInfo.latestVersion })
+                        : updateInfo && !updateInfo.available
+                        ? t('updates.upToDateDesc', { version: '1.0.0' })
+                        : t('updates.subtitle', 'Check for releases and improvements')}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Status Badges & Actions */}
+                {updateInfo?.available && (
+                  <div className="flex items-center gap-2">
+                    <Button
+                      onClick={() => openExternalUrl(updateInfo.releaseUrl)}
+                      variant="primary"
+                      size="sm"
+                      icon={<ExternalLink size={13} />}
+                    >
+                      {t('updates.downloadBtn', 'Download from GitHub')}
+                    </Button>
+                  </div>
+                )}
+                {updateInfo && !updateInfo.available && (
+                  <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-semibold">
+                    <CheckCircle2 size={13} />
+                    <span>{t('updates.upToDate', 'Beberes is up to date')}</span>
+                  </div>
+                )}
+                {updateCheckError && (
+                  <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 text-xs font-medium">
+                    <AlertTriangle size={13} />
+                    <span>{updateCheckError}</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Release Notes Summary if available */}
+              {updateInfo?.available && updateInfo.releaseNotes && (
+                <div className="p-3.5 rounded-2xl bg-blue-50/60 dark:bg-blue-950/20 border border-blue-200/60 dark:border-blue-800/40 text-left">
+                  <div className="text-xs font-bold text-blue-900 dark:text-blue-200 mb-1">
+                    {t('updates.releaseNotes', 'Release Notes')} (v{updateInfo.latestVersion}):
+                  </div>
+                  <div className="text-[11px] text-slate-600 dark:text-neutral-300 whitespace-pre-wrap line-clamp-3 font-mono">
+                    {updateInfo.releaseNotes}
+                  </div>
+                </div>
+              )}
+
+              {/* Auto Check Toggle */}
+              <div className="flex items-center justify-between pt-1">
+                <div>
+                  <div className="text-xs font-semibold text-slate-800 dark:text-white">
+                    {t('updates.autoCheck', 'Automatically check for updates on startup')}
+                  </div>
+                  <div className="text-[11px] text-slate-400 dark:text-neutral-500">
+                    {t('updates.autoCheckDesc', 'Notifies you in the TopBar when a new release is available')}
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setAutoCheckUpdate(!autoCheckUpdate)}
+                  className={`w-11 h-6 flex items-center rounded-full p-1 transition-colors duration-200 cursor-pointer ${
+                    autoCheckUpdate ? 'bg-blue-600' : 'bg-slate-300 dark:bg-neutral-700'
+                  }`}
+                >
+                  <div
+                    className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform duration-200 ${
+                      autoCheckUpdate ? 'translate-x-5' : 'translate-x-0'
+                    }`}
+                  />
+                </button>
+              </div>
+            </CardBody>
+          </Card>
+
           {/* Display Language Selection Card */}
           <Card>
             <CardHeader>

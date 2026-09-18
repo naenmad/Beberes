@@ -104,7 +104,7 @@ export default function AboutModal() {
 
           {/* Copyright & License */}
           <div className="flex items-center justify-between text-[11px] text-slate-400 pt-1 font-mono">
-            <span>License: MIT (Open Source)</span>
+            <span>License: GPL-3.0 (Open Source)</span>
             <span className="flex items-center gap-1 text-slate-500 dark:text-neutral-400">
               <GitBranch size={11} /> main-build
             </span>

@@ -32,6 +32,12 @@
     "mode": "Mode"
   },
   "nav": {
+    "categories": {
+      "overview": "Overview",
+      "cleaning": "Cleaning",
+      "organization": "Organization",
+      "developer": "Developer & System"
+    },
     "dashboard": "Dashboard",
     "quickReview": "Quick Review",
     "largeDuplicates": "Large & Duplicates",
@@ -491,6 +497,57 @@
     "optimizeAllTitle": "Optimize All Repositories?",
     "optimizeAllDesc": "This will run \"git gc --prune=now\" on all detected repositories and prune merged local branches. Working trees remain safe.",
     "startOptimization": "Start Optimization"
+  },
+  "welcome": {
+    "step1Title": "Welcome to Beberes",
+    "step1Subtitle": "Next-Gen Mac Cleaning & Optimization • Apex Edition",
+    "step1Desc": "Beberes keeps your Mac swift, clean, and spacious with native Rust-powered scanning.",
+    "pillarCleanTitle": "Deep System Clean",
+    "pillarCleanDesc": "Safely purge Xcode caches, browser temp data, orphaned apps, and system logs.",
+    "pillarTidyTitle": "Intelligent File Tidy",
+    "pillarTidyDesc": "Declutter downloads, hunt massive duplicates, and speed up photo/video review.",
+    "pillarDevTitle": "Developer Workspace",
+    "pillarDevDesc": "Wipe gigabytes of stale node_modules, target artifacts, and dormant git trees.",
+    "pillarSafetyTitle": "Zero-Risk Trash Safety",
+    "pillarSafetyDesc": "All cleans route to macOS Trash by default. Never lose a file unexpectedly.",
+    "step2Title": "macOS Permission Setup",
+    "step2Subtitle": "Grant Full Disk Access for Complete Scanning",
+    "step2Desc": "macOS protects deep Library caches and user trash from third-party apps. Granting Full Disk Access enables Beberes to inspect and clean comprehensively without permission errors.",
+    "step2Action1": "1. Click 'Open System Settings' below",
+    "step2Action2": "2. Under Privacy & Security > Full Disk Access, find Beberes",
+    "step2Action3": "3. Toggle switch to ON (enter Mac password if prompted)",
+    "openSettings": "Open System Settings",
+    "reopenSettings": "Re-open Settings",
+    "step3Title": "You're All Set!",
+    "step3Subtitle": "Experience a Faster, Lighter Mac",
+    "step3Desc": "Beberes is fully primed and ready to optimize your machine.",
+    "tip1Title": "Quick Spotlight",
+    "tip1Desc": "Press Cmd+K anytime to jump straight to any tool or trigger a scan.",
+    "tip2Title": "Trash vs Direct Delete",
+    "tip2Desc": "Switch deletion modes anytime directly from the TopBar toggle.",
+    "tip3Title": "TopBar Universal Scan",
+    "tip3Desc": "Click the Refresh button on top right to rescan whatever view you are in.",
+    "launchApp": "Launch Beberes",
+    "next": "Continue",
+    "back": "Back",
+    "skip": "Skip for now"
+  },
+  "updates": {
+    "title": "Software Updates",
+    "subtitle": "Check for releases and improvements",
+    "currentVersion": "Current Version",
+    "checkBtn": "Check for Updates",
+    "checking": "Checking GitHub...",
+    "upToDate": "Beberes is up to date",
+    "upToDateDesc": "You are running the latest version: v{version}",
+    "available": "New Update Available!",
+    "availableDesc": "Version {version} is now available on GitHub.",
+    "downloadBtn": "Download from GitHub",
+    "releaseNotes": "Release Notes",
+    "autoCheck": "Automatically check for updates on startup",
+    "autoCheckDesc": "Notifies you in the TopBar when a new release is available",
+    "topBarBadge": "Update Available: v{version}",
+    "failed": "Unable to check for updates. Check your internet connection."
   }
 }
 

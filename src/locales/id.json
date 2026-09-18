@@ -32,6 +32,12 @@
     "mode": "Mode"
   },
   "nav": {
+    "categories": {
+      "overview": "Ikhtisar",
+      "cleaning": "Pembersihan",
+      "organization": "Kerapihan",
+      "developer": "Pengembang & Sistem"
+    },
     "dashboard": "Dasbor",
     "quickReview": "Tinjau Cepat",
     "largeDuplicates": "File Besar & Duplikat",
@@ -490,6 +496,57 @@
     "optimizeAllTitle": "Optimalkan Seluruh Repositori?",
     "optimizeAllDesc": "Ini akan menjalankan \"git gc --prune=now\" pada seluruh repositori yang ditemukan dan memangkas cabang lokal yang sudah dimerge.",
     "startOptimization": "Mulai Optimasi"
+  },
+  "welcome": {
+    "step1Title": "Selamat Datang di Beberes",
+    "step1Subtitle": "Pembersihan & Optimasi Mac Generasi Baru • Edisi Apex",
+    "step1Desc": "Beberes menjaga Mac Anda tetap cepat, bersih, dan lega dengan mesin native bertenaga Rust.",
+    "pillarCleanTitle": "Pembersihan Sistem Mendalam",
+    "pillarCleanDesc": "Hapus cache Xcode, sisa berkas aplikasi usang, dan log sistem dengan aman.",
+    "pillarTidyTitle": "Pengorganisasian Berkas Cerdas",
+    "pillarTidyDesc": "Rapikan folder unduhan, temukan file duplikat raksasa, dan tinjau berkas kilat.",
+    "pillarDevTitle": "Ruang Kerja Pengembang",
+    "pillarDevDesc": "Bersihkan gigabyte node_modules usang, cache build target, dan repo git dormant.",
+    "pillarSafetyTitle": "Keamanan Tong Sampah Bebas Risiko",
+    "pillarSafetyDesc": "Penghapusan default ke Tong Sampah macOS. Berkas Anda selalu terlindungi.",
+    "step2Title": "Pengaturan Izin macOS",
+    "step2Subtitle": "Aktifkan Akses Disk Penuh untuk Pemindaian Maksimal",
+    "step2Desc": "macOS membatasi akses ke folder Library, cache sistem, dan tong sampah. Memberikan Akses Disk Penuh memungkinkan Beberes memindai dan membersihkan secara menyeluruh tanpa galat izin.",
+    "step2Action1": "1. Klik tombol 'Buka Pengaturan Sistem' di bawah",
+    "step2Action2": "2. Di Privasi & Keamanan > Akses Disk Penuh, temukan Beberes",
+    "step2Action3": "3. Nyalakan sakelar ke posisi AKTIF (masukkan sandi Mac jika diminta)",
+    "openSettings": "Buka Pengaturan Sistem",
+    "reopenSettings": "Buka Ulang Pengaturan",
+    "step3Title": "Semua Sudah Siap!",
+    "step3Subtitle": "Nikmati Mac yang Lebih Ringan & Cepat",
+    "step3Desc": "Beberes telah siap membantu merawat dan mengoptimalkan komputer Mac Anda.",
+    "tip1Title": "Pencarian Spotlight Kilat",
+    "tip1Desc": "Tekan Cmd+K kapan saja untuk melompat langsung ke fitur apa pun atau memindai.",
+    "tip2Title": "Mode Tong Sampah vs Hapus Langsung",
+    "tip2Desc": "Anda dapat mengganti mode penghapusan kapan saja langsung dari ikon TopBar.",
+    "tip3Title": "Pindai Terpusat di TopBar",
+    "tip3Desc": "Klik ikon Refresh di kanan atas untuk memindai ulang halaman yang sedang aktif.",
+    "launchApp": "Mulai Beberes",
+    "next": "Lanjutkan",
+    "back": "Kembali",
+    "skip": "Lewati untuk sekarang"
+  },
+  "updates": {
+    "title": "Pembaruan Perangkat Lunak",
+    "subtitle": "Periksa rilis dan peningkatan terbaru",
+    "currentVersion": "Versi Saat Ini",
+    "checkBtn": "Periksa Pembaruan",
+    "checking": "Memeriksa GitHub...",
+    "upToDate": "Beberes sudah versi terbaru",
+    "upToDateDesc": "Anda menggunakan versi rilis terbaru: v{version}",
+    "available": "Pembaruan Baru Tersedia!",
+    "availableDesc": "Versi {version} sekarang tersedia di GitHub.",
+    "downloadBtn": "Unduh dari GitHub",
+    "releaseNotes": "Catatan Rilis",
+    "autoCheck": "Periksa pembaruan otomatis saat aplikasi dimulai",
+    "autoCheckDesc": "Memberikan notifikasi pada TopBar jika ada versi rilis baru",
+    "topBarBadge": "Pembaruan Tersedia: v{version}",
+    "failed": "Gagal memeriksa pembaruan. Periksa koneksi internet Anda."
   }
 }
 

@@ -13,6 +13,8 @@ import {
   HardDrive,
   Sparkles,
   ChevronDown,
+  RefreshCw,
+  ArrowDownCircle,
 } from 'lucide-react';
 
 export default function TopBar() {
@@ -28,6 +30,10 @@ export default function TopBar() {
     setLanguage,
     openSpotlight,
     setCurrentPage,
+    isScanning,
+    triggerGlobalRefresh,
+    refreshDisks,
+    updateInfo,
   } = useAppStore();
 
   const [showLangMenu, setShowLangMenu] = useState(false);
@@ -123,6 +129,38 @@ export default function TopBar() {
 
       {/* Right side: Quick Action Controls */}
       <div data-tauri-drag-region className="flex items-center gap-1.5 shrink-0">
+        {/* Update Notification Pill */}
+        {updateInfo?.available && (
+          <button
+            type="button"
+            onClick={() => setCurrentPage('settings')}
+            title={`Beberes v${updateInfo.latestVersion} available! Click to update.`}
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 transition-all cursor-pointer animate-pulse"
+          >
+            <ArrowDownCircle size={12} className="shrink-0" />
+            <span className="text-[11px] font-medium">
+              {t('updates.topBarBadge', 'Update: v{version}', { version: updateInfo.latestVersion })}
+            </span>
+          </button>
+        )}
+
+        {/* Universal Scan / Refresh Button */}
+        <button
+          type="button"
+          onClick={() => {
+            triggerGlobalRefresh();
+            refreshDisks();
+          }}
+          disabled={isScanning}
+          title={t('common.refresh', 'Scan / Refresh Page')}
+          className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-black/3 dark:bg-white/5 hover:bg-black/6 dark:hover:bg-white/10 text-slate-700 dark:text-neutral-300 transition-colors cursor-pointer disabled:opacity-50"
+        >
+          <RefreshCw size={12} className={`text-blue-500 shrink-0 ${isScanning ? 'animate-spin' : ''}`} />
+          <span className="hidden sm:inline text-[11px] font-medium">
+            {isScanning ? t('common.scanning', 'Scanning...') : t('common.refresh', 'Refresh')}
+          </span>
+        </button>
+
         {/* Deletion Mode Toggle */}
         <button
           type="button"

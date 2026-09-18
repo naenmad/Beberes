@@ -17,7 +17,14 @@ import Settings from './views/Settings';
 
 // Beberes macOS Modern Clean Architecture
 export default function App() {
-  const { currentPage, isDarkMode, uiScale } = useAppStore();
+  const { currentPage, isDarkMode, uiScale, autoCheckUpdate, checkForUpdates } = useAppStore();
+
+  // Check for updates on startup
+  useEffect(() => {
+    if (autoCheckUpdate) {
+      checkForUpdates(false);
+    }
+  }, [autoCheckUpdate, checkForUpdates]);
 
   // Apply dark mode class to html element
   useEffect(() => {

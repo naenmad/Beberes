@@ -339,6 +339,7 @@ export interface TrashScanResult {
   total_size: number;
   items: TrashItem[];
   category_sizes: Record<string, number>;
+  permission_denied?: boolean;
 }
 
 /**
@@ -360,6 +361,25 @@ export async function emptyMacTrash(): Promise<number> {
  */
 export async function deleteSpecificTrashItems(paths: string[]): Promise<number> {
   return await invoke<number>('delete_specific_trash_items', { paths });
+}
+
+/**
+ * Open macOS Privacy & Security Settings directly to Full Disk Access panel.
+ */
+export async function openFullDiskAccessSettings(): Promise<void> {
+  return await invoke<void>('open_full_disk_access_settings');
+}
+
+/**
+ * Open an external URL in the default browser.
+ */
+export async function openExternalUrl(url: string): Promise<void> {
+  try {
+    const { openUrl } = await import('@tauri-apps/plugin-opener');
+    await openUrl(url);
+  } catch {
+    window.open(url, '_blank');
+  }
 }
 
 // ==========================================
