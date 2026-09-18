@@ -46,23 +46,60 @@ pub fn run() {
             }
         })
         .setup(|app| {
-            use tauri::menu::{Menu, MenuItem};
+            use tauri::menu::{Menu, MenuItem, PredefinedMenuItem};
             use tauri::tray::TrayIconBuilder;
             use tauri::{Emitter, Manager};
 
-            let show_i = MenuItem::with_id(app, "show", "Open Beberes", true, None::<&str>)?;
+            let title_i = MenuItem::with_id(app, "title", "Beberes - Mac Cleaner & Optimizer", false, None::<&str>)?;
+            let sep0 = PredefinedMenuItem::separator(app)?;
+            let show_i = MenuItem::with_id(app, "show", "Open Beberes", true, Some("CmdOrCtrl+O"))?;
+            let sep1 = PredefinedMenuItem::separator(app)?;
             let smart_clean_i = MenuItem::with_id(app, "smart_clean", "Quick Smart Clean", true, None::<&str>)?;
-            let quit_i = MenuItem::with_id(app, "quit", "Quit Beberes", true, None::<&str>)?;
-            let menu = Menu::with_items(app, &[&show_i, &smart_clean_i, &quit_i])?;
+            let free_ram_i = MenuItem::with_id(app, "free_ram", "Free Up Inactive RAM", true, None::<&str>)?;
+            let empty_trash_i = MenuItem::with_id(app, "empty_trash", "Empty macOS Trash", true, None::<&str>)?;
+            let sep2 = PredefinedMenuItem::separator(app)?;
+            let dashboard_i = MenuItem::with_id(app, "nav_dashboard", "Dashboard", true, None::<&str>)?;
+            let system_clean_i = MenuItem::with_id(app, "nav_system_clean", "System Clean", true, None::<&str>)?;
+            let dev_workspace_i = MenuItem::with_id(app, "nav_dev_workspace", "Developer Workspace", true, None::<&str>)?;
+            let tidy_up_i = MenuItem::with_id(app, "nav_tidy_up", "Tidy Up Desktop & Downloads", true, None::<&str>)?;
+            let visualizer_i = MenuItem::with_id(app, "nav_visualizer", "Disk Space Visualizer", true, None::<&str>)?;
+            let apps_i = MenuItem::with_id(app, "nav_apps", "App Uninstaller", true, None::<&str>)?;
+            let sep3 = PredefinedMenuItem::separator(app)?;
+            let hide_i = MenuItem::with_id(app, "hide", "Hide Window", true, None::<&str>)?;
+            let quit_i = MenuItem::with_id(app, "quit", "Quit Beberes", true, Some("CmdOrCtrl+Q"))?;
+
+            let menu = Menu::with_items(
+                app,
+                &[
+                    &title_i,
+                    &sep0,
+                    &show_i,
+                    &sep1,
+                    &smart_clean_i,
+                    &free_ram_i,
+                    &empty_trash_i,
+                    &sep2,
+                    &dashboard_i,
+                    &system_clean_i,
+                    &dev_workspace_i,
+                    &tidy_up_i,
+                    &visualizer_i,
+                    &apps_i,
+                    &sep3,
+                    &hide_i,
+                    &quit_i,
+                ],
+            )?;
 
             let _tray = TrayIconBuilder::with_id("tray")
                 .icon(app.default_window_icon().expect("missing default window icon").clone())
                 .icon_as_template(false)
-                .tooltip("Beberes")
+                .tooltip("Beberes - Mac Cleaner & Optimizer")
                 .menu(&menu)
-                .show_menu_on_left_click(false)
+                .show_menu_on_left_click(true)
                 .on_menu_event(|app, event| match event.id.as_ref() {
                     "show" => {
+                        let _ = app.set_activation_policy(tauri::ActivationPolicy::Regular);
                         let _ = app.show();
                         if let Some(window) = app.get_webview_window("main") {
                             let _ = window.show();
@@ -70,39 +107,103 @@ pub fn run() {
                             let _ = window.set_focus();
                         }
                     }
+                    "hide" => {
+                        if let Some(window) = app.get_webview_window("main") {
+                            let _ = window.hide();
+                        }
+                        let _ = app.hide();
+                    }
                     "smart_clean" => {
+                        let _ = app.set_activation_policy(tauri::ActivationPolicy::Regular);
+                        let _ = app.show();
                         if let Some(window) = app.get_webview_window("main") {
                             let _ = window.show();
+                            let _ = window.unminimize();
                             let _ = window.set_focus();
+                            let _ = window.emit("navigate-to", "system-clean");
                             let _ = window.emit("quick-smart-clean", ());
+                        }
+                    }
+                    "free_ram" => {
+                        tokio::spawn(async {
+                            let _ = commands::memory::purge_inactive_memory();
+                        });
+                        if let Some(window) = app.get_webview_window("main") {
+                            let _ = window.emit("memory-purged", ());
+                        }
+                    }
+                    "empty_trash" => {
+                        tokio::spawn(async {
+                            let _ = commands::trash::empty_mac_trash();
+                        });
+                        if let Some(window) = app.get_webview_window("main") {
+                            let _ = window.emit("trash-emptied", ());
+                        }
+                    }
+                    "nav_dashboard" => {
+                        let _ = app.set_activation_policy(tauri::ActivationPolicy::Regular);
+                        let _ = app.show();
+                        if let Some(window) = app.get_webview_window("main") {
+                            let _ = window.show();
+                            let _ = window.unminimize();
+                            let _ = window.set_focus();
+                            let _ = window.emit("navigate-to", "dashboard");
+                        }
+                    }
+                    "nav_system_clean" => {
+                        let _ = app.set_activation_policy(tauri::ActivationPolicy::Regular);
+                        let _ = app.show();
+                        if let Some(window) = app.get_webview_window("main") {
+                            let _ = window.show();
+                            let _ = window.unminimize();
+                            let _ = window.set_focus();
+                            let _ = window.emit("navigate-to", "system-clean");
+                        }
+                    }
+                    "nav_dev_workspace" => {
+                        let _ = app.set_activation_policy(tauri::ActivationPolicy::Regular);
+                        let _ = app.show();
+                        if let Some(window) = app.get_webview_window("main") {
+                            let _ = window.show();
+                            let _ = window.unminimize();
+                            let _ = window.set_focus();
+                            let _ = window.emit("navigate-to", "dev-workspace");
+                        }
+                    }
+                    "nav_tidy_up" => {
+                        let _ = app.set_activation_policy(tauri::ActivationPolicy::Regular);
+                        let _ = app.show();
+                        if let Some(window) = app.get_webview_window("main") {
+                            let _ = window.show();
+                            let _ = window.unminimize();
+                            let _ = window.set_focus();
+                            let _ = window.emit("navigate-to", "tidy-up");
+                        }
+                    }
+                    "nav_visualizer" => {
+                        let _ = app.set_activation_policy(tauri::ActivationPolicy::Regular);
+                        let _ = app.show();
+                        if let Some(window) = app.get_webview_window("main") {
+                            let _ = window.show();
+                            let _ = window.unminimize();
+                            let _ = window.set_focus();
+                            let _ = window.emit("navigate-to", "disk-visualizer");
+                        }
+                    }
+                    "nav_apps" => {
+                        let _ = app.set_activation_policy(tauri::ActivationPolicy::Regular);
+                        let _ = app.show();
+                        if let Some(window) = app.get_webview_window("main") {
+                            let _ = window.show();
+                            let _ = window.unminimize();
+                            let _ = window.set_focus();
+                            let _ = window.emit("navigate-to", "apps");
                         }
                     }
                     "quit" => {
                         app.exit(0);
                     }
                     _ => {}
-                })
-                .on_tray_icon_event(|tray, event| {
-                    if let tauri::tray::TrayIconEvent::Click {
-                        button: tauri::tray::MouseButton::Left,
-                        button_state: tauri::tray::MouseButtonState::Up,
-                        ..
-                    } = event
-                    {
-                        let app = tray.app_handle();
-                        if let Some(window) = app.get_webview_window("main") {
-                            if let Ok(is_visible) = window.is_visible() {
-                                if is_visible {
-                                    let _ = window.hide();
-                                } else {
-                                    let _ = app.show();
-                                    let _ = window.show();
-                                    let _ = window.unminimize();
-                                    let _ = window.set_focus();
-                                }
-                            }
-                        }
-                    }
                 })
                 .build(app)?;
 

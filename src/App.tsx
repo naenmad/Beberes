@@ -17,7 +17,15 @@ import Settings from './views/Settings';
 
 // Beberes macOS Modern Clean Architecture
 export default function App() {
-  const { currentPage, isDarkMode, uiScale, autoCheckUpdate, checkForUpdates } = useAppStore();
+  const {
+    currentPage,
+    setCurrentPage,
+    triggerGlobalRefresh,
+    isDarkMode,
+    uiScale,
+    autoCheckUpdate,
+    checkForUpdates,
+  } = useAppStore();
   const [visitedPages, setVisitedPages] = useState<Set<string>>(new Set([currentPage]));
 
   // Track visited pages to lazily mount them and keep them alive for instant tab switching
@@ -29,6 +37,50 @@ export default function App() {
       return next;
     });
   }, [currentPage]);
+
+  // Listen for macOS menu bar tray navigation & actions
+  useEffect(() => {
+    let unlistenNavigate: (() => void) | undefined;
+    let unlistenSmartClean: (() => void) | undefined;
+    let unlistenMemoryPurged: (() => void) | undefined;
+    let unlistenTrashEmptied: (() => void) | undefined;
+
+    import('@tauri-apps/api/event').then(({ listen }) => {
+      listen<string>('navigate-to', (event) => {
+        if (event.payload) {
+          setCurrentPage(event.payload as any);
+        }
+      }).then((fn) => {
+        unlistenNavigate = fn;
+      });
+
+      listen('quick-smart-clean', () => {
+        setCurrentPage('system-clean');
+        triggerGlobalRefresh();
+      }).then((fn) => {
+        unlistenSmartClean = fn;
+      });
+
+      listen('memory-purged', () => {
+        triggerGlobalRefresh();
+      }).then((fn) => {
+        unlistenMemoryPurged = fn;
+      });
+
+      listen('trash-emptied', () => {
+        triggerGlobalRefresh();
+      }).then((fn) => {
+        unlistenTrashEmptied = fn;
+      });
+    });
+
+    return () => {
+      unlistenNavigate?.();
+      unlistenSmartClean?.();
+      unlistenMemoryPurged?.();
+      unlistenTrashEmptied?.();
+    };
+  }, [setCurrentPage, triggerGlobalRefresh]);
 
   // Check for updates on startup
   useEffect(() => {
