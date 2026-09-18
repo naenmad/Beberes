@@ -28,6 +28,7 @@ walkdir = "2"
 sysinfo = "0.34"
 base64 = "0.23.1"
 libc = "0.2"
+dirs = "7.0.0"
 
 
 # Read the optimization guideline for more details: https://tauri.app/concept/size/#cargo-configuration

@@ -106,7 +106,7 @@ export default function MoveToApplicationsModal() {
             </div>
 
             <div className="relative group">
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center shadow-lg shadow-indigo-500/20 ring-2 ring-indigo-500/30 text-white">
+              <div className="w-16 h-16 rounded-2xl bg-linear-to-br from-blue-600 to-indigo-700 flex items-center justify-center shadow-lg shadow-indigo-500/20 ring-2 ring-indigo-500/30 text-white">
                 <FolderCheck size={32} />
               </div>
               <span className="absolute -bottom-2 -right-1 px-1.5 py-0.5 rounded-md text-[9px] font-bold uppercase bg-emerald-500/90 text-white shadow">
@@ -128,7 +128,7 @@ export default function MoveToApplicationsModal() {
 
         {/* Value Highlights */}
         <div className="p-6 space-y-3">
-          <div className="flex items-start gap-3 p-3 rounded-2xl bg-black/[0.02] dark:bg-white/[0.02] border border-black/5 dark:border-white/5">
+          <div className="flex items-start gap-3 p-3 rounded-2xl bg-black/2 dark:bg-white/2 border border-black/5 dark:border-white/5">
             <div className="p-2 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 shrink-0">
               <RefreshCw size={16} />
             </div>
@@ -145,7 +145,7 @@ export default function MoveToApplicationsModal() {
             </div>
           </div>
 
-          <div className="flex items-start gap-3 p-3 rounded-2xl bg-black/[0.02] dark:bg-white/[0.02] border border-black/5 dark:border-white/5">
+          <div className="flex items-start gap-3 p-3 rounded-2xl bg-black/2 dark:bg-white/2 border border-black/5 dark:border-white/5">
             <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 shrink-0">
               <ShieldCheck size={16} />
             </div>
@@ -162,7 +162,7 @@ export default function MoveToApplicationsModal() {
             </div>
           </div>
 
-          <div className="flex items-start gap-3 p-3 rounded-2xl bg-black/[0.02] dark:bg-white/[0.02] border border-black/5 dark:border-white/5">
+          <div className="flex items-start gap-3 p-3 rounded-2xl bg-black/2 dark:bg-white/2 border border-black/5 dark:border-white/5">
             <div className="p-2 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 shrink-0">
               <Sparkles size={16} />
             </div>

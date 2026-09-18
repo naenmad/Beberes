@@ -38,8 +38,8 @@ pub fn check_is_in_applications_dir() -> Result<bool, String> {
         }
 
         // User Applications directory (~/Applications)
-        if let Ok(home) = std::env::var("HOME") {
-            let user_apps = PathBuf::from(home).join("Applications");
+        if let Some(home) = dirs::home_dir() {
+            let user_apps = home.join("Applications");
             if bundle_path.starts_with(&user_apps) {
                 return Ok(true);
             }
