@@ -68,6 +68,7 @@ export default function Dashboard() {
   const totalItemsCount =
     systemCategories.reduce((a, c) => a + c.items.length, 0) +
     devCategories.reduce((a, c) => a + c.items.length, 0);
+  const totalRecycledItems = cleanHistory.reduce((acc, entry) => acc + (entry.itemsCount || 0), 0);
 
   // Collect safe paths for Smart Clean
   const safePaths: string[] = [];
@@ -233,35 +234,63 @@ export default function Dashboard() {
             cleanableJunk={totalCleanable}
           />
 
-          {/* Lifetime Reclaimed Card */}
-          <div className="p-5 rounded-2xl glass-panel flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="p-3 rounded-2xl bg-blue-500/10 text-blue-500 dark:bg-blue-500/20 dark:text-blue-400 shadow-sm">
-                <Award size={24} />
+          {/* Cumulative Impact Stats Card */}
+          <div className="p-5 rounded-2xl glass-panel">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="flex items-center gap-3.5">
+                <div className="p-2.5 rounded-2xl bg-blue-500/10 text-blue-500 dark:bg-blue-500/20 dark:text-blue-400 shadow-xs">
+                  <Award size={22} />
+                </div>
+                <div>
+                  <h4 className="text-xs font-semibold text-slate-800 dark:text-neutral-200">
+                    {t('impact.title', 'Cumulative Clean Impact')}
+                  </h4>
+                  <p className="text-[11px] text-slate-400 dark:text-neutral-500">
+                    {t('impact.subtitle', 'Total lifetime storage and system resources recovered by Beberes')}
+                  </p>
+                </div>
               </div>
-              <div>
-                <span className="text-xs font-semibold text-slate-400 dark:text-neutral-400">
-                  {t('dashboard.storageReclaimed')}
+
+              {cleanHistory.length > 0 && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => setShowHistoryModal(true)}
+                  icon={<History size={13} />}
+                >
+                  {t('common.history')}
+                </Button>
+              )}
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4 pt-3.5 border-t border-black/5 dark:border-white/5">
+              <div className="p-3 rounded-xl bg-black/2 dark:bg-white/3 border border-black/4 dark:border-white/6">
+                <span className="text-[10px] font-medium uppercase tracking-wider text-slate-400 dark:text-neutral-500">
+                  {t('impact.storageFreed', 'Total Storage Rescued')}
                 </span>
-                <p className="text-2xl font-extrabold text-slate-900 dark:text-white mt-0.5">
+                <p className="text-lg font-bold text-blue-600 dark:text-blue-400 mt-0.5">
                   {formatSize(lifetimeBytesFreed)}
                 </p>
-                <p className="text-[11px] text-slate-400 dark:text-neutral-500 mt-0.5">
-                  {t('settings.dataReset.sessionsCount', { count: cleanHistory.length })}
+              </div>
+
+              <div className="p-3 rounded-xl bg-black/2 dark:bg-white/3 border border-black/4 dark:border-white/6">
+                <span className="text-[10px] font-medium uppercase tracking-wider text-slate-400 dark:text-neutral-500">
+                  {t('impact.cleanCycles', 'Clean Cycles Run')}
+                </span>
+                <p className="text-lg font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">
+                  {cleanHistory.length}
+                </p>
+              </div>
+
+              <div className="p-3 rounded-xl bg-black/2 dark:bg-white/3 border border-black/4 dark:border-white/6">
+                <span className="text-[10px] font-medium uppercase tracking-wider text-slate-400 dark:text-neutral-500">
+                  {t('impact.recycledItems', 'Files Processed')}
+                </span>
+                <p className="text-lg font-bold text-purple-600 dark:text-purple-400 mt-0.5">
+                  {totalRecycledItems.toLocaleString()}
                 </p>
               </div>
             </div>
-
-            {cleanHistory.length > 0 && (
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() => setShowHistoryModal(true)}
-                icon={<History size={13} />}
-              >
-                {t('common.history')}
-              </Button>
-            )}
           </div>
         </div>
       )}

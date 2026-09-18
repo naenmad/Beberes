@@ -15,7 +15,10 @@ import {
   ChevronDown,
   RefreshCw,
   ArrowDownCircle,
+  AlertTriangle,
+  Battery,
 } from 'lucide-react';
+import { getSystemPowerStatus, type PowerStatus } from '../../lib/commands';
 
 export default function TopBar() {
   const { t } = useTranslation();
@@ -34,10 +37,28 @@ export default function TopBar() {
     triggerGlobalRefresh,
     refreshDisks,
     updateInfo,
+    lowDiskSpaceTriggered,
   } = useAppStore();
 
+  const [powerStatus, setPowerStatus] = useState<PowerStatus | null>(null);
   const [showLangMenu, setShowLangMenu] = useState(false);
   const langMenuRef = useRef<HTMLDivElement>(null);
+
+  // Poll power status on mount and window focus
+  useEffect(() => {
+    const checkPower = () => {
+      getSystemPowerStatus()
+        .then(setPowerStatus)
+        .catch(() => {});
+    };
+    checkPower();
+    const interval = setInterval(checkPower, 30000);
+    window.addEventListener('focus', checkPower);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('focus', checkPower);
+    };
+  }, []);
 
   // Close lang menu on outside click
   useEffect(() => {
@@ -129,6 +150,40 @@ export default function TopBar() {
 
       {/* Right side: Quick Action Controls */}
       <div data-tauri-drag-region className="flex items-center gap-1.5 shrink-0">
+        {/* Low Disk Space Alert Pill */}
+        {lowDiskSpaceTriggered && (
+          <button
+            type="button"
+            onClick={() => setCurrentPage('system-clean')}
+            title={t('lowDiskWarning.desc', { freeSpace: freeSpaceFormatted || '' })}
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/25 transition-all cursor-pointer animate-pulse"
+          >
+            <AlertTriangle size={12} className="shrink-0 text-rose-500" />
+            <span className="text-[11px] font-medium">
+              {t('lowDiskWarning.title', 'Low Disk Space')}
+            </span>
+          </button>
+        )}
+
+        {/* Battery / Throttling Status Pill */}
+        {powerStatus && powerStatus.is_on_battery && (
+          <div
+            title={
+              powerStatus.is_throttled
+                ? `Battery low (${powerStatus.battery_percentage}%). Heavy background workloads automatically throttled.`
+                : `Battery at ${powerStatus.battery_percentage}%`
+            }
+            className={`hidden md:flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-mono font-medium ${
+              powerStatus.is_throttled
+                ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30'
+                : 'bg-black/4 dark:bg-white/6 text-slate-500 dark:text-neutral-400'
+            }`}
+          >
+            <Battery size={11} className={powerStatus.is_throttled ? 'text-amber-500' : 'text-slate-400'} />
+            <span>{powerStatus.battery_percentage}%</span>
+          </div>
+        )}
+
         {/* Update Notification Pill */}
         {updateInfo?.available && (
           <button
