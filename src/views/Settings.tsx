@@ -1119,7 +1119,7 @@ export default function Settings() {
                       <Cpu size={14} />
                       <span>{t('settings.systemInfo.kernel')}</span>
                     </div>
-                    <p className="text-sm font-bold text-slate-900 dark:text-white mt-1 font-mono text-xs truncate">
+                    <p className="text-sm font-bold text-slate-900 dark:text-white mt-1 font-mono truncate">
                       {systemDetails.kernelVersion || 'Darwin Kernel'}
                     </p>
                   </div>
@@ -1129,7 +1129,7 @@ export default function Settings() {
                       <ShieldCheck size={14} className="text-emerald-500" />
                       <span>{t('settings.systemInfo.engine')}</span>
                     </div>
-                    <p className="text-sm font-bold text-slate-900 dark:text-white mt-1 font-mono text-xs">
+                    <p className="text-sm font-bold text-slate-900 dark:text-white mt-1 font-mono">
                       {t('settings.systemInfo.engineVal')}
                     </p>
                   </div>

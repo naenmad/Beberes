@@ -76,7 +76,7 @@ export default function MoveToApplicationsModal() {
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header with Visual Migration Graphic */}
-        <div className="relative p-6 text-center border-b border-black/4 dark:border-white/6 bg-gradient-to-b from-blue-500/5 to-transparent">
+        <div className="relative p-6 text-center border-b border-black/4 dark:border-white/6 bg-linear-to-b from-blue-500/5 to-transparent">
           <button
             type="button"
             onClick={handleDismiss}

@@ -26,7 +26,7 @@ export default function AboutModal() {
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="relative p-6 text-center border-b border-black/4 dark:border-white/6 bg-gradient-to-b from-blue-500/4 to-transparent">
+        <div className="relative p-6 text-center border-b border-black/4 dark:border-white/6 bg-linear-to-b from-blue-500/4 to-transparent">
           <button
             type="button"
             onClick={closeAboutModal}
