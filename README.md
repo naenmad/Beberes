@@ -103,10 +103,17 @@ Download the latest release for your Mac architecture from the [GitHub Releases]
 
 Open the `.dmg` file and drag **Beberes** into your **Applications** folder.
 
-### Method 2: Homebrew Cask (Tap)
+### Method 2: Homebrew Cask
+
+Install directly in a single command:
 
 ```bash
-# Add the official Beberes tap and install
+brew install --cask naenmad/beberes/beberes
+```
+
+Or add the tap first:
+
+```bash
 brew tap naenmad/beberes
 brew install --cask beberes
 ```

@@ -1,10 +1,13 @@
+# typed: strict
+# frozen_string_literal: true
+
 cask "beberes" do
   version "1.0.0"
   sha256 "671e04583c3d9604c562141591aca78ad90fdcdfeb07f9148157576b245a33c4"
 
   url "https://github.com/naenmad/Beberes/releases/download/v#{version}/Beberes_#{version}_aarch64.dmg"
   name "Beberes"
-  desc "High-Performance System Cleaner & Storage Optimizer for macOS"
+  desc "High-performance system cleaner and storage optimizer"
   homepage "https://github.com/naenmad/Beberes"
 
   livecheck do
@@ -13,7 +16,7 @@ cask "beberes" do
   end
 
   auto_updates true
-  depends_on macos: ">= :monterey"
+  depends_on macos: :monterey
 
   app "Beberes.app"
 
