@@ -213,9 +213,9 @@ Beberes is free, open-source software built for the developer and macOS communit
 <p align="center">
   <a href="https://github.com/sponsors/naenmad"><img src="https://img.shields.io/badge/GitHub%20Sponsors-Support%20Project-ea4aaa?style=for-the-badge&logo=githubsponsors&logoColor=white" alt="GitHub Sponsors" /></a>
   &nbsp;&nbsp;
-  <a href="https://trakteer.id/naenmad"><img src="https://img.shields.io/badge/Trakteer-Dukung%20Kreator-be1e2d?style=for-the-badge&logo=kofi&logoColor=white" alt="Trakteer" /></a>
+  <a href="https://trakteer.id/madnaen"><img src="https://img.shields.io/badge/Trakteer-Dukung%20Kreator-be1e2d?style=for-the-badge&logo=kofi&logoColor=white" alt="Trakteer" /></a>
   &nbsp;&nbsp;
-  <a href="https://ko-fi.com/naenmad"><img src="https://img.shields.io/badge/Ko--fi-Buy%20a%20Coffee-ff5e5b?style=for-the-badge&logo=kofi&logoColor=white" alt="Ko-fi" /></a>
+  <a href="https://ko-fi.com/madnaen"><img src="https://img.shields.io/badge/Ko--fi-Buy%20a%20Coffee-ff5e5b?style=for-the-badge&logo=kofi&logoColor=white" alt="Ko-fi" /></a>
 </p>
 
 ---
