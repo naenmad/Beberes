@@ -164,7 +164,7 @@ pub fn scan_review_files(directory: String, filter_type: Option<String>) -> Resu
     }
 
     // Sort by modified date / size descending
-    items.sort_by(|a, b| b.size.cmp(&a.size));
+    items.sort_by_key(|a| std::cmp::Reverse(a.size));
 
     let total_files = items.len();
     let dir_name = target

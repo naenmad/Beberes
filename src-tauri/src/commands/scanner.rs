@@ -144,7 +144,7 @@ fn scan_directory_entries(dir: &Path, category_id: &str) -> Vec<ScanItem> {
         .collect();
 
     // Sort largest items first
-    items.sort_by(|a, b| b.size.cmp(&a.size));
+    items.sort_by_key(|a| std::cmp::Reverse(a.size));
     items
 }
 
@@ -210,7 +210,7 @@ pub fn scan_system_directories() -> Vec<ScanCategory> {
             }
         }
     }
-    browser_items.sort_by(|a, b| b.size.cmp(&a.size));
+    browser_items.sort_by_key(|a| std::cmp::Reverse(a.size));
     let browser_size: u64 = browser_items.iter().map(|i| i.size).sum();
     categories.push(ScanCategory {
         id: "browser_cache".to_string(),
@@ -300,7 +300,7 @@ pub fn scan_dev_workspaces() -> Vec<ScanCategory> {
             }
         }
     }
-    xcode_items.sort_by(|a, b| b.size.cmp(&a.size));
+    xcode_items.sort_by_key(|a| std::cmp::Reverse(a.size));
     let xcode_size: u64 = xcode_items.iter().map(|i| i.size).sum();
     if !xcode_items.is_empty() {
         categories.push(ScanCategory {
@@ -381,7 +381,7 @@ pub fn scan_dev_workspaces() -> Vec<ScanCategory> {
         }
     }
 
-    pm_items.sort_by(|a, b| b.size.cmp(&a.size));
+    pm_items.sort_by_key(|a| std::cmp::Reverse(a.size));
     let pm_size: u64 = pm_items.iter().map(|i| i.size).sum();
     if !pm_items.is_empty() {
         categories.push(ScanCategory {
@@ -443,7 +443,7 @@ pub fn scan_dev_workspaces() -> Vec<ScanCategory> {
         }
     }
 
-    node_items.sort_by(|a, b| b.size.cmp(&a.size));
+    node_items.sort_by_key(|a| std::cmp::Reverse(a.size));
     let node_size: u64 = node_items.iter().map(|i| i.size).sum();
     categories.push(ScanCategory {
         id: "node_modules".to_string(),
@@ -508,7 +508,7 @@ pub fn scan_dev_workspaces() -> Vec<ScanCategory> {
         }
     }
 
-    cargo_items.sort_by(|a, b| b.size.cmp(&a.size));
+    cargo_items.sort_by_key(|a| std::cmp::Reverse(a.size));
     let cargo_size: u64 = cargo_items.iter().map(|i| i.size).sum();
     categories.push(ScanCategory {
         id: "cargo_target".to_string(),
@@ -548,7 +548,7 @@ pub fn scan_dev_workspaces() -> Vec<ScanCategory> {
         }
     }
 
-    docker_items.sort_by(|a, b| b.size.cmp(&a.size));
+    docker_items.sort_by_key(|a| std::cmp::Reverse(a.size));
     let docker_size: u64 = docker_items.iter().map(|i| i.size).sum();
     if !docker_items.is_empty() {
         categories.push(ScanCategory {
@@ -572,8 +572,8 @@ pub fn scan_custom_paths(paths: Vec<String>) -> Vec<ScanCategory> {
     for path_str in &paths {
         let path = PathBuf::from(path_str);
         if path.exists() {
-            let mut items = scan_directory_entries(&path, &path_str);
-            items.sort_by(|a, b| b.size.cmp(&a.size));
+            let mut items = scan_directory_entries(&path, path_str);
+            items.sort_by_key(|a| std::cmp::Reverse(a.size));
             let size: u64 = items.iter().map(|i| i.size).sum();
             categories.push(ScanCategory {
                 id: gen_id(),
@@ -622,7 +622,7 @@ fn get_fs_stats(path_str: &str) -> Option<(u64, u64, u64)> {
         let mut stat = MaybeUninit::<libc::statvfs>::uninit();
         if libc::statvfs(c_path.as_ptr(), stat.as_mut_ptr()) == 0 {
             let stat = stat.assume_init();
-            let bsize = stat.f_frsize as u64;
+            let bsize = stat.f_frsize;
             let total = stat.f_blocks as u64 * bsize;
             let free = stat.f_bavail as u64 * bsize;
             let used = total.saturating_sub(free);
@@ -776,7 +776,7 @@ pub fn get_system_details() -> SystemDetails {
     let os_version = sysinfo::System::os_version().unwrap_or_else(|| "Unknown".to_string());
     let arch = sysinfo::System::cpu_arch();
     let hostname = sysinfo::System::host_name().unwrap_or_else(|| "Mac".to_string());
-    let kernel_version = sysinfo::System::kernel_version().unwrap_or_else(|| "".to_string());
+    let kernel_version = sysinfo::System::kernel_version().unwrap_or_default();
 
     let mut icon_cache_count = 0;
     let mut icon_cache_bytes = 0;

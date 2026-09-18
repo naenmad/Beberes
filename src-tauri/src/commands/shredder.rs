@@ -29,7 +29,7 @@ fn secure_shred_file(path: &Path, passes: u8) -> Result<u64, String> {
             .map_err(|e| e.to_string())?;
 
         let chunk_size = 64 * 1024; // 64 KB buffer
-        let num_passes = passes.max(1).min(7);
+        let num_passes = passes.clamp(1, 7);
         let mut seed = (file_len ^ 0x9E3779B97F4A7C15) | 1;
 
         for pass in 0..num_passes {
@@ -123,7 +123,7 @@ pub async fn shred_paths(paths: Vec<String>, passes: Option<u8>) -> Result<Shred
                 }
 
                 // Remove subdirectories from deepest to shallowest
-                dirs.sort_by(|a, b| b.components().count().cmp(&a.components().count()));
+                dirs.sort_by_key(|a| std::cmp::Reverse(a.components().count()));
                 for d in dirs {
                     let _ = fs::remove_dir(d);
                 }

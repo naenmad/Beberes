@@ -380,7 +380,7 @@ pub fn scan_installed_apps() -> Result<Vec<AppItem>, String> {
         .collect();
 
     // Sort by total size descending
-    apps.sort_by(|a, b| b.total_size.cmp(&a.total_size));
+    apps.sort_by_key(|a| std::cmp::Reverse(a.total_size));
 
     Ok(apps)
 }
@@ -450,10 +450,7 @@ pub fn uninstall_app(
             .arg(format!("tell application \"Finder\" to delete POSIX file \"{}\"", app_path))
             .output();
 
-        let app_trashed = match trash_cmd {
-            Ok(out) if out.status.success() => true,
-            _ => false,
-        };
+        let app_trashed = matches!(trash_cmd, Ok(out) if out.status.success());
 
         if !app_trashed {
             // Fallback to permanent directory removal if trash fails
@@ -484,10 +481,7 @@ pub fn uninstall_app(
                 .arg(format!("tell application \"Finder\" to delete POSIX file \"{}\"", p_str))
                 .output();
 
-            let trashed = match trash_cmd {
-                Ok(out) if out.status.success() => true,
-                _ => false,
-            };
+            let trashed = matches!(trash_cmd, Ok(out) if out.status.success());
 
             if !trashed {
                 let res = if p.is_dir() {

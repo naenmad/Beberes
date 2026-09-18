@@ -76,7 +76,7 @@ fn build_tree(path: &Path, current_depth: usize, max_depth: usize) -> DiskTreeNo
         .collect();
 
     // Sort children descending by size
-    children.sort_by(|a, b| b.size.cmp(&a.size));
+    children.sort_by_key(|a| std::cmp::Reverse(a.size));
 
     let total_size: u64 = children.iter().map(|c| c.size).sum();
     let total_files: usize = children.iter().map(|c| c.file_count).sum();

@@ -50,7 +50,7 @@ fn classify_kind(name: &str, is_dir: bool) -> &'static str {
         return "folder";
     }
 
-    let ext = lower.split('.').last().unwrap_or("");
+    let ext = lower.split('.').next_back().unwrap_or("");
     match ext {
         "png" | "jpg" | "jpeg" | "webp" | "gif" | "heic" | "svg" | "tiff" => "image",
         "mp4" | "mov" | "mkv" | "avi" | "webm" | "m4v" => "video",
@@ -132,7 +132,7 @@ pub async fn scan_trash_contents() -> Result<TrashScanResult, String> {
         });
     }
 
-    items.sort_by(|a, b| b.size.cmp(&a.size));
+    items.sort_by_key(|a| std::cmp::Reverse(a.size));
 
     Ok(TrashScanResult {
         total_items: items.len(),

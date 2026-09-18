@@ -158,7 +158,7 @@ pub async fn scan_git_repos(search_root: Option<String>) -> Result<Vec<GitRepoIt
             }
         }
 
-        repos.sort_by(|a, b| b.git_folder_size.cmp(&a.git_folder_size));
+        repos.sort_by_key(|a| std::cmp::Reverse(a.git_folder_size));
         Ok(repos)
     })
     .await

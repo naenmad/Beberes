@@ -1,4 +1,4 @@
-/// Utility functions for file size formatting and path validation.
+//! Utility functions for file size formatting and path validation.
 
 /// Format bytes into a human-readable string (KB, MB, GB, TB).
 #[allow(dead_code)]

@@ -214,7 +214,7 @@ pub fn scan_tidy_directory(path: String) -> Result<TidyScanResult, String> {
 
         let (category, target_folder) = classify_file(&file_name, &ext);
         let metadata = entry.metadata().ok();
-        let size = metadata.as_ref().map(|m| get_allocated_size(m)).unwrap_or(0);
+        let size = metadata.as_ref().map(get_allocated_size).unwrap_or(0);
 
         let (is_redundant, installed_app_name) = if category == "Installers" {
             check_redundant_installer(&file_name, &installed_apps)
@@ -257,7 +257,7 @@ pub fn scan_tidy_directory(path: String) -> Result<TidyScanResult, String> {
     }
 
     // Sort largest files first
-    items.sort_by(|a, b| b.size.cmp(&a.size));
+    items.sort_by_key(|a| std::cmp::Reverse(a.size));
 
     let total_files = items.len();
 

@@ -213,7 +213,7 @@ pub async fn scan_finder_items(
         .filter(|f| f.size >= min_large_bytes)
         .cloned()
         .collect();
-    large_files.sort_by(|a, b| b.size.cmp(&a.size));
+    large_files.sort_by_key(|a| std::cmp::Reverse(a.size));
     let total_large_size: u64 = large_files.iter().map(|f| f.size).sum();
 
     // 2. Duplicate groups
@@ -246,7 +246,7 @@ pub async fn scan_finder_items(
             }
         }
     }
-    duplicate_groups.sort_by(|a, b| b.total_wasted_size.cmp(&a.total_wasted_size));
+    duplicate_groups.sort_by_key(|a| std::cmp::Reverse(a.total_wasted_size));
 
     // 3. Old untouched files (>180 days)
     let mut old_files: Vec<FileMetadataItem> = all_files
@@ -254,7 +254,7 @@ pub async fn scan_finder_items(
         .filter(|f| f.days_old >= 180 && f.size >= 1024 * 1024) // >180 days and >=1MB
         .cloned()
         .collect();
-    old_files.sort_by(|a, b| b.size.cmp(&a.size));
+    old_files.sort_by_key(|a| std::cmp::Reverse(a.size));
     let total_old_size: u64 = old_files.iter().map(|f| f.size).sum();
 
     Ok(FinderScanResult {
