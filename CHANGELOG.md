@@ -5,6 +5,34 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2026-09-19 (Codename: Bayu)
+
+### Added
+- **Orphaned App Leftovers Scanner**:
+  - Deep scan engine detecting abandoned residual directories (`~/Library/Application Support`, `~/Library/Caches`, `~/Library/Saved Application State`, `~/Library/Preferences`, `~/Library/Containers`) from apps no longer installed on macOS.
+  - Hardened system whitelisting protecting Apple native identities (`com.apple.*`, `MobileSync`, `CloudDocs`, `AddressBook`, `Safari`, etc.).
+  - Mode switcher tab in App Uninstaller ("Aplikasi Terpasang" vs "Sisa Aplikasi Dihapus") with selective checkboxes, path inspection, and one-click removal.
+- **Global Developer Tooling & Package Manager Pruner**:
+  - Integrated Homebrew cleanup tool executing `brew cleanup --prune=all` to purge outdated bottles, downloads, and expired lockfiles.
+  - Real-time terminal output modal/log viewer in Developer Workspace.
+  - Expanded detection across 14 tech stack ecosystems (Rust, Flutter, Go, Node.js, Python, Xcode, Java, PHP, Docker, AI Models, Ruby, .NET, C/C++, and Universal Package Caches).
+- **Smart Automation Rules**:
+  - Non-destructive automated filing rules for macOS daily workspaces in Tidy Up.
+  - Automatic archiver moving downloads older than 30 days into `~/Archive/Downloads/Recent_Archive/` and `Older/`.
+  - Desktop screenshot consolidator gathering scattered images into `~/Pictures/Screenshots/`.
+- **System Optimizer & Mac Hygiene Score**:
+  - Real-time holistic 0-100% Mac Hygiene Score gauge in Dashboard.
+  - One-click "Bereskan Sekaligus" master clean orchestration flushing both disk caches and inactive RAM memory simultaneously.
+  - APFS Local Snapshots detection and purging to free macOS "System Data" purgeable space.
+  - RAM Inactive Memory Purger via native macOS kernel memory manager.
+  - Deep browser cache cleaner targeting 6 major browsers (Safari, Chrome, Arc, Brave, Firefox, Edge).
+- **Native macOS Menu Bar & Accessibility (A11y)**:
+  - Interactive macOS status bar menu with direct 1-click Quick Clean, Free Inactive RAM, Empty Trash, and page navigations.
+  - Instant page navigation retaining DOM state, scroll positions, and filters.
+  - Global keyboard shortcuts (`Cmd+1` through `Cmd+9`, `Cmd+,`, `Cmd+R`, `Esc`).
+  - Native Finder drag-and-drop zone routing `.app` bundles to Uninstaller and directories to Tidy Up.
+  - High-contrast mode and reduced-motion compliance.
+
 ## [1.0.0] - 2026-09-18 (Codename: Apex)
 
 ### Added
@@ -37,4 +65,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Full internationalization (i18n) across 5 languages: English, Indonesian, Japanese, Simplified Chinese, and Spanish.
   - Strict zero-emoji policy across all UI elements, icons, and locale strings.
 
+[1.1.0]: https://github.com/naenmad/Beberes/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/naenmad/Beberes/releases/tag/v1.0.0
+

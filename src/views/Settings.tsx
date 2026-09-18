@@ -280,14 +280,14 @@ export default function Settings() {
                     <div className="flex items-center gap-2">
                       <span className="text-xs font-bold text-slate-900 dark:text-white">Beberes</span>
                       <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400">
-                        v1.0.0 (Apex)
+                        v1.1.0 (Bayu)
                       </span>
                     </div>
                     <p className="text-[11px] text-slate-500 dark:text-neutral-400 mt-0.5">
                       {updateInfo?.available
                         ? t('updates.availableDesc', { version: updateInfo.latestVersion })
                         : updateInfo && !updateInfo.available
-                        ? t('updates.upToDateDesc', { version: '1.0.0' })
+                        ? t('updates.upToDateDesc', { version: '1.1.0' })
                         : t('updates.subtitle', 'Check for releases and improvements')}
                     </p>
                   </div>

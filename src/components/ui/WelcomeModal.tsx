@@ -104,7 +104,7 @@ export default function WelcomeModal() {
               {t('welcome.step1Title', 'Welcome to Beberes')}
             </h2>
             <div className="inline-flex items-center gap-1 px-2.5 py-0.5 mt-1 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[11px] font-semibold">
-              <span>{t('welcome.step1Subtitle', 'Next-Gen Mac Cleaning & Optimization • Apex Edition')}</span>
+              <span>{t('welcome.step1Subtitle', 'Next-Gen Mac Cleaning & Optimization • Bayu Edition')}</span>
             </div>
 
             <p className="text-xs text-slate-600 dark:text-neutral-300 mt-2.5 max-w-sm leading-relaxed">
