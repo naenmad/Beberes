@@ -569,6 +569,12 @@
     "title": "Peringatan Sisa Disk Sedikit",
     "desc": "Macintosh HD hampir penuh (sisa {freeSpace}). Jalankan pembersihan untuk mengosongkan ruang.",
     "cleanNow": "Bersihkan Sekarang"
+  },
+  "safety": {
+    "criticalWarningTitle": "Berkas Kritis / Baru Terdeteksi",
+    "criticalWarningDesc": "Berkas yang dipilih mencakup berkas berukuran lebih dari 5 GB atau dimodifikasi dalam 24 jam terakhir. Harap pastikan kembali sebelum melanjutkan.",
+    "criticalBadge": "Kritis (> 5 GB)",
+    "recentBadge": "Baru (< 24 jam)"
   }
 }
 

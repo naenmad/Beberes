@@ -11,6 +11,7 @@ import {
   ShieldAlert,
   Sparkles,
   FolderTree,
+  AlertTriangle,
 } from 'lucide-react';
 
 export type ModalActionType = 'clean' | 'organize';
@@ -28,6 +29,8 @@ interface ConfirmModalProps {
   useTrash?: boolean;
   actionType?: ModalActionType;
   confirmText?: string;
+  hasCriticalFiles?: boolean;
+  criticalWarningMessage?: string;
 }
 
 export default function ConfirmModal({
@@ -43,6 +46,8 @@ export default function ConfirmModal({
   useTrash = false,
   actionType = 'clean',
   confirmText,
+  hasCriticalFiles = false,
+  criticalWarningMessage,
 }: ConfirmModalProps) {
   const { t } = useTranslation();
   const [showAllPaths, setShowAllPaths] = useState(false);
@@ -172,6 +177,25 @@ export default function ConfirmModal({
               <span>
                 {t('modals.permanentNotice')}
               </span>
+            </div>
+          )}
+
+          {/* Critical Files Warning */}
+          {hasCriticalFiles && (
+            <div className="flex items-start gap-2.5 p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/25 text-amber-800 dark:text-amber-200 text-xs">
+              <AlertTriangle size={16} className="shrink-0 mt-0.5 text-amber-600 dark:text-amber-400" />
+              <div className="space-y-0.5">
+                <p className="font-bold text-amber-900 dark:text-amber-200">
+                  {t('safety.criticalWarningTitle', 'Critical / Recent Files Detected')}
+                </p>
+                <p className="text-amber-700 dark:text-amber-300/90 leading-relaxed">
+                  {criticalWarningMessage ||
+                    t(
+                      'safety.criticalWarningDesc',
+                      'Selected items include files exceeding 5 GB or modified within the last 24 hours. Please verify before proceeding.'
+                    )}
+                </p>
+              </div>
             </div>
           )}
 

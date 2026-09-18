@@ -13,6 +13,7 @@ import {
 import { formatSize } from '../lib/utils';
 import Button from '../components/ui/Button';
 import PageHeader from '../components/layout/PageHeader';
+import ConfirmModal from '../components/ui/ConfirmModal';
 import { CardSkeleton } from '../components/ui/SkeletonLoader';
 import {
   Sparkles,
@@ -74,6 +75,7 @@ export default function QuickReview() {
 
   // Rename modal
   const [showRenameModal, setShowRenameModal] = useState(false);
+  const [showCriticalConfirmModal, setShowCriticalConfirmModal] = useState(false);
   const [newFileName, setNewFileName] = useState('');
   const [renameError, setRenameError] = useState<string | null>(null);
   const [isRenaming, setIsRenaming] = useState(false);
@@ -164,8 +166,19 @@ export default function QuickReview() {
   };
 
   // Action: Trash / Delete current item
-  const handleTrash = async () => {
+  const handleTrash = async (bypassConfirm: boolean | unknown = false) => {
     if (!currentItem) return;
+
+    const bypass = bypassConfirm === true;
+    const isHuge = currentItem.size >= 5 * 1024 * 1024 * 1024;
+    const isRecent =
+      currentItem.last_modified &&
+      Date.now() - new Date(currentItem.last_modified).getTime() <= 24 * 60 * 60 * 1000;
+
+    if (!bypass && (isHuge || isRecent)) {
+      setShowCriticalConfirmModal(true);
+      return;
+    }
 
     const itemToTrash = currentItem;
     const itemIndex = currentIndex;
@@ -757,6 +770,18 @@ export default function QuickReview() {
                 <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 dark:bg-neutral-800 text-slate-600 dark:text-neutral-400 shrink-0">
                   {formatSize(currentItem.size)}
                 </span>
+                {currentItem.size >= 5 * 1024 * 1024 * 1024 && (
+                  <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/25 shrink-0">
+                    <AlertTriangle size={10} />
+                    <span>{t('safety.criticalBadge', 'Critical (> 5 GB)')}</span>
+                  </span>
+                )}
+                {currentItem.last_modified &&
+                  Date.now() - new Date(currentItem.last_modified).getTime() <= 24 * 60 * 60 * 1000 && (
+                    <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/25 shrink-0">
+                      <span>{t('safety.recentBadge', 'Recent (< 24h)')}</span>
+                    </span>
+                  )}
               </div>
               <p
                 onClick={handleReveal}
@@ -945,6 +970,24 @@ export default function QuickReview() {
             </form>
           </div>
         </div>
+      )}
+
+      {/* Critical / Recent File Confirmation Modal */}
+      {currentItem && (
+        <ConfirmModal
+          isOpen={showCriticalConfirmModal}
+          title={t('safety.criticalWarningTitle', 'Critical / Recent File Detected')}
+          itemsCount={1}
+          totalBytes={currentItem.size}
+          useTrash={deleteToTrash}
+          paths={[currentItem.path]}
+          hasCriticalFiles={true}
+          onConfirm={() => {
+            setShowCriticalConfirmModal(false);
+            handleTrash(true);
+          }}
+          onClose={() => setShowCriticalConfirmModal(false)}
+        />
       )}
     </div>
   );

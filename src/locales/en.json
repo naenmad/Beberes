@@ -570,6 +570,12 @@
     "title": "Low Disk Space Alert",
     "desc": "Macintosh HD is critically low ({freeSpace} remaining). Run a clean cycle to free up space.",
     "cleanNow": "Clean Now"
+  },
+  "safety": {
+    "criticalWarningTitle": "Critical / Recent Files Detected",
+    "criticalWarningDesc": "Selected items include files exceeding 5 GB or modified within the last 24 hours. Please verify before proceeding.",
+    "criticalBadge": "Critical (> 5 GB)",
+    "recentBadge": "Recent (< 24h)"
   }
 }
 

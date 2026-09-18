@@ -151,6 +151,30 @@ export default function LargeAndDuplicates() {
     return total;
   }, [data, selectedPaths]);
 
+  // Check if selected items contain critical files (> 5 GB or modified within last 24h)
+  const hasSelectedCritical = useMemo(() => {
+    if (!data || selectedPaths.size === 0) return false;
+    const all = [
+      ...data.large_files,
+      ...data.old_files,
+      ...data.duplicate_groups.flatMap((g) => g.items),
+    ];
+    const DAY_MS = 24 * 60 * 60 * 1000;
+    const now = Date.now();
+
+    return all.some((item) => {
+      if (!selectedPaths.has(item.path)) return false;
+      const isHuge = item.size >= 5 * 1024 * 1024 * 1024;
+      const isRecent =
+        item.days_old !== undefined
+          ? item.days_old <= 1
+          : item.last_modified
+          ? now - new Date(item.last_modified).getTime() <= DAY_MS
+          : false;
+      return isHuge || isRecent;
+    });
+  }, [data, selectedPaths]);
+
   // Execute deletion
   const handleConfirmClean = async () => {
     if (selectedPaths.size === 0) return;
@@ -373,7 +397,21 @@ export default function LargeAndDuplicates() {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-3 shrink-0">
+                  <div className="flex items-center gap-2 shrink-0">
+                    {file.size >= 5 * 1024 * 1024 * 1024 && (
+                      <span className="hidden sm:inline-flex text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                        {t('safety.criticalBadge', 'Critical (> 5 GB)')}
+                      </span>
+                    )}
+                    {(file.days_old !== undefined
+                      ? file.days_old <= 1
+                      : file.last_modified
+                      ? Date.now() - new Date(file.last_modified).getTime() <= 24 * 60 * 60 * 1000
+                      : false) && (
+                      <span className="hidden sm:inline-flex text-[10px] font-semibold px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+                        {t('safety.recentBadge', 'Recent (< 24h)')}
+                      </span>
+                    )}
                     <span className="text-xs font-mono font-semibold text-blue-600 dark:text-blue-400">
                       {formatSize(file.size)}
                     </span>
@@ -563,6 +601,7 @@ export default function LargeAndDuplicates() {
         onConfirm={handleConfirmClean}
         onClose={() => setShowConfirmModal(false)}
         isLoading={isCleaning}
+        hasCriticalFiles={hasSelectedCritical}
       />
     </div>
   );
