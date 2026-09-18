@@ -17,13 +17,18 @@ fi
 mkdir -p "$DMG_DIR"
 rm -f "$DMG_PATH"
 
-echo "==> 2. Packaging Beberes macOS DMG Installer..."
-BUNDLE_DMG_SH="${DMG_DIR}/bundle_dmg.sh"
-if [ -f "$BUNDLE_DMG_SH" ]; then
-  bash "$BUNDLE_DMG_SH" \
+echo "==> 2. Packaging Beberes macOS DMG Installer with custom style..."
+if command -v dmgbuild &> /dev/null; then
+  dmgbuild -s scripts/dmgbuild_settings.py "Beberes" "$DMG_PATH"
+elif [ -f "${DMG_DIR}/bundle_dmg.sh" ]; then
+  bash "${DMG_DIR}/bundle_dmg.sh" \
     --volname "Beberes" \
     --volicon "$ICON_PATH" \
-    --app-drop-link 480 195 \
+    --background "src-tauri/icons/dmg-background.png" \
+    --window-size 660 400 \
+    --icon-size 120 \
+    --icon "Beberes.app" 180 190 \
+    --app-drop-link 480 190 \
     --skip-jenkins \
     "$DMG_PATH" \
     "$APP_PATH"
