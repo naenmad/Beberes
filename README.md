@@ -218,6 +218,14 @@ Beberes is free, open-source software built for the developer and macOS communit
   <a href="https://ko-fi.com/madnaen"><img src="https://img.shields.io/badge/Ko--fi-Buy%20a%20Coffee-ff5e5b?style=for-the-badge&logo=kofi&logoColor=white" alt="Ko-fi" /></a>
 </p>
 
+### Where does the support go?
+
+All donations and sponsorships are allocated transparently toward:
+
+1. **Device Upgrade Savings**: Building savings to acquire newer test hardware and Apple Silicon/Intel machines for compatibility verification.
+2. **Street Feeding Stray Cats**: A regular portion of contributions goes directly into buying pet food for stray and community cats in the neighborhood.
+3. **Repository Operations & Expansion**: Covering infrastructure expenses such as domain names, dedicated website/server hosting, Apple Developer Program licensing for code signing/notarization, and ongoing feature research.
+
 ---
 
 ## Contributing
