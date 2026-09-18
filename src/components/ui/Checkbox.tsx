@@ -23,7 +23,7 @@ export default function Checkbox({
         aria-checked={indeterminate ? 'mixed' : checked}
         onClick={() => onChange(!checked)}
         className={`
-          w-4.5[18px] rounded-md border-2 flex items-center justify-center
+          w-[18px] h-[18px] rounded-md border-2 flex items-center justify-center
           transition-all duration-150 shrink-0 cursor-pointer
           ${
             checked || indeterminate
