@@ -4,6 +4,7 @@ mod utils;
 use commands::cleaner::{clean_selected_items, pick_files, pick_folder, reveal_in_finder};
 use commands::finder::scan_finder_items;
 use commands::git_sweeper::{optimize_git_repo, scan_git_repos};
+use commands::installer::{check_is_in_applications_dir, move_to_applications_and_relaunch};
 use commands::organizer::{clean_redundant_installers, execute_tidy_organization, scan_tidy_directory};
 use commands::reviewer::{read_file_thumbnail, rename_file, scan_review_files};
 use commands::scanner::{
@@ -128,6 +129,8 @@ pub fn run() {
             shred_paths,
             scan_git_repos,
             optimize_git_repo,
+            check_is_in_applications_dir,
+            move_to_applications_and_relaunch,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

@@ -478,4 +478,15 @@ export async function getSystemPowerStatus(): Promise<PowerStatus> {
   return await invoke<PowerStatus>('get_system_power_status');
 }
 
+// ==========================================
+// 6. Application Relocation Commands
+// ==========================================
+export async function checkIsInApplicationsDir(): Promise<boolean> {
+  return await invoke<boolean>('check_is_in_applications_dir');
+}
+
+export async function moveToApplicationsAndRelaunch(): Promise<void> {
+  return await invoke<void>('move_to_applications_and_relaunch');
+}
+
 

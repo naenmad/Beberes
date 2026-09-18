@@ -576,6 +576,20 @@
     "criticalWarningDesc": "Selected items include files exceeding 5 GB or modified within the last 24 hours. Please verify before proceeding.",
     "criticalBadge": "Critical (> 5 GB)",
     "recentBadge": "Recent (< 24h)"
+  },
+  "installer": {
+    "title": "Move to Applications Folder?",
+    "subtitle": "Beberes is currently running outside your macOS Applications folder.",
+    "benefit1Title": "Smoother Background Updates",
+    "benefit1Desc": "Allows seamless background updates and persistent settings.",
+    "benefit2Title": "Security & Permissions",
+    "benefit2Desc": "Ensures full disk access and macOS Gatekeeper security policies stay intact.",
+    "benefit3Title": "Clean System Integration",
+    "benefit3Desc": "Spotlight, Raycast, and Launchpad will easily index and launch Beberes.",
+    "moveBtn": "Move to Applications & Relaunch",
+    "moving": "Moving...",
+    "dontMove": "Keep in Current Location",
+    "dontAskAgain": "Do not ask again on this device"
   }
 }
 

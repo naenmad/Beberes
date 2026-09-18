@@ -9,4 +9,5 @@ pub mod visualizer;
 pub mod startup;
 pub mod shredder;
 pub mod git_sweeper;
+pub mod installer;
 

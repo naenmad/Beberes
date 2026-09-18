@@ -52,3 +52,16 @@ Daftar rencana fitur, peningkatan arsitektur sistem, dan penyempurnaan UI/UX unt
 - [x] **Statistik Dampak Kumulatif (Impact Stats & Milestones)**
   - Pelacakan total gigabyte yang berhasil dikosongkan sejak aplikasi pertama kali dipasang.
   - Jumlah siklus pembersihan dan total berkas yang berhasil diproses pada Dashboard dan Settings.
+
+---
+
+## 4. Distribusi & Installer Experience (macOS Native Standard)
+
+- [x] **Zero-Asset Lightweight DMG Packaging**
+  - Mengeliminasi background bitmap statis yang pecah atau terpotong saat jendela Finder diubah ukurannya (resize).
+  - Menurunkan ukuran installer DMG menjadi hanya ~2.6 MB (kompresi UDZO murni).
+  - Tata letak Finder simetris, rapi, dan otomatis beradaptasi dengan Light / Dark mode macOS.
+- [x] **In-App Responsive "Move to Applications" Flow**
+  - Deteksi otomatis saat aplikasi dijalankan di luar `/Applications` (misal dari DMG yang di-mount atau folder Downloads).
+  - Dialog interaktif responsif berbasis web & glassmorphism yang menjelaskan keuntungan memindahkan aplikasi (auto-update, izin keamanan, Spotlight).
+  - Aksi 1-klik untuk menyalin secara aman dengan `/usr/bin/ditto`, meluncurkan aplikasi dari `/Applications`, dan menutup proses lama.

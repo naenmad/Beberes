@@ -17,22 +17,17 @@ fi
 mkdir -p "$DMG_DIR"
 rm -f "$DMG_PATH"
 
-echo "==> 2. Generating pixel-perfect Retina DMG background..."
-swift scripts/generate_dmg_background.swift
-/usr/bin/tiffutil -cathidpicheck src-tauri/icons/dmg-background.png src-tauri/icons/dmg-background@2x.png -out src-tauri/icons/dmg-background.tiff
-
-echo "==> 3. Packaging Beberes macOS DMG Installer with custom style..."
+echo "==> 2. Packaging Beberes macOS DMG Installer (Zero-Asset Lightweight)..."
 if command -v dmgbuild &> /dev/null; then
   dmgbuild -s scripts/dmgbuild_settings.py "Beberes" "$DMG_PATH"
 elif [ -f "${DMG_DIR}/bundle_dmg.sh" ]; then
   bash "${DMG_DIR}/bundle_dmg.sh" \
     --volname "Beberes" \
     --volicon "$ICON_PATH" \
-    --background "src-tauri/icons/dmg-background.png" \
-    --window-size 660 400 \
-    --icon-size 120 \
-    --icon "Beberes.app" 180 190 \
-    --app-drop-link 480 190 \
+    --window-size 540 300 \
+    --icon-size 110 \
+    --icon "Beberes.app" 145 120 \
+    --app-drop-link 395 120 \
     --skip-jenkins \
     "$DMG_PATH" \
     "$APP_PATH"

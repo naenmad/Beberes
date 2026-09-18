@@ -575,6 +575,20 @@
     "criticalWarningDesc": "Berkas yang dipilih mencakup berkas berukuran lebih dari 5 GB atau dimodifikasi dalam 24 jam terakhir. Harap pastikan kembali sebelum melanjutkan.",
     "criticalBadge": "Kritis (> 5 GB)",
     "recentBadge": "Baru (< 24 jam)"
+  },
+  "installer": {
+    "title": "Pindahkan ke Folder Applications?",
+    "subtitle": "Beberes saat ini berjalan di luar folder Applications macOS Anda.",
+    "benefit1Title": "Pembaruan Lebih Lancar",
+    "benefit1Desc": "Memungkinkan pembaruan latar belakang yang mulus dan pengaturan persisten.",
+    "benefit2Title": "Keamanan & Izin Sistem",
+    "benefit2Desc": "Memastikan izin Full Disk Access dan kebijakan keamanan Gatekeeper tetap utuh.",
+    "benefit3Title": "Integrasi Sistem yang Rapi",
+    "benefit3Desc": "Spotlight, Raycast, dan Launchpad dapat mengindeks dan membuka Beberes secara optimal.",
+    "moveBtn": "Pindahkan ke Applications & Mulai Ulang",
+    "moving": "Memindahkan...",
+    "dontMove": "Tetap di Lokasi Saat Ini",
+    "dontAskAgain": "Jangan tanyakan lagi di perangkat ini"
   }
 }
 

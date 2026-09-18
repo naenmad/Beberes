@@ -18,31 +18,31 @@ symlinks = {
 }
 
 # Icon size in pixels
-icon_size = 120.0
+icon_size = 110.0
 
 # Text label font size
-text_size = 13.0
+text_size = 12.0
 
-# Custom retina background
-background = 'src-tauri/icons/dmg-background.tiff'
+# Clean Zero-Asset background (inherits macOS native light/dark appearance seamlessly)
+background = None
 
-# Window bounds ((x, y), (width, height))
-window_rect = ((250, 150), (660, 400))
+# Compact, focused window bounds ((x, y), (width, height))
+window_rect = ((300, 200), (540, 300))
 
 # Default Finder view
 default_view = 'icon-view'
 
-# Hide toolbars and bars for clean modal installer look
+# Minimalist chrome without unnecessary Finder panels
 show_status_bar = False
 show_tab_view = False
 show_toolbar = False
 show_pathbar = False
 show_sidebar = False
 
-# Icon positions centered over the background circles
+# Symmetrically positioned icons
 icon_locations = {
-    'Beberes.app': (180, 190),
-    'Applications': (480, 190),
+    'Beberes.app': (145, 120),
+    'Applications': (395, 120),
 }
 
 # Hide file extension
