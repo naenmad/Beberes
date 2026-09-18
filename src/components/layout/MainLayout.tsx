@@ -3,6 +3,7 @@ import TopBar from './TopBar';
 import SpotlightModal from '../ui/SpotlightModal';
 import AboutModal from '../ui/AboutModal';
 import WelcomeModal from '../ui/WelcomeModal';
+import HoldCmdQModal from '../ui/HoldCmdQModal';
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -31,6 +32,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
       <SpotlightModal />
       <AboutModal />
       <WelcomeModal />
+      <HoldCmdQModal />
     </div>
   );
 }

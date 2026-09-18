@@ -212,12 +212,18 @@
       "directDesc": "Bypasses macOS Trash and erases items immediately to free storage space on APFS. System-critical paths remain protected."
     },
     "safety": {
-      "title": "Safety & Confirmation Guardrails",
+      "title": "Safety & Operational Guardrails",
       "desc": "Safety checkpoints during cleaning, file movement, and application uninstallation",
       "confirmDialog": "Require Confirmation Dialog",
       "confirmDialogDesc": "Display modal verification with path details before deleting or moving files",
       "safetyNotice": "Show Active Operation Warning",
-      "safetyNoticeDesc": "Warn against quitting or closing Beberes while file operations are in progress"
+      "safetyNoticeDesc": "Warn against quitting or closing Beberes while file operations are in progress",
+      "holdCmdQ": "Hold Cmd+Q to Quit",
+      "holdCmdQDesc": "Require holding Cmd+Q for 1.2 seconds with a visual HUD to prevent accidental quits",
+      "soundEffects": "Audio Haptic Feedback",
+      "soundEffectsDesc": "Play synthesized audio feedback during file cleaning and trash emptying",
+      "lowDiskAlert": "Low Disk Space Alert",
+      "lowDiskAlertDesc": "Show proactive alerts when system free space drops below 15 GB or 10%"
     },
     "appearance": {
       "themeTitle": "Appearance Theme",
@@ -548,6 +554,22 @@
     "autoCheckDesc": "Notifies you in the TopBar when a new release is available",
     "topBarBadge": "Update Available: v{version}",
     "failed": "Unable to check for updates. Check your internet connection."
+  },
+  "impact": {
+    "title": "Cumulative Clean Impact",
+    "subtitle": "Total lifetime storage and system resources recovered by Beberes",
+    "storageFreed": "Total Storage Rescued",
+    "cleanCycles": "Clean Cycles Run",
+    "recycledItems": "Files Processed"
+  },
+  "holdQuit": {
+    "title": "Hold Cmd+Q to Quit",
+    "releaseToCancel": "Release to cancel"
+  },
+  "lowDiskWarning": {
+    "title": "Low Disk Space Alert",
+    "desc": "Macintosh HD is critically low ({freeSpace} remaining). Run a clean cycle to free up space.",
+    "cleanNow": "Clean Now"
   }
 }
 

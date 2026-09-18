@@ -211,12 +211,18 @@
       "directDesc": "Melewati Tong Sampah macOS dan langsung menghapus berkas dari disk. Direktori penting sistem tetap terlindungi secara otomatis."
     },
     "safety": {
-      "title": "Keamanan & Konfirmasi",
+      "title": "Keamanan & Pengoperasian",
       "desc": "Titik pemeriksaan keamanan saat membersihkan, memindahkan, atau mencopot aplikasi",
       "confirmDialog": "Wajibkan Dialog Konfirmasi",
       "confirmDialogDesc": "Menampilkan jendela konfirmasi detail berkas sebelum menghapus atau memindahkan",
       "safetyNotice": "Tampilkan Peringatan Saat Berlangsung",
-      "safetyNoticeDesc": "Mengingatkan untuk tidak menutup aplikasi saat operasi berkas sedang berjalan"
+      "safetyNoticeDesc": "Mengingatkan untuk tidak menutup aplikasi saat operasi berkas sedang berjalan",
+      "holdCmdQ": "Tahan Cmd+Q untuk Keluar",
+      "holdCmdQDesc": "Wajibkan menahan tombol Cmd+Q selama 1,2 detik dengan indikator HUD sebelum aplikasi tertutup untuk mencegah keluar tanpa sengaja",
+      "soundEffects": "Umpan Balik Audio Haptik",
+      "soundEffectsDesc": "Bunyikan efek suara sintetis saat pembersihan berkas dan pengosongan tong sampah",
+      "lowDiskAlert": "Peringatan Sisa Disk Sedikit",
+      "lowDiskAlertDesc": "Tampilkan peringatan proaktif jika sisa ruang disk di bawah 15 GB atau 10%"
     },
     "appearance": {
       "themeTitle": "Tema Tampilan",
@@ -547,6 +553,22 @@
     "autoCheckDesc": "Memberikan notifikasi pada TopBar jika ada versi rilis baru",
     "topBarBadge": "Pembaruan Tersedia: v{version}",
     "failed": "Gagal memeriksa pembaruan. Periksa koneksi internet Anda."
+  },
+  "impact": {
+    "title": "Dampak Kumulatif Pembersihan",
+    "subtitle": "Total ruang penyimpanan dan sumber daya sistem yang telah dipulihkan oleh Beberes",
+    "storageFreed": "Total Ruang Diselamatkan",
+    "cleanCycles": "Siklus Bersih Dijalankan",
+    "recycledItems": "Berkas Diproses"
+  },
+  "holdQuit": {
+    "title": "Tahan Cmd+Q untuk Keluar",
+    "releaseToCancel": "Lepas untuk membatalkan"
+  },
+  "lowDiskWarning": {
+    "title": "Peringatan Sisa Disk Sedikit",
+    "desc": "Macintosh HD hampir penuh (sisa {freeSpace}). Jalankan pembersihan untuk mengosongkan ruang.",
+    "cleanNow": "Bersihkan Sekarang"
   }
 }
 

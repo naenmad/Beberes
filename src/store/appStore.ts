@@ -210,6 +210,16 @@ interface AppState {
   isDarkMode: boolean;
   toggleDarkMode: () => void;
 
+  // UX & System Preferences
+  holdCmdQToQuit: boolean;
+  setHoldCmdQToQuit: (enabled: boolean) => void;
+  soundEffectsEnabled: boolean;
+  setSoundEffectsEnabled: (enabled: boolean) => void;
+  lowDiskAlertEnabled: boolean;
+  setLowDiskAlertEnabled: (enabled: boolean) => void;
+  lowDiskSpaceTriggered: boolean;
+  setLowDiskSpaceTriggered: (triggered: boolean) => void;
+
   // Application Updates
   updateInfo: UpdateInfo | null;
   isCheckingUpdate: boolean;
@@ -414,10 +424,15 @@ export const useAppStore = create<AppState>((set, get) => ({
       const currentMount = get().selectedDiskMount;
       const targetMount = disks.some((d) => d.mountPoint === currentMount) ? currentMount : (disks[0]?.mountPoint || '/');
       const info = await getDiskInfoByMount(targetMount);
+      const isLow = info && get().lowDiskAlertEnabled
+        ? (info.freeSpace < 15 * 1024 * 1024 * 1024 || (info.totalSpace > 0 && info.freeSpace / info.totalSpace < 0.1))
+        : false;
+
       set({
         availableDisks: disks,
         selectedDiskMount: targetMount,
         diskInfo: info,
+        lowDiskSpaceTriggered: isLow,
       });
     } catch (err) {
       console.error('Failed to refresh disks:', err);
@@ -642,4 +657,50 @@ export const useAppStore = create<AppState>((set, get) => ({
       });
     }
   },
+
+  // UX & System Preferences Implementation
+  holdCmdQToQuit: (() => {
+    try {
+      return localStorage.getItem('beberes_hold_cmd_q') !== 'false';
+    } catch {
+      return true;
+    }
+  })(),
+  setHoldCmdQToQuit: (enabled: boolean) => {
+    try {
+      localStorage.setItem('beberes_hold_cmd_q', enabled ? 'true' : 'false');
+    } catch {}
+    set({ holdCmdQToQuit: enabled });
+  },
+
+  soundEffectsEnabled: (() => {
+    try {
+      return localStorage.getItem('beberes_sound_effects') !== 'false';
+    } catch {
+      return true;
+    }
+  })(),
+  setSoundEffectsEnabled: (enabled: boolean) => {
+    try {
+      localStorage.setItem('beberes_sound_effects', enabled ? 'true' : 'false');
+    } catch {}
+    set({ soundEffectsEnabled: enabled });
+  },
+
+  lowDiskAlertEnabled: (() => {
+    try {
+      return localStorage.getItem('beberes_low_disk_alert') !== 'false';
+    } catch {
+      return true;
+    }
+  })(),
+  setLowDiskAlertEnabled: (enabled: boolean) => {
+    try {
+      localStorage.setItem('beberes_low_disk_alert', enabled ? 'true' : 'false');
+    } catch {}
+    set({ lowDiskAlertEnabled: enabled });
+  },
+
+  lowDiskSpaceTriggered: false,
+  setLowDiskSpaceTriggered: (triggered: boolean) => set({ lowDiskSpaceTriggered: triggered }),
 }));

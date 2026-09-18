@@ -51,6 +51,12 @@ export default function Settings() {
     setAlwaysConfirmClean,
     showSafetyNotice,
     setShowSafetyNotice,
+    holdCmdQToQuit,
+    setHoldCmdQToQuit,
+    soundEffectsEnabled,
+    setSoundEffectsEnabled,
+    lowDiskAlertEnabled,
+    setLowDiskAlertEnabled,
 
     // Folders & Whitelist
     whitelistPaths,
@@ -569,6 +575,81 @@ export default function Settings() {
                     <div
                       className={`w-4 h-4 rounded-full bg-white transition-transform absolute top-1 ${
                         showSafetyNotice ? 'right-1' : 'left-1'
+                      }`}
+                    />
+                  </button>
+                </div>
+
+                {/* Hold Cmd+Q to Quit Toggle */}
+                <div className="py-3 flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-slate-800 dark:text-neutral-200">
+                      {t('settings.safety.holdCmdQ')}
+                    </p>
+                    <p className="text-xs text-slate-400 dark:text-neutral-400">
+                      {t('settings.safety.holdCmdQDesc')}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setHoldCmdQToQuit(!holdCmdQToQuit)}
+                    className={`w-11 h-6 rounded-full transition-colors relative cursor-pointer ${
+                      holdCmdQToQuit ? 'bg-blue-500' : 'bg-slate-300 dark:bg-neutral-600'
+                    }`}
+                  >
+                    <div
+                      className={`w-4 h-4 rounded-full bg-white transition-transform absolute top-1 ${
+                        holdCmdQToQuit ? 'right-1' : 'left-1'
+                      }`}
+                    />
+                  </button>
+                </div>
+
+                {/* Sound Effects Toggle */}
+                <div className="py-3 flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-slate-800 dark:text-neutral-200">
+                      {t('settings.safety.soundEffects')}
+                    </p>
+                    <p className="text-xs text-slate-400 dark:text-neutral-400">
+                      {t('settings.safety.soundEffectsDesc')}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setSoundEffectsEnabled(!soundEffectsEnabled)}
+                    className={`w-11 h-6 rounded-full transition-colors relative cursor-pointer ${
+                      soundEffectsEnabled ? 'bg-blue-500' : 'bg-slate-300 dark:bg-neutral-600'
+                    }`}
+                  >
+                    <div
+                      className={`w-4 h-4 rounded-full bg-white transition-transform absolute top-1 ${
+                        soundEffectsEnabled ? 'right-1' : 'left-1'
+                      }`}
+                    />
+                  </button>
+                </div>
+
+                {/* Low Disk Space Alert Toggle */}
+                <div className="py-3 flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-slate-800 dark:text-neutral-200">
+                      {t('settings.safety.lowDiskAlert')}
+                    </p>
+                    <p className="text-xs text-slate-400 dark:text-neutral-400">
+                      {t('settings.safety.lowDiskAlertDesc')}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setLowDiskAlertEnabled(!lowDiskAlertEnabled)}
+                    className={`w-11 h-6 rounded-full transition-colors relative cursor-pointer ${
+                      lowDiskAlertEnabled ? 'bg-blue-500' : 'bg-slate-300 dark:bg-neutral-600'
+                    }`}
+                  >
+                    <div
+                      className={`w-4 h-4 rounded-full bg-white transition-transform absolute top-1 ${
+                        lowDiskAlertEnabled ? 'right-1' : 'left-1'
                       }`}
                     />
                   </button>
