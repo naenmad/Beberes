@@ -64,7 +64,7 @@ Beberes comes equipped with 12 specialized modules:
 | **Tidy Up** | Intelligent organizer grouping loose files into category folders and removing redundant installers. | Loose documents, `.dmg`, `.pkg`, `.iso` files |
 | **App Uninstaller** | Comprehensive uninstaller detecting residual preferences, caches, and Application Support files. | `/Applications`, `~/Library/Application Support` |
 | **System Clean** | Reclaim gigabytes from user caches, system logs, Xcode DerivedData, and simulator runtimes. | `~/Library/Caches`, `~/Library/Developer` |
-| **Developer Workspace** | Deep cleaner for programming dependencies, build artifacts, and package manager caches. | `node_modules`, `venv`, `target/`, Composer, CocoaPods |
+| **Developer Workspace** | Deep cleaner across 12 developer ecosystems: Node, Rust, Flutter, Go, Python, Java Maven, Docker, PHP Composer, AI/Local LLMs, Ruby, .NET NuGet, C/C++ CMake. | `node_modules`, `target/`, `.pub-cache`, `go-build`, `~/.m2`, `~/.cache/huggingface`, `~/.ollama` |
 | **Startup Daemons** | Inspect, enable, disable, and clean macOS `LaunchAgents` and `LaunchDaemons`. | `~/Library/LaunchAgents`, `/Library/LaunchAgents` |
 | **File Shredder** | Multi-pass hardware sanitization (1-Pass Zero, 3-Pass DoD 5220.22-M, 7-Pass Gutmann Lite). | Confidential documents, credentials, keys |
 | **Git Sweeper** | Aggressive repository compression (`git gc --prune=now`) and merged local branch pruning. | Local developer workspaces (e.g. `~/Developer`) |

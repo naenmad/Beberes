@@ -237,7 +237,9 @@ pub fn scan_system_directories() -> Vec<ScanCategory> {
     categories
 }
 
-/// Scan developer workspaces: node_modules, cargo target, xcode, package caches, docker.
+/// Scan developer workspaces across multiple tech stacks:
+/// Xcode, Package managers, Flutter/Dart, Go, Rust, Docker, Python, Java/Maven,
+/// PHP/Composer, AI/Local LLMs, Ruby, .NET/NuGet, C/C++ CMake.
 #[tauri::command]
 pub fn scan_dev_workspaces() -> Vec<ScanCategory> {
     let home = dirs_home();
@@ -313,8 +315,8 @@ pub fn scan_dev_workspaces() -> Vec<ScanCategory> {
         });
     }
 
-    // 2. Package Manager Caches (Bun, pnpm, npm, Yarn, CocoaPods, Homebrew, Gradle, Pip, Android, uv)
-    let pm_targets = vec![
+    // 2. Package Manager Caches (Bun, pnpm, npm, Yarn, CocoaPods, Homebrew, Gradle, Pip, Android, uv, ruff)
+    let pm_targets = [
         (PathBuf::from(&home).join(".bun/install/cache"), "Bun Install Cache"),
         (PathBuf::from(&home).join(".local/share/pnpm/store"), "pnpm Store Cache"),
         (PathBuf::from(&home).join("Library/pnpm/store"), "pnpm Store (macOS)"),
@@ -329,7 +331,6 @@ pub fn scan_dev_workspaces() -> Vec<ScanCategory> {
         (PathBuf::from(&home).join(".cache/uv"), "Astral uv Cache"),
         (PathBuf::from(&home).join(".cache/ruff"), "Ruff Cache"),
     ];
-
     let mut pm_items: Vec<ScanItem> = vec![];
     for (dir, label) in &pm_targets {
         if dir.exists() {
@@ -347,117 +348,171 @@ pub fn scan_dev_workspaces() -> Vec<ScanCategory> {
             }
         }
     }
-    // Scan Python caches (__pycache__, .pytest_cache, .ruff_cache) in dev directories
-    for dev_dir in &dev_dirs {
-        if !dev_dir.exists() {
-            continue;
-        }
-        for entry in WalkDir::new(dev_dir)
-            .max_depth(3)
-            .into_iter()
-            .filter_map(|e| e.ok())
-        {
-            let name = entry.file_name().to_string_lossy();
-            if entry.file_type().is_dir() && (name == "__pycache__" || name == ".pytest_cache" || name == ".ruff_cache") {
-                let size = dir_size(entry.path());
-                if size > 100_000 {
-                    let parent_name = entry
-                        .path()
-                        .parent()
-                        .and_then(|p| p.file_name())
-                        .unwrap_or_default()
-                        .to_string_lossy();
-                    pm_items.push(ScanItem {
-                        id: gen_id(),
-                        path: entry.path().to_string_lossy().to_string(),
-                        name: format!("{}/{}", parent_name, name),
-                        size,
-                        last_modified: last_modified_str(entry.path()),
-                        category: "package_cache".to_string(),
-                        selected: false,
-                    });
-                }
+
+    // 3. Go (Golang) Global Caches
+    let go_targets = [
+        (PathBuf::from(&home).join("go/pkg/mod/cache"), "Go Module Download Cache"),
+        (PathBuf::from(&home).join("Library/Caches/go-build"), "Go Build Cache"),
+    ];
+    let mut go_items = vec![];
+    for (dir, label) in &go_targets {
+        if dir.exists() {
+            let size = dir_size(dir);
+            if size > 1_000_000 {
+                go_items.push(ScanItem {
+                    id: gen_id(),
+                    path: dir.to_string_lossy().to_string(),
+                    name: label.to_string(),
+                    size,
+                    last_modified: last_modified_str(dir),
+                    category: "golang_cache".to_string(),
+                    selected: false,
+                });
             }
         }
     }
 
-    pm_items.sort_by_key(|a| std::cmp::Reverse(a.size));
-    let pm_size: u64 = pm_items.iter().map(|i| i.size).sum();
-    if !pm_items.is_empty() {
-        categories.push(ScanCategory {
-            id: "package_cache".to_string(),
-            name: "Package Manager & Build Caches".to_string(),
-            icon: "layers".to_string(),
-            size: pm_size,
-            items: pm_items,
-            selected: false,
-        });
+    // 4. Flutter & Dart Global Cache
+    let pub_cache = PathBuf::from(&home).join(".pub-cache");
+    let mut flutter_items = vec![];
+    if pub_cache.exists() {
+        let size = dir_size(&pub_cache);
+        if size > 5_000_000 {
+            flutter_items.push(ScanItem {
+                id: gen_id(),
+                path: pub_cache.to_string_lossy().to_string(),
+                name: ".pub-cache (Hosted & Git Packages)".to_string(),
+                size,
+                last_modified: last_modified_str(&pub_cache),
+                category: "flutter_cache".to_string(),
+                selected: false,
+            });
+        }
     }
 
-    // 3. Stale node_modules (projects not modified in > 90 days)
-    let ninety_days = Duration::from_secs(90 * 24 * 3600);
-    let mut node_items: Vec<ScanItem> = vec![];
-
-    for dev_dir in &dev_dirs {
-        if !dev_dir.exists() {
-            continue;
+    // 5. Java / Maven Local Repository
+    let maven_repo = PathBuf::from(&home).join(".m2/repository");
+    let mut maven_items = vec![];
+    if maven_repo.exists() {
+        let size = dir_size(&maven_repo);
+        if size > 5_000_000 {
+            maven_items.push(ScanItem {
+                id: gen_id(),
+                path: maven_repo.to_string_lossy().to_string(),
+                name: ".m2/repository (Maven Artifacts)".to_string(),
+                size,
+                last_modified: last_modified_str(&maven_repo),
+                category: "maven_cache".to_string(),
+                selected: false,
+            });
         }
-        for entry in WalkDir::new(dev_dir)
-            .max_depth(3)
-            .into_iter()
-            .filter_map(|e| e.ok())
-        {
-            if entry.file_name() == "node_modules" && entry.file_type().is_dir() {
-                let project_dir = entry.path().parent().unwrap_or(entry.path());
-                let is_stale = fs::metadata(project_dir)
-                    .and_then(|m| m.modified())
-                    .map(|t| {
-                        SystemTime::now()
-                            .duration_since(t)
-                            .unwrap_or(Duration::ZERO)
-                            > ninety_days
-                    })
-                    .unwrap_or(false);
+    }
 
-                if is_stale {
-                    let size = dir_size(entry.path());
-                    if size > 1_000_000 {
-                        node_items.push(ScanItem {
-                            id: gen_id(),
-                            path: entry.path().to_string_lossy().to_string(),
-                            name: format!(
-                                "{}/node_modules",
-                                project_dir
-                                    .file_name()
-                                    .unwrap_or_default()
-                                    .to_string_lossy()
-                            ),
-                            size,
-                            last_modified: last_modified_str(project_dir),
-                            category: "node_modules".to_string(),
-                            selected: false,
-                        });
-                    }
-                }
+    // 6. PHP / Composer Global Cache
+    let composer_cache = PathBuf::from(&home).join(".composer/cache");
+    let mut composer_items = vec![];
+    if composer_cache.exists() {
+        let size = dir_size(&composer_cache);
+        if size > 1_000_000 {
+            composer_items.push(ScanItem {
+                id: gen_id(),
+                path: composer_cache.to_string_lossy().to_string(),
+                name: "Composer Package Cache".to_string(),
+                size,
+                last_modified: last_modified_str(&composer_cache),
+                category: "composer_cache".to_string(),
+                selected: false,
+            });
+        }
+    }
+
+    // 7. AI & Local LLM Model Checkpoints
+    let ai_targets = [
+        (PathBuf::from(&home).join(".cache/huggingface/hub"), "Hugging Face Model Hub Cache"),
+        (PathBuf::from(&home).join(".ollama/models"), "Ollama Local Models Cache"),
+        (PathBuf::from(&home).join(".cache/torch"), "PyTorch Model Checkpoint Cache"),
+        (PathBuf::from(&home).join(".cache/transformers"), "Transformers Weights Cache"),
+    ];
+    let mut ai_items = vec![];
+    for (dir, label) in &ai_targets {
+        if dir.exists() {
+            let size = dir_size(dir);
+            if size > 10_000_000 {
+                ai_items.push(ScanItem {
+                    id: gen_id(),
+                    path: dir.to_string_lossy().to_string(),
+                    name: label.to_string(),
+                    size,
+                    last_modified: last_modified_str(dir),
+                    category: "ai_models".to_string(),
+                    selected: false,
+                });
             }
         }
     }
 
-    node_items.sort_by_key(|a| std::cmp::Reverse(a.size));
-    let node_size: u64 = node_items.iter().map(|i| i.size).sum();
-    categories.push(ScanCategory {
-        id: "node_modules".to_string(),
-        name: "Stale node_modules".to_string(),
-        icon: "package".to_string(),
-        size: node_size,
-        items: node_items,
-        selected: false,
-    });
+    // 8. Ruby / Bundler & Gem Caches
+    let ruby_targets = [
+        (PathBuf::from(&home).join(".bundle/cache"), "Bundler Gem Cache"),
+        (PathBuf::from(&home).join(".gem"), "Ruby Gem Directory"),
+    ];
+    let mut ruby_items = vec![];
+    for (dir, label) in &ruby_targets {
+        if dir.exists() {
+            let size = dir_size(dir);
+            if size > 2_000_000 {
+                ruby_items.push(ScanItem {
+                    id: gen_id(),
+                    path: dir.to_string_lossy().to_string(),
+                    name: label.to_string(),
+                    size,
+                    last_modified: last_modified_str(dir),
+                    category: "ruby_cache".to_string(),
+                    selected: false,
+                });
+            }
+        }
+    }
 
-    // 4. Cargo target directories & registry cache
-    let mut cargo_items: Vec<ScanItem> = vec![];
+    // 9. .NET / NuGet Package Cache
+    let nuget_cache = PathBuf::from(&home).join(".nuget/packages");
+    let mut nuget_items = vec![];
+    if nuget_cache.exists() {
+        let size = dir_size(&nuget_cache);
+        if size > 5_000_000 {
+            nuget_items.push(ScanItem {
+                id: gen_id(),
+                path: nuget_cache.to_string_lossy().to_string(),
+                name: ".nuget/packages (NuGet Cache)".to_string(),
+                size,
+                last_modified: last_modified_str(&nuget_cache),
+                category: "nuget_cache".to_string(),
+                selected: false,
+            });
+        }
+    }
 
+    // 10. C / C++ & CMake
+    let clangd_cache = PathBuf::from(&home).join(".cache/clangd");
+    let mut cpp_items = vec![];
+    if clangd_cache.exists() {
+        let size = dir_size(&clangd_cache);
+        if size > 2_000_000 {
+            cpp_items.push(ScanItem {
+                id: gen_id(),
+                path: clangd_cache.to_string_lossy().to_string(),
+                name: "Clangd Index Cache".to_string(),
+                size,
+                last_modified: last_modified_str(&clangd_cache),
+                category: "cpp_cache".to_string(),
+                selected: false,
+            });
+        }
+    }
+
+    // 11. Cargo Registry Cache
     let cargo_registry = PathBuf::from(&home).join(".cargo/registry");
+    let mut cargo_items = vec![];
     if cargo_registry.exists() {
         let size = dir_size(&cargo_registry);
         if size > 1_000_000 {
@@ -473,6 +528,10 @@ pub fn scan_dev_workspaces() -> Vec<ScanCategory> {
         }
     }
 
+    // Single-pass deep inspection across user project directories
+    let ninety_days = Duration::from_secs(90 * 24 * 3600);
+    let mut node_items: Vec<ScanItem> = vec![];
+
     for dev_dir in &dev_dirs {
         if !dev_dir.exists() {
             continue;
@@ -482,14 +541,79 @@ pub fn scan_dev_workspaces() -> Vec<ScanCategory> {
             .into_iter()
             .filter_map(|e| e.ok())
         {
-            if entry.file_name() == "target" && entry.file_type().is_dir() {
-                let project_dir = entry.path().parent().unwrap_or(entry.path());
+            let name = entry.file_name().to_string_lossy();
+            let path = entry.path();
+            if !entry.file_type().is_dir() {
+                continue;
+            }
+
+            // Python caches
+            if name == "__pycache__" || name == ".pytest_cache" || name == ".ruff_cache" {
+                let size = dir_size(path);
+                if size > 100_000 {
+                    let parent_name = path
+                        .parent()
+                        .and_then(|p| p.file_name())
+                        .unwrap_or_default()
+                        .to_string_lossy();
+                    pm_items.push(ScanItem {
+                        id: gen_id(),
+                        path: path.to_string_lossy().to_string(),
+                        name: format!("{}/{}", parent_name, name),
+                        size,
+                        last_modified: last_modified_str(path),
+                        category: "package_cache".to_string(),
+                        selected: false,
+                    });
+                }
+                continue;
+            }
+
+            // Node modules (stale > 90 days)
+            if name == "node_modules" {
+                let project_dir = path.parent().unwrap_or(path);
+                let is_stale = fs::metadata(project_dir)
+                    .and_then(|m| m.modified())
+                    .map(|t| {
+                        SystemTime::now()
+                            .duration_since(t)
+                            .unwrap_or(Duration::ZERO)
+                            > ninety_days
+                    })
+                    .unwrap_or(false);
+
+                if is_stale {
+                    let size = dir_size(path);
+                    if size > 1_000_000 {
+                        node_items.push(ScanItem {
+                            id: gen_id(),
+                            path: path.to_string_lossy().to_string(),
+                            name: format!(
+                                "{}/node_modules",
+                                project_dir
+                                    .file_name()
+                                    .unwrap_or_default()
+                                    .to_string_lossy()
+                            ),
+                            size,
+                            last_modified: last_modified_str(project_dir),
+                            category: "node_modules".to_string(),
+                            selected: false,
+                        });
+                    }
+                }
+                continue;
+            }
+
+            // Rust / Cargo target
+            if name == "target" {
+                let project_dir = path.parent().unwrap_or(path);
                 if project_dir.join("Cargo.toml").exists() {
-                    let size = dir_size(entry.path());
+                    let size = dir_size(path);
                     if size > 10_000_000 {
                         cargo_items.push(ScanItem {
                             id: gen_id(),
-                            path: entry.path().to_string_lossy().to_string(),
+                            path: path.to_string_lossy().to_string(),
                             name: format!(
                                 "{}/target",
                                 project_dir
@@ -498,28 +622,292 @@ pub fn scan_dev_workspaces() -> Vec<ScanCategory> {
                                     .to_string_lossy()
                             ),
                             size,
-                            last_modified: last_modified_str(entry.path()),
+                            last_modified: last_modified_str(path),
                             category: "cargo_target".to_string(),
                             selected: false,
                         });
                     }
                 }
+                continue;
+            }
+
+            // Flutter / Dart project artifacts (.dart_tool, or build/ with pubspec.yaml)
+            if name == ".dart_tool" {
+                let project_dir = path.parent().unwrap_or(path);
+                let size = dir_size(path);
+                if size > 1_000_000 {
+                    flutter_items.push(ScanItem {
+                        id: gen_id(),
+                        path: path.to_string_lossy().to_string(),
+                        name: format!(
+                            "{}/.dart_tool",
+                            project_dir
+                                .file_name()
+                                .unwrap_or_default()
+                                .to_string_lossy()
+                        ),
+                        size,
+                        last_modified: last_modified_str(path),
+                        category: "flutter_cache".to_string(),
+                        selected: false,
+                    });
+                }
+                continue;
+            }
+            if name == "build" {
+                let project_dir = path.parent().unwrap_or(path);
+                if project_dir.join("pubspec.yaml").exists() {
+                    let size = dir_size(path);
+                    if size > 5_000_000 {
+                        flutter_items.push(ScanItem {
+                            id: gen_id(),
+                            path: path.to_string_lossy().to_string(),
+                            name: format!(
+                                "{}/build (Flutter)",
+                                project_dir
+                                    .file_name()
+                                    .unwrap_or_default()
+                                    .to_string_lossy()
+                            ),
+                            size,
+                            last_modified: last_modified_str(path),
+                            category: "flutter_cache".to_string(),
+                            selected: false,
+                        });
+                    }
+                } else if project_dir.join("CMakeLists.txt").exists() {
+                    let size = dir_size(path);
+                    if size > 5_000_000 {
+                        cpp_items.push(ScanItem {
+                            id: gen_id(),
+                            path: path.to_string_lossy().to_string(),
+                            name: format!(
+                                "{}/build (CMake)",
+                                project_dir
+                                    .file_name()
+                                    .unwrap_or_default()
+                                    .to_string_lossy()
+                            ),
+                            size,
+                            last_modified: last_modified_str(path),
+                            category: "cpp_cache".to_string(),
+                            selected: false,
+                        });
+                    }
+                }
+                continue;
+            }
+
+            // PHP Stale vendor directory (> 90 days)
+            if name == "vendor" {
+                let project_dir = path.parent().unwrap_or(path);
+                if project_dir.join("composer.json").exists() {
+                    let is_stale = fs::metadata(project_dir)
+                        .and_then(|m| m.modified())
+                        .map(|t| {
+                            SystemTime::now()
+                                .duration_since(t)
+                                .unwrap_or(Duration::ZERO)
+                                > ninety_days
+                        })
+                        .unwrap_or(false);
+
+                    if is_stale {
+                        let size = dir_size(path);
+                        if size > 1_000_000 {
+                            composer_items.push(ScanItem {
+                                id: gen_id(),
+                                path: path.to_string_lossy().to_string(),
+                                name: format!(
+                                    "{}/vendor",
+                                    project_dir
+                                        .file_name()
+                                        .unwrap_or_default()
+                                        .to_string_lossy()
+                                ),
+                                size,
+                                last_modified: last_modified_str(project_dir),
+                                category: "composer_cache".to_string(),
+                                selected: false,
+                            });
+                        }
+                    }
+                }
+                continue;
+            }
+
+            // CMake build outputs
+            if name == "cmake-build-debug" || name == "cmake-build-release" {
+                let project_dir = path.parent().unwrap_or(path);
+                let size = dir_size(path);
+                if size > 2_000_000 {
+                    cpp_items.push(ScanItem {
+                        id: gen_id(),
+                        path: path.to_string_lossy().to_string(),
+                        name: format!(
+                            "{}/{}",
+                            project_dir
+                                .file_name()
+                                .unwrap_or_default()
+                                .to_string_lossy(),
+                            name
+                        ),
+                        size,
+                        last_modified: last_modified_str(path),
+                        category: "cpp_cache".to_string(),
+                        selected: false,
+                    });
+                }
+                continue;
             }
         }
     }
 
+    // Assemble Categories
+    pm_items.sort_by_key(|a| std::cmp::Reverse(a.size));
+    let pm_size: u64 = pm_items.iter().map(|i| i.size).sum();
+    if !pm_items.is_empty() {
+        categories.push(ScanCategory {
+            id: "package_cache".to_string(),
+            name: "Package Manager & Build Caches".to_string(),
+            icon: "layers".to_string(),
+            size: pm_size,
+            items: pm_items,
+            selected: false,
+        });
+    }
+
+    node_items.sort_by_key(|a| std::cmp::Reverse(a.size));
+    let node_size: u64 = node_items.iter().map(|i| i.size).sum();
+    if !node_items.is_empty() {
+        categories.push(ScanCategory {
+            id: "node_modules".to_string(),
+            name: "Stale node_modules".to_string(),
+            icon: "package".to_string(),
+            size: node_size,
+            items: node_items,
+            selected: false,
+        });
+    }
+
     cargo_items.sort_by_key(|a| std::cmp::Reverse(a.size));
     let cargo_size: u64 = cargo_items.iter().map(|i| i.size).sum();
-    categories.push(ScanCategory {
-        id: "cargo_target".to_string(),
-        name: "Rust/Cargo Cache".to_string(),
-        icon: "box".to_string(),
-        size: cargo_size,
-        items: cargo_items,
-        selected: false,
-    });
+    if !cargo_items.is_empty() {
+        categories.push(ScanCategory {
+            id: "cargo_target".to_string(),
+            name: "Rust / Cargo Caches".to_string(),
+            icon: "box".to_string(),
+            size: cargo_size,
+            items: cargo_items,
+            selected: false,
+        });
+    }
 
-    // 5. Docker / OrbStack dangling cache (accurately calculated using physical disk blocks!)
+    flutter_items.sort_by_key(|a| std::cmp::Reverse(a.size));
+    let flutter_size: u64 = flutter_items.iter().map(|i| i.size).sum();
+    if !flutter_items.is_empty() {
+        categories.push(ScanCategory {
+            id: "flutter_cache".to_string(),
+            name: "Flutter & Dart Caches".to_string(),
+            icon: "zap".to_string(),
+            size: flutter_size,
+            items: flutter_items,
+            selected: false,
+        });
+    }
+
+    go_items.sort_by_key(|a| std::cmp::Reverse(a.size));
+    let go_size: u64 = go_items.iter().map(|i| i.size).sum();
+    if !go_items.is_empty() {
+        categories.push(ScanCategory {
+            id: "golang_cache".to_string(),
+            name: "Go Module & Build Caches".to_string(),
+            icon: "terminal".to_string(),
+            size: go_size,
+            items: go_items,
+            selected: false,
+        });
+    }
+
+    maven_items.sort_by_key(|a| std::cmp::Reverse(a.size));
+    let maven_size: u64 = maven_items.iter().map(|i| i.size).sum();
+    if !maven_items.is_empty() {
+        categories.push(ScanCategory {
+            id: "maven_cache".to_string(),
+            name: "Java Maven Repository".to_string(),
+            icon: "coffee".to_string(),
+            size: maven_size,
+            items: maven_items,
+            selected: false,
+        });
+    }
+
+    composer_items.sort_by_key(|a| std::cmp::Reverse(a.size));
+    let composer_size: u64 = composer_items.iter().map(|i| i.size).sum();
+    if !composer_items.is_empty() {
+        categories.push(ScanCategory {
+            id: "composer_cache".to_string(),
+            name: "PHP & Composer Caches".to_string(),
+            icon: "code".to_string(),
+            size: composer_size,
+            items: composer_items,
+            selected: false,
+        });
+    }
+
+    ai_items.sort_by_key(|a| std::cmp::Reverse(a.size));
+    let ai_size: u64 = ai_items.iter().map(|i| i.size).sum();
+    if !ai_items.is_empty() {
+        categories.push(ScanCategory {
+            id: "ai_models".to_string(),
+            name: "AI & Local LLM Models".to_string(),
+            icon: "cpu".to_string(),
+            size: ai_size,
+            items: ai_items,
+            selected: false,
+        });
+    }
+
+    ruby_items.sort_by_key(|a| std::cmp::Reverse(a.size));
+    let ruby_size: u64 = ruby_items.iter().map(|i| i.size).sum();
+    if !ruby_items.is_empty() {
+        categories.push(ScanCategory {
+            id: "ruby_cache".to_string(),
+            name: "Ruby & Bundler Caches".to_string(),
+            icon: "gem".to_string(),
+            size: ruby_size,
+            items: ruby_items,
+            selected: false,
+        });
+    }
+
+    nuget_items.sort_by_key(|a| std::cmp::Reverse(a.size));
+    let nuget_size: u64 = nuget_items.iter().map(|i| i.size).sum();
+    if !nuget_items.is_empty() {
+        categories.push(ScanCategory {
+            id: "nuget_cache".to_string(),
+            name: ".NET NuGet Caches".to_string(),
+            icon: "boxes".to_string(),
+            size: nuget_size,
+            items: nuget_items,
+            selected: false,
+        });
+    }
+
+    cpp_items.sort_by_key(|a| std::cmp::Reverse(a.size));
+    let cpp_size: u64 = cpp_items.iter().map(|i| i.size).sum();
+    if !cpp_items.is_empty() {
+        categories.push(ScanCategory {
+            id: "cpp_cache".to_string(),
+            name: "C/C++ & CMake Build Caches".to_string(),
+            icon: "binary".to_string(),
+            size: cpp_size,
+            items: cpp_items,
+            selected: false,
+        });
+    }
+
+    // Docker / OrbStack
     let docker_dirs = vec![
         PathBuf::from(&home).join("Library/Containers/com.docker.docker/Data/vms"),
         PathBuf::from(&home).join(".orbstack/data"),
@@ -833,4 +1221,19 @@ pub fn clear_icon_cache() -> Result<u32, String> {
 #[tauri::command]
 pub fn get_system_power_status() -> crate::utils::PowerStatus {
     crate::utils::get_power_status()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_scan_dev_workspaces_runs_cleanly() {
+        let categories = scan_dev_workspaces();
+        // Verifies the scanner runs without panics across all tech stacks
+        for cat in &categories {
+            assert!(!cat.id.is_empty());
+            assert!(!cat.name.is_empty());
+        }
+    }
 }

@@ -27,6 +27,13 @@ import {
   Filter,
   Sparkles,
   Code2,
+  Zap,
+  Terminal,
+  Coffee,
+  Cpu,
+  Gem,
+  Boxes,
+  Binary,
 } from 'lucide-react';
 import { useState, useMemo, useEffect } from 'react';
 
@@ -36,6 +43,14 @@ const categoryIcons: Record<string, React.ReactNode> = {
   node_modules: <Package size={18} className="text-emerald-500" />,
   cargo_target: <Box size={18} className="text-orange-500" />,
   docker_volumes: <Container size={18} className="text-blue-500" />,
+  flutter_cache: <Zap size={18} className="text-cyan-500" />,
+  golang_cache: <Terminal size={18} className="text-teal-500" />,
+  maven_cache: <Coffee size={18} className="text-amber-500" />,
+  composer_cache: <Code2 size={18} className="text-violet-500" />,
+  ai_models: <Cpu size={18} className="text-rose-500" />,
+  ruby_cache: <Gem size={18} className="text-red-500" />,
+  nuget_cache: <Boxes size={18} className="text-purple-500" />,
+  cpp_cache: <Binary size={18} className="text-slate-500" />,
 };
 
 type SizeFilter = 'all' | '100mb' | '1gb';

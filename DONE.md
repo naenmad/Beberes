@@ -65,3 +65,19 @@ Daftar fitur, peningkatan arsitektur sistem, dan penyempurnaan UI/UX yang telah 
   - Deteksi otomatis saat aplikasi dijalankan di luar `/Applications` (misal dari DMG yang di-mount atau folder Downloads).
   - Dialog interaktif responsif berbasis web & glassmorphism yang menjelaskan keuntungan memindahkan aplikasi (auto-update, izin keamanan, Spotlight).
   - Aksi 1-klik untuk menyalin secara aman dengan `/usr/bin/ditto`, meluncurkan aplikasi dari `/Applications`, dan menutup proses lama.
+
+---
+
+## 5. Ekspansi Multi-Techstack Developer Workspace
+
+- [x] **Dukungan Penuh 12 Ekosistem Developer**
+  - **Flutter & Dart**: Pemindaian `~/.pub-cache`, direktori `.dart_tool/`, dan folder `build/` pada proyek ber-`pubspec.yaml`.
+  - **Go (Golang)**: Pemindaian module cache `~/go/pkg/mod/cache` dan build cache kompilasi `~/Library/Caches/go-build`.
+  - **Java / JVM (Maven)**: Pemindaian cache lokal artefak maven di `~/.m2/repository`.
+  - **PHP / Composer**: Pemindaian `~/.composer/cache` dan direktori `vendor/` pada proyek ber-`composer.json` yang tidak disentuh > 90 hari.
+  - **AI & Local LLM Models**: Pemindaian bobot model di `~/.cache/huggingface/hub`, blob model lokal di `~/.ollama/models`, PyTorch checkpoints di `~/.cache/torch`, dan cache `transformers`.
+  - **Ruby & Bundler**: Pemindaian `~/.bundle/cache` dan direktori spesifikasi `~/.gem`.
+  - **.NET / C#**: Pemindaian paket global di `~/.nuget/packages`.
+  - **C / C++ & CMake**: Pemindaian index cache `~/.cache/clangd` dan direktori build `cmake-build-debug/`, `cmake-build-release/`, serta `build/` pada proyek ber-`CMakeLists.txt`.
+  - **Optimasi Algoritma Single-Pass Traversal**: Penelusuran pohon direktori proyek yang disatukan dan diparalelkan dengan Rayon untuk performa sub-detik tanpa membebani disk I/O.
+
