@@ -144,7 +144,19 @@
     "categoryArchives": "Arsip",
     "categoryMedia": "Media",
     "categoryCode": "Kode",
-    "categoryOther": "Lainnya"
+    "categoryOther": "Lainnya",
+    "modeOrganize": "Rapikan Berkas",
+    "modeMaintenance": "Folder Kosong & Tautan Rusak",
+    "statEmptyFolders": "Folder Kosong",
+    "statBrokenSymlinks": "Tautan Rusak",
+    "statTotalMaintenance": "Kandidat Pembersihan",
+    "cleanMaintenanceBtn": "Bersihkan Terpilih ({count})",
+    "cleaningMaintenance": "Membersihkan...",
+    "emptyFoldersTitle": "Direktori Kosong (tanpa .DS_Store)",
+    "brokenSymlinksTitle": "Tautan Simbolik Rusak",
+    "noEmptyFolders": "Tidak ada folder kosong di jalur ini.",
+    "noBrokenSymlinks": "Tidak ada tautan rusak yang ditemukan.",
+    "cleanAllGood": "Direktori bersih! Tidak ada folder kosong atau tautan rusak."
   },
   "apps": {
     "title": "Aplikasi",

@@ -521,4 +521,91 @@ export async function moveToApplicationsAndRelaunch(): Promise<void> {
   return await invoke<void>('move_to_applications_and_relaunch');
 }
 
+// ==========================================
+// 7. APFS Local Snapshots Commands
+// ==========================================
+export interface ApfsSnapshotItem {
+  id: string;
+  name: string;
+  date_str: string;
+  estimated_size: number;
+}
+
+export interface ApfsSnapshotResult {
+  total_snapshots: number;
+  snapshots: ApfsSnapshotItem[];
+}
+
+export async function listApfsSnapshots(): Promise<ApfsSnapshotResult> {
+  return await invoke<ApfsSnapshotResult>('list_apfs_snapshots');
+}
+
+export async function deleteApfsSnapshot(snapshotDate: string): Promise<boolean> {
+  return await invoke<boolean>('delete_apfs_snapshot', { snapshotDate });
+}
+
+export async function deleteAllApfsSnapshots(): Promise<number> {
+  return await invoke<number>('delete_all_apfs_snapshots');
+}
+
+// ==========================================
+// 8. RAM Memory Optimizer Commands
+// ==========================================
+export interface MemoryStatus {
+  total_bytes: number;
+  used_bytes: number;
+  free_bytes: number;
+  inactive_bytes: number;
+  purgeable_bytes: number;
+  used_percentage: number;
+}
+
+export interface MemoryPurgeResult {
+  success: boolean;
+  freed_bytes: number;
+  before_used_bytes: number;
+  after_used_bytes: number;
+  message: string;
+}
+
+export async function getMemoryStatus(): Promise<MemoryStatus> {
+  return await invoke<MemoryStatus>('get_memory_status');
+}
+
+export async function purgeInactiveMemory(): Promise<MemoryPurgeResult> {
+  return await invoke<MemoryPurgeResult>('purge_inactive_memory');
+}
+
+// ==========================================
+// 9. Deep Browser Cache Commands
+// ==========================================
+export async function scanBrowserCaches(): Promise<ScanCategory[]> {
+  return await invoke<ScanCategory[]>('scan_browser_caches');
+}
+
+// ==========================================
+// 10. Maintenance & Hygiene Commands
+// ==========================================
+export interface MaintenanceItem {
+  id: string;
+  path: string;
+  name: string;
+  kind: 'empty_folder' | 'broken_symlink';
+  details: string;
+}
+
+export interface MaintenanceScanResult {
+  scanned_path: string;
+  empty_folders: MaintenanceItem[];
+  broken_symlinks: MaintenanceItem[];
+}
+
+export async function scanMaintenanceItems(path: string): Promise<MaintenanceScanResult> {
+  return await invoke<MaintenanceScanResult>('scan_maintenance_items', { path });
+}
+
+export async function cleanMaintenanceItems(paths: string[]): Promise<number> {
+  return await invoke<number>('clean_maintenance_items', { paths });
+}
+
 

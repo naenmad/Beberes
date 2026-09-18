@@ -273,6 +273,22 @@ pub fn scan_dev_workspaces() -> Vec<ScanCategory> {
             PathBuf::from(&home).join("Library/Caches/com.apple.dt.Xcode"),
             "Xcode App Cache",
         ),
+        (
+            PathBuf::from(&home).join("Library/Developer/CoreSimulator/Devices"),
+            "iOS Simulator Devices",
+        ),
+        (
+            PathBuf::from(&home).join("Library/Developer/CoreSimulator/Profiles/Runtimes"),
+            "CoreSimulator User Runtimes",
+        ),
+        (
+            PathBuf::from("/Library/Developer/CoreSimulator/Profiles/Runtimes"),
+            "CoreSimulator System Runtimes",
+        ),
+        (
+            PathBuf::from(&home).join("Library/org.swift.swiftpm"),
+            "Swift Package Manager Cache",
+        ),
     ];
 
     let mut xcode_items: Vec<ScanItem> = vec![];

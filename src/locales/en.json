@@ -145,7 +145,19 @@
     "categoryArchives": "Archives",
     "categoryMedia": "Media",
     "categoryCode": "Code",
-    "categoryOther": "Other"
+    "categoryOther": "Other",
+    "modeOrganize": "Organize Files",
+    "modeMaintenance": "Empty Folders & Broken Links",
+    "statEmptyFolders": "Empty Folders",
+    "statBrokenSymlinks": "Broken Symlinks",
+    "statTotalMaintenance": "Cleanup Candidates",
+    "cleanMaintenanceBtn": "Clean Selected ({count})",
+    "cleaningMaintenance": "Cleaning...",
+    "emptyFoldersTitle": "Empty Directories (excluding .DS_Store)",
+    "brokenSymlinksTitle": "Broken Symbolic Links",
+    "noEmptyFolders": "No empty folders found.",
+    "noBrokenSymlinks": "No broken symlinks found.",
+    "cleanAllGood": "Directory is clean! No empty folders or broken links."
   },
   "apps": {
     "title": "Applications",

@@ -20,6 +20,10 @@ use commands::trash::{
 };
 use commands::uninstaller::{scan_installed_apps, uninstall_app};
 use commands::visualizer::scan_directory_tree;
+use commands::snapshots::{delete_all_apfs_snapshots, delete_apfs_snapshot, list_apfs_snapshots};
+use commands::memory::{get_memory_status, purge_inactive_memory};
+use commands::browser::scan_browser_caches;
+use commands::maintenance::{clean_maintenance_items, scan_maintenance_items};
 
 #[tauri::command]
 fn exit_app(app: tauri::AppHandle) {
@@ -142,6 +146,14 @@ pub fn run() {
             optimize_git_repo,
             check_is_in_applications_dir,
             move_to_applications_and_relaunch,
+            list_apfs_snapshots,
+            delete_apfs_snapshot,
+            delete_all_apfs_snapshots,
+            get_memory_status,
+            purge_inactive_memory,
+            scan_browser_caches,
+            scan_maintenance_items,
+            clean_maintenance_items,
         ])
         .build(tauri::generate_context!())
         .expect("error while building tauri application");

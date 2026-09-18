@@ -2,7 +2,19 @@ import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useAppStore } from '../store/appStore';
 import { useTranslation } from '../lib/i18n';
-import { getDiskInfoByMount, scanSystemDirectories, scanDevWorkspaces, cleanSelectedItems } from '../lib/commands';
+import {
+  getDiskInfoByMount,
+  scanSystemDirectories,
+  scanDevWorkspaces,
+  scanBrowserCaches,
+  cleanSelectedItems,
+  getMemoryStatus,
+  purgeInactiveMemory,
+  listApfsSnapshots,
+  deleteAllApfsSnapshots,
+  type MemoryStatus,
+  type ApfsSnapshotResult,
+} from '../lib/commands';
 import type { CleanResult } from '../lib/commands';
 import { formatSize } from '../lib/utils';
 import Card, { CardBody } from '../components/ui/Card';
@@ -29,6 +41,8 @@ import {
   LayoutDashboard,
   HardDrive,
   Usb,
+  Cpu,
+  RefreshCw,
 } from 'lucide-react';
 
 export default function Dashboard() {
@@ -60,6 +74,14 @@ export default function Dashboard() {
   const [showCleaningFlow, setShowCleaningFlow] = useState(false);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
 
+  // Advanced system performance states
+  const [memoryStatus, setMemoryStatus] = useState<MemoryStatus | null>(null);
+  const [isPurgingMemory, setIsPurgingMemory] = useState(false);
+  const [memoryToast, setMemoryToast] = useState<string | null>(null);
+  const [apfsResult, setApfsResult] = useState<ApfsSnapshotResult | null>(null);
+  const [isPurgingSnapshots, setIsPurgingSnapshots] = useState(false);
+  const [snapshotToast, setSnapshotToast] = useState<string | null>(null);
+
   const activeDisk = availableDisks.find((d) => d.mountPoint === selectedDiskMount);
 
   const totalSystemJunk = systemCategories.reduce((acc, cat) => acc + cat.size, 0);
@@ -85,18 +107,55 @@ export default function Dashboard() {
     setIsScanning(true);
     setQuickCleanResult(null);
     try {
-      const [disk, system, dev] = await Promise.all([
+      const [disk, system, dev, browsers, mem, snapshots] = await Promise.all([
         getDiskInfoByMount(selectedDiskMount),
         scanSystemDirectories(),
         scanDevWorkspaces(),
+        scanBrowserCaches(),
+        getMemoryStatus(),
+        listApfsSnapshots(),
       ]);
       setDiskInfo(disk);
-      setSystemCategories(system);
+      setSystemCategories([...system, ...browsers]);
       setDevCategories(dev);
+      setMemoryStatus(mem);
+      setApfsResult(snapshots);
     } catch (err) {
       console.error('Scan failed:', err);
     } finally {
       setIsScanning(false);
+    }
+  };
+
+  const handlePurgeMemory = async () => {
+    setIsPurgingMemory(true);
+    try {
+      const res = await purgeInactiveMemory();
+      const updated = await getMemoryStatus();
+      setMemoryStatus(updated);
+      setMemoryToast(`Freed ${formatSize(res.freed_bytes)} RAM!`);
+      setTimeout(() => setMemoryToast(null), 3500);
+    } catch (err) {
+      console.error('Failed to purge memory:', err);
+    } finally {
+      setIsPurgingMemory(false);
+    }
+  };
+
+  const handlePurgeSnapshots = async () => {
+    setIsPurgingSnapshots(true);
+    try {
+      const count = await deleteAllApfsSnapshots();
+      const updated = await listApfsSnapshots();
+      setApfsResult(updated);
+      const disk = await getDiskInfoByMount(selectedDiskMount);
+      setDiskInfo(disk);
+      setSnapshotToast(`Purged ${count} APFS snapshot(s)!`);
+      setTimeout(() => setSnapshotToast(null), 3500);
+    } catch (err) {
+      console.error('Failed to purge snapshots:', err);
+    } finally {
+      setIsPurgingSnapshots(false);
     }
   };
 
@@ -294,6 +353,113 @@ export default function Dashboard() {
           </div>
         </div>
       )}
+
+      {/* Live System Optimizer: RAM Optimizer & APFS Snapshots */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* RAM Inactive Memory Optimizer Card */}
+        <div className="p-5 rounded-2xl glass-panel relative overflow-hidden">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 rounded-2xl bg-indigo-500/10 text-indigo-500 dark:bg-indigo-500/20 dark:text-indigo-400">
+                <Cpu size={20} />
+              </div>
+              <div>
+                <h4 className="text-xs font-bold text-slate-800 dark:text-neutral-200">
+                  {t('dashboard.ramTitle', 'RAM Memory Optimizer')}
+                </h4>
+                <p className="text-[11px] text-slate-400 dark:text-neutral-500">
+                  {memoryStatus
+                    ? `${formatSize(memoryStatus.used_bytes)} / ${formatSize(memoryStatus.total_bytes)} (${memoryStatus.used_percentage}%)`
+                    : 'Monitoring memory...'}
+                </p>
+              </div>
+            </div>
+
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={handlePurgeMemory}
+              disabled={isPurgingMemory}
+              icon={isPurgingMemory ? <RefreshCw size={13} className="animate-spin" /> : <Zap size={13} />}
+            >
+              {isPurgingMemory ? t('dashboard.purging', 'Purging...') : t('dashboard.purgeRam', 'Free Up RAM')}
+            </Button>
+          </div>
+
+          {/* Progress bar */}
+          <div className="w-full bg-black/5 dark:bg-white/5 h-2 rounded-full mt-4 overflow-hidden">
+            <div
+              className={`h-full transition-all duration-500 rounded-full ${
+                (memoryStatus?.used_percentage || 0) > 85
+                  ? 'bg-rose-500'
+                  : (memoryStatus?.used_percentage || 0) > 70
+                  ? 'bg-amber-500'
+                  : 'bg-indigo-500'
+              }`}
+              style={{ width: `${Math.min(100, memoryStatus?.used_percentage || 0)}%` }}
+            />
+          </div>
+
+          <div className="flex items-center justify-between mt-2.5 text-[11px] text-slate-400 dark:text-neutral-500">
+            <span>
+              Purgeable: {memoryStatus ? formatSize(memoryStatus.purgeable_bytes + memoryStatus.inactive_bytes) : '0 B'}
+            </span>
+            <span>Free: {memoryStatus ? formatSize(memoryStatus.free_bytes) : '0 B'}</span>
+          </div>
+
+          {memoryToast && (
+            <div className="mt-2.5 py-1 px-2.5 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-semibold flex items-center gap-1.5 animate-fade-in">
+              <CheckCircle2 size={13} />
+              <span>{memoryToast}</span>
+            </div>
+          )}
+        </div>
+
+        {/* APFS Local Snapshots Purger Card */}
+        <div className="p-5 rounded-2xl glass-panel relative overflow-hidden">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 rounded-2xl bg-sky-500/10 text-sky-500 dark:bg-sky-500/20 dark:text-sky-400">
+                <Clock size={20} />
+              </div>
+              <div>
+                <h4 className="text-xs font-bold text-slate-800 dark:text-neutral-200">
+                  {t('dashboard.apfsTitle', 'APFS Local Snapshots')}
+                </h4>
+                <p className="text-[11px] text-slate-400 dark:text-neutral-500">
+                  {apfsResult && apfsResult.total_snapshots > 0
+                    ? `${apfsResult.total_snapshots} snapshots (~${formatSize(apfsResult.total_snapshots * 1_500_000_000)})`
+                    : 'No hidden snapshots taking System Data'}
+                </p>
+              </div>
+            </div>
+
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={handlePurgeSnapshots}
+              disabled={isPurgingSnapshots || (apfsResult?.total_snapshots || 0) === 0}
+              icon={isPurgingSnapshots ? <RefreshCw size={13} className="animate-spin" /> : <Trash2 size={13} />}
+            >
+              {isPurgingSnapshots ? t('dashboard.purging', 'Purging...') : t('dashboard.purgeSnapshots', 'Purge Snapshots')}
+            </Button>
+          </div>
+
+          <p className="mt-3.5 text-xs text-slate-500 dark:text-neutral-400">
+            {t(
+              'dashboard.apfsDesc',
+              'Time Machine creates local snapshots on your SSD when unplugged. Purging them frees hidden System Data.'
+            )}
+          </p>
+
+          {snapshotToast && (
+            <div className="mt-2.5 py-1 px-2.5 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-semibold flex items-center gap-1.5 animate-fade-in">
+              <CheckCircle2 size={13} />
+              <span>{snapshotToast}</span>
+            </div>
+          )}
+        </div>
+      </div>
 
       {/* Action Cards Grid */}
       {isScanning ? (

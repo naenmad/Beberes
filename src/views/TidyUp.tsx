@@ -7,8 +7,11 @@ import {
   cleanRedundantInstallers,
   revealInFinder,
   pickFolder,
+  scanMaintenanceItems,
+  cleanMaintenanceItems,
+  type TidyScanResult,
+  type MaintenanceScanResult,
 } from '../lib/commands';
-import type { TidyScanResult } from '../lib/commands';
 import { formatSize } from '../lib/utils';
 import Button from '../components/ui/Button';
 import FloatingActionBar from '../components/ui/FloatingActionBar';
@@ -36,6 +39,9 @@ import {
   FolderInput,
   Download,
   Monitor,
+  FolderMinus,
+  Link2Off,
+  CheckCircle2,
 } from 'lucide-react';
 
 const categoryMeta: Record<string, { icon: React.ReactNode; color: string; bgColor: string }> = {
@@ -84,12 +90,21 @@ export default function TidyUp() {
 
   const [activeTab, setActiveTab] = useState<ActiveTargetTab>('downloads');
   const [customPath, setCustomPath] = useState('');
+  const [tidyMode, setTidyMode] = useState<'organize' | 'maintenance'>('organize');
+
+  // Organize state
   const [currentScan, setCurrentScan] = useState<TidyScanResult | null>(null);
   const [selectedItemIds, setSelectedItemIds] = useState<Set<string>>(new Set());
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [isLoading, setIsLoading] = useState(false);
   const [isProcessingAction, setIsProcessingAction] = useState(false);
+
+  // Maintenance state (Empty folders & Broken symlinks)
+  const [maintenanceResult, setMaintenanceResult] = useState<MaintenanceScanResult | null>(null);
+  const [selectedMaintenanceIds, setSelectedMaintenanceIds] = useState<Set<string>>(new Set());
+  const [isCleaningMaintenance, setIsCleaningMaintenance] = useState(false);
+  const [maintenanceToast, setMaintenanceToast] = useState<string | null>(null);
 
   // Modals
   const [showOrganizeModal, setShowOrganizeModal] = useState(false);
@@ -122,9 +137,45 @@ export default function TidyUp() {
     }
   };
 
+  const runMaintenanceScan = async (targetDir: string = currentPath) => {
+    setIsLoading(true);
+    try {
+      const res = await scanMaintenanceItems(targetDir);
+      setMaintenanceResult(res);
+      const allIds = [
+        ...res.empty_folders.map((f) => f.id),
+        ...res.broken_symlinks.map((s) => s.id),
+      ];
+      setSelectedMaintenanceIds(new Set(allIds));
+    } catch (err) {
+      console.error('Failed to scan maintenance items:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
-    runScan(currentPath);
-  }, [activeTab, customPath, globalRefreshTrigger]);
+    if (tidyMode === 'organize') {
+      runScan(currentPath);
+    } else {
+      runMaintenanceScan(currentPath);
+    }
+  }, [activeTab, customPath, tidyMode, globalRefreshTrigger]);
+
+  const handleCleanMaintenance = async () => {
+    if (selectedMaintenanceIds.size === 0) return;
+    setIsCleaningMaintenance(true);
+    try {
+      const count = await cleanMaintenanceItems(Array.from(selectedMaintenanceIds));
+      setMaintenanceToast(`Successfully cleaned ${count} empty folder(s) & broken link(s)!`);
+      setTimeout(() => setMaintenanceToast(null), 3500);
+      await runMaintenanceScan(currentPath);
+    } catch (err) {
+      console.error('Failed to clean maintenance items:', err);
+    } finally {
+      setIsCleaningMaintenance(false);
+    }
+  };
 
   const handlePickCustomFolder = async () => {
     const chosen = await pickFolder();
@@ -151,6 +202,32 @@ export default function TidyUp() {
       setSelectedItemIds(new Set());
     }
   };
+
+  const toggleMaintenanceSelection = (id: string) => {
+    setSelectedMaintenanceIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const selectAllMaintenance = (select: boolean) => {
+    if (!maintenanceResult) return;
+    if (select) {
+      const all = [
+        ...maintenanceResult.empty_folders.map((f) => f.id),
+        ...maintenanceResult.broken_symlinks.map((s) => s.id),
+      ];
+      setSelectedMaintenanceIds(new Set(all));
+    } else {
+      setSelectedMaintenanceIds(new Set());
+    }
+  };
+
+  const totalMaintenanceCount =
+    (maintenanceResult?.empty_folders.length || 0) +
+    (maintenanceResult?.broken_symlinks.length || 0);
 
   const selectedItems = useMemo(() => {
     if (!currentScan) return [];
@@ -282,8 +359,35 @@ export default function TidyUp() {
         subtitle={t('tidyUp.subtitle')}
       />
 
-      {/* Target Directory Switcher */}
+      {/* Mode & Target Directory Switcher */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        {/* Mode Switcher */}
+        <div className="flex items-center gap-1.5 p-1 rounded-xl glass-pill w-fit">
+          <button
+            onClick={() => setTidyMode('organize')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+              tidyMode === 'organize'
+                ? 'bg-white dark:bg-neutral-700 text-blue-600 dark:text-blue-400 shadow-xs'
+                : 'text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white'
+            }`}
+          >
+            <FolderTree size={13} />
+            <span>{t('tidyUp.modeOrganize', 'Organize Files')}</span>
+          </button>
+          <button
+            onClick={() => setTidyMode('maintenance')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+              tidyMode === 'maintenance'
+                ? 'bg-white dark:bg-neutral-700 text-blue-600 dark:text-blue-400 shadow-xs'
+                : 'text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white'
+            }`}
+          >
+            <FolderMinus size={13} />
+            <span>{t('tidyUp.modeMaintenance', 'Empty Folders & Broken Links')}</span>
+          </button>
+        </div>
+
+        {/* Directory Selector */}
         <div className="flex items-center gap-1.5 p-1 rounded-xl glass-pill w-fit">
           <button
             onClick={() => setActiveTab('downloads')}
@@ -321,214 +425,416 @@ export default function TidyUp() {
         </div>
       </div>
 
-      {/* Redundant Installers Sweeper Alert Banner */}
-      {currentScan && currentScan.redundantInstallersCount > 0 && (
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 animate-fade-in">
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-amber-500/20 text-amber-600 dark:text-amber-400">
-              <AlertTriangle size={18} />
-            </div>
-            <div>
-              <p className="text-sm font-bold text-amber-900 dark:text-amber-200">
-                {t('tidyUp.redundantInstallersAlert', '{count} Redundant Installers Detected ({size})', {
-                  count: currentScan.redundantInstallersCount,
+      {/* Maintenance Notification Toast */}
+      {maintenanceToast && (
+        <div className="flex items-center gap-2 p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-300 text-xs font-medium animate-fade-in">
+          <CheckCircle2 size={16} className="text-emerald-500 shrink-0" />
+          <span>{maintenanceToast}</span>
+        </div>
+      )}
+
+      {tidyMode === 'organize' && (
+        <>
+          {/* Redundant Installers Sweeper Alert Banner */}
+          {currentScan && currentScan.redundantInstallersCount > 0 && (
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 animate-fade-in">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 rounded-xl bg-amber-500/20 text-amber-600 dark:text-amber-400">
+                  <AlertTriangle size={18} />
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-amber-900 dark:text-amber-200">
+                    {t('tidyUp.redundantInstallersAlert', '{count} Redundant Installers Detected ({size})', {
+                      count: currentScan.redundantInstallersCount,
+                      size: formatSize(currentScan.redundantInstallersSize),
+                    })}
+                  </p>
+                  <p className="text-xs text-amber-700 dark:text-amber-300">
+                    {t('tidyUp.redundantInstallersAlertDesc')}
+                  </p>
+                </div>
+              </div>
+              <Button
+                variant="danger"
+                size="sm"
+                onClick={() => setShowDmgModal(true)}
+                icon={<Trash2 size={14} />}
+              >
+                {t('tidyUp.trashInstallersBtn', 'Trash Installers ({size})', {
                   size: formatSize(currentScan.redundantInstallersSize),
                 })}
+              </Button>
+            </div>
+          )}
+
+          {/* Overview Stat Cards */}
+          {currentScan && (
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div className="p-4 rounded-2xl glass-panel">
+                <span className="text-xs text-slate-400 dark:text-neutral-400">{t('tidyUp.statUnorganized')}</span>
+                <p className="text-lg font-bold text-slate-900 dark:text-white mt-0.5">
+                  {t('common.itemsCount', '{count} items', { count: currentScan.totalFiles })}
+                </p>
+              </div>
+              <div className="p-4 rounded-2xl glass-panel">
+                <span className="text-xs text-slate-400 dark:text-neutral-400">{t('tidyUp.statTotalClutter')}</span>
+                <p className="text-lg font-bold text-blue-600 dark:text-blue-400 mt-0.5">
+                  {formatSize(currentScan.totalSize)}
+                </p>
+              </div>
+              <div className="p-4 rounded-2xl glass-panel">
+                <span className="text-xs text-slate-400 dark:text-neutral-400">{t('tidyUp.statScreenshots')}</span>
+                <p className="text-lg font-bold text-pink-600 dark:text-pink-400 mt-0.5">
+                  {categoryStats['Screenshots']?.count || 0}
+                </p>
+              </div>
+              <div className="p-4 rounded-2xl glass-panel">
+                <span className="text-xs text-slate-400 dark:text-neutral-400">{t('tidyUp.statInstallers')}</span>
+                <p className="text-lg font-bold text-amber-600 dark:text-amber-400 mt-0.5">
+                  {categoryStats['Installers']?.count || 0} ({formatSize(categoryStats['Installers']?.size || 0)})
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Search & Selection Controls */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex-1 max-w-md relative">
+              <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input
+                type="text"
+                placeholder={t('tidyUp.searchPlaceholder')}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-9 pr-4 py-2 text-xs bg-white dark:bg-neutral-800 border border-black/6 dark:border-white/8 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 dark:text-neutral-200"
+              />
+            </div>
+
+            <div className="flex items-center gap-2">
+              {currentScan && currentScan.totalFiles > 0 && (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => selectAll(selectedItemIds.size !== currentScan.totalFiles)}
+                  icon={
+                    selectedItemIds.size === currentScan.totalFiles ? (
+                      <Square size={13} />
+                    ) : (
+                      <CheckSquare size={13} />
+                    )
+                  }
+                >
+                  {selectedItemIds.size === currentScan.totalFiles ? t('common.deselectAll') : t('common.selectAll')}
+                </Button>
+              )}
+            </div>
+          </div>
+
+          {/* Category Filter Pills (100% Vector Icons) */}
+          {currentScan && currentScan.totalFiles > 0 && (
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
+              {['All', 'Screenshots', 'Installers', 'Documents', 'Archives', 'Media', 'Code', 'Other'].map(
+                (cat) => {
+                  const count = cat === 'All' ? currentScan.totalFiles : categoryStats[cat]?.count || 0;
+                  if (cat !== 'All' && count === 0) return null;
+                  return (
+                    <button
+                      key={cat}
+                      onClick={() => setSelectedCategory(cat)}
+                      className={`px-3 py-1 rounded-full font-semibold transition-colors shrink-0 cursor-pointer ${
+                        selectedCategory === cat
+                          ? 'bg-blue-600 text-white shadow-xs'
+                          : 'bg-black/4 dark:bg-white/6 text-slate-600 dark:text-neutral-400 hover:bg-black/7 dark:hover:bg-white/10'
+                      }`}
+                    >
+                      {getCategoryLabel(cat)} ({count})
+                    </button>
+                  );
+                }
+              )}
+            </div>
+          )}
+
+          {/* File List */}
+          {isLoading ? (
+            <div className="space-y-3">
+              <CardSkeleton />
+              <CardSkeleton />
+            </div>
+          ) : (
+            <div className="rounded-2xl glass-panel overflow-hidden">
+              {filteredItems.length === 0 ? (
+                <div className="py-16 text-center">
+                  <FolderTree size={36} className="text-slate-300 dark:text-neutral-600 mx-auto mb-2" />
+                  <p className="text-sm font-bold text-slate-700 dark:text-neutral-300">
+                    {searchQuery || selectedCategory !== 'All'
+                      ? t('tidyUp.emptySearch')
+                      : t('tidyUp.emptyClean')}
+                  </p>
+                  <p className="text-xs text-slate-400 dark:text-neutral-500 mt-1">
+                    {t('tidyUp.emptyCleanDesc', 'No unorganized loose files found in {path}', { path: currentPath })}
+                  </p>
+                </div>
+              ) : (
+                <div className="divide-y divide-black/4 dark:divide-white/6">
+                  {filteredItems.map((item) => {
+                    const isChecked = selectedItemIds.has(item.id);
+                    const meta = categoryMeta[item.category] || categoryMeta['Other'];
+
+                    return (
+                      <div
+                        key={item.id}
+                        className="flex items-center gap-3 px-4 py-3 hover:bg-black/2 dark:hover:bg-white/3 transition-colors group"
+                      >
+                        <Checkbox checked={isChecked} onChange={() => toggleItemSelection(item.id)} />
+
+                        <div className={`p-2 rounded-xl ${meta.bgColor} shrink-0`}>
+                          {meta.icon}
+                        </div>
+
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <p className="text-xs font-semibold text-slate-800 dark:text-neutral-200 truncate">
+                              {item.name}
+                            </p>
+                            {item.isRedundantInstaller && (
+                              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                                {t('tidyUp.installedAppBadge', 'Installed: {name}', { name: item.installedAppName || '' })}
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-2 text-[11px] text-slate-400 dark:text-neutral-500 mt-0.5">
+                            <span>{item.lastModified}</span>
+                            <span>•</span>
+                            <span className="flex items-center gap-1 text-blue-600 dark:text-blue-400 font-mono">
+                              <ArrowRight size={10} /> {item.targetFolder}/
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-3 shrink-0">
+                          <span className="text-xs font-bold text-slate-600 dark:text-neutral-300">
+                            {formatSize(item.size)}
+                          </span>
+                          <button
+                            onClick={(e) => handleReveal(e, item.path)}
+                            title={t('common.revealInFinder')}
+                            className="p-1.5 rounded-lg text-slate-400 hover:text-blue-500 hover:bg-black/4 dark:hover:bg-white/6 opacity-60 group-hover:opacity-100 transition-all cursor-pointer"
+                          >
+                            <ExternalLink size={14} />
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Floating Action Bar */}
+          <FloatingActionBar
+            selectedCount={selectedItems.length}
+            selectedSize={selectedSize}
+            onClean={() => setShowOrganizeModal(true)}
+            isCleaning={isProcessingAction}
+            onDeselect={() => setSelectedItemIds(new Set())}
+            cleanLabel={t('tidyUp.organizeIntoFolders', 'Organize into Folders ({count} files)', { count: selectedItems.length })}
+            actionVariant="primary"
+            showModeBadge={false}
+          />
+        </>
+      )}
+
+      {/* Maintenance Hygiene Mode */}
+      {tidyMode === 'maintenance' && (
+        <div className="space-y-4 animate-fade-in">
+          {/* Overview Stat Cards */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="p-4 rounded-2xl glass-panel">
+              <span className="text-xs text-slate-400 dark:text-neutral-400">
+                {t('tidyUp.statEmptyFolders', 'Empty Folders')}
+              </span>
+              <p className="text-lg font-bold text-slate-900 dark:text-white mt-0.5">
+                {maintenanceResult?.empty_folders.length || 0}
               </p>
-              <p className="text-xs text-amber-700 dark:text-amber-300">
-                {t('tidyUp.redundantInstallersAlertDesc')}
+            </div>
+            <div className="p-4 rounded-2xl glass-panel">
+              <span className="text-xs text-slate-400 dark:text-neutral-400">
+                {t('tidyUp.statBrokenSymlinks', 'Broken Symlinks')}
+              </span>
+              <p className="text-lg font-bold text-amber-600 dark:text-amber-400 mt-0.5">
+                {maintenanceResult?.broken_symlinks.length || 0}
+              </p>
+            </div>
+            <div className="p-4 rounded-2xl glass-panel">
+              <span className="text-xs text-slate-400 dark:text-neutral-400">
+                {t('tidyUp.statTotalMaintenance', 'Cleanup Candidates')}
+              </span>
+              <p className="text-lg font-bold text-blue-600 dark:text-blue-400 mt-0.5">
+                {totalMaintenanceCount}
+              </p>
+            </div>
+            <div className="p-4 rounded-2xl glass-panel">
+              <span className="text-xs text-slate-400 dark:text-neutral-400">
+                Selected
+              </span>
+              <p className="text-lg font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">
+                {selectedMaintenanceIds.size}
               </p>
             </div>
           </div>
-          <Button
-            variant="danger"
-            size="sm"
-            onClick={() => setShowDmgModal(true)}
-            icon={<Trash2 size={14} />}
-          >
-            {t('tidyUp.trashInstallersBtn', 'Trash Installers ({size})', {
-              size: formatSize(currentScan.redundantInstallersSize),
-            })}
-          </Button>
-        </div>
-      )}
 
-      {/* Overview Stat Cards */}
-      {currentScan && (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <div className="p-4 rounded-2xl glass-panel">
-            <span className="text-xs text-slate-400 dark:text-neutral-400">{t('tidyUp.statUnorganized')}</span>
-            <p className="text-lg font-bold text-slate-900 dark:text-white mt-0.5">
-              {t('common.itemsCount', '{count} items', { count: currentScan.totalFiles })}
-            </p>
-          </div>
-          <div className="p-4 rounded-2xl glass-panel">
-            <span className="text-xs text-slate-400 dark:text-neutral-400">{t('tidyUp.statTotalClutter')}</span>
-            <p className="text-lg font-bold text-blue-600 dark:text-blue-400 mt-0.5">
-              {formatSize(currentScan.totalSize)}
-            </p>
-          </div>
-          <div className="p-4 rounded-2xl glass-panel">
-            <span className="text-xs text-slate-400 dark:text-neutral-400">{t('tidyUp.statScreenshots')}</span>
-            <p className="text-lg font-bold text-pink-600 dark:text-pink-400 mt-0.5">
-              {categoryStats['Screenshots']?.count || 0}
-            </p>
-          </div>
-          <div className="p-4 rounded-2xl glass-panel">
-            <span className="text-xs text-slate-400 dark:text-neutral-400">{t('tidyUp.statInstallers')}</span>
-            <p className="text-lg font-bold text-amber-600 dark:text-amber-400 mt-0.5">
-              {categoryStats['Installers']?.count || 0} ({formatSize(categoryStats['Installers']?.size || 0)})
-            </p>
-          </div>
-        </div>
-      )}
-
-      {/* Search & Selection Controls */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div className="flex-1 max-w-md relative">
-          <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-          <input
-            type="text"
-            placeholder={t('tidyUp.searchPlaceholder')}
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 text-xs bg-white dark:bg-neutral-800 border border-black/6 dark:border-white/8 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 dark:text-neutral-200"
-          />
-        </div>
-
-        <div className="flex items-center gap-2">
-          {currentScan && currentScan.totalFiles > 0 && (
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => selectAll(selectedItemIds.size !== currentScan.totalFiles)}
-              icon={
-                selectedItemIds.size === currentScan.totalFiles ? (
-                  <Square size={13} />
-                ) : (
-                  <CheckSquare size={13} />
-                )
-              }
-            >
-              {selectedItemIds.size === currentScan.totalFiles ? t('common.deselectAll') : t('common.selectAll')}
-            </Button>
-          )}
-        </div>
-      </div>
-
-      {/* Category Filter Pills (100% Vector Icons) */}
-      {currentScan && currentScan.totalFiles > 0 && (
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
-          {['All', 'Screenshots', 'Installers', 'Documents', 'Archives', 'Media', 'Code', 'Other'].map(
-            (cat) => {
-              const count = cat === 'All' ? currentScan.totalFiles : categoryStats[cat]?.count || 0;
-              if (cat !== 'All' && count === 0) return null;
-              return (
-                <button
-                  key={cat}
-                  onClick={() => setSelectedCategory(cat)}
-                  className={`px-3 py-1 rounded-full font-semibold transition-colors shrink-0 cursor-pointer ${
-                    selectedCategory === cat
-                      ? 'bg-blue-600 text-white shadow-xs'
-                      : 'bg-black/4 dark:bg-white/6 text-slate-600 dark:text-neutral-400 hover:bg-black/7 dark:hover:bg-white/10'
-                  }`}
+          {/* Maintenance Action Header */}
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              {totalMaintenanceCount > 0 && (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => selectAllMaintenance(selectedMaintenanceIds.size !== totalMaintenanceCount)}
+                  icon={
+                    selectedMaintenanceIds.size === totalMaintenanceCount ? (
+                      <Square size={13} />
+                    ) : (
+                      <CheckSquare size={13} />
+                    )
+                  }
                 >
-                  {getCategoryLabel(cat)} ({count})
-                </button>
-              );
-            }
-          )}
-        </div>
-      )}
+                  {selectedMaintenanceIds.size === totalMaintenanceCount
+                    ? t('common.deselectAll')
+                    : t('common.selectAll')}
+                </Button>
+              )}
+            </div>
 
-      {/* File List */}
-      {isLoading ? (
-        <div className="space-y-3">
-          <CardSkeleton />
-          <CardSkeleton />
-        </div>
-      ) : (
-        <div className="rounded-2xl glass-panel overflow-hidden">
-          {filteredItems.length === 0 ? (
-            <div className="py-16 text-center">
-              <FolderTree size={36} className="text-slate-300 dark:text-neutral-600 mx-auto mb-2" />
+            <Button
+              variant="danger"
+              size="sm"
+              onClick={handleCleanMaintenance}
+              disabled={selectedMaintenanceIds.size === 0 || isCleaningMaintenance}
+              loading={isCleaningMaintenance}
+              icon={<Trash2 size={13} />}
+            >
+              {isCleaningMaintenance
+                ? t('tidyUp.cleaningMaintenance', 'Cleaning...')
+                : t('tidyUp.cleanMaintenanceBtn', 'Clean Selected ({count})', { count: selectedMaintenanceIds.size })}
+            </Button>
+          </div>
+
+          {/* Items List */}
+          {isLoading ? (
+            <div className="space-y-3">
+              <CardSkeleton />
+              <CardSkeleton />
+            </div>
+          ) : totalMaintenanceCount === 0 ? (
+            <div className="rounded-2xl glass-panel py-16 text-center">
+              <CheckCircle2 size={36} className="text-emerald-500 mx-auto mb-2" />
               <p className="text-sm font-bold text-slate-700 dark:text-neutral-300">
-                {searchQuery || selectedCategory !== 'All'
-                  ? t('tidyUp.emptySearch')
-                  : t('tidyUp.emptyClean')}
+                {t('tidyUp.cleanAllGood', 'Directory is clean! No empty folders or broken links.')}
               </p>
               <p className="text-xs text-slate-400 dark:text-neutral-500 mt-1">
                 {t('tidyUp.emptyCleanDesc', 'No unorganized loose files found in {path}', { path: currentPath })}
               </p>
             </div>
           ) : (
-            <div className="divide-y divide-black/4 dark:divide-white/6">
-              {filteredItems.map((item) => {
-                const isChecked = selectedItemIds.has(item.id);
-                const meta = categoryMeta[item.category] || categoryMeta['Other'];
-
-                return (
-                  <div
-                    key={item.id}
-                    className="flex items-center gap-3 px-4 py-3 hover:bg-black/2 dark:hover:bg-white/3 transition-colors group"
-                  >
-                    <Checkbox checked={isChecked} onChange={() => toggleItemSelection(item.id)} />
-
-                    <div className={`p-2 rounded-xl ${meta.bgColor} shrink-0`}>
-                      {meta.icon}
+            <div className="space-y-4">
+              {/* Empty Folders Section */}
+              {maintenanceResult && maintenanceResult.empty_folders.length > 0 && (
+                <div className="rounded-2xl glass-panel overflow-hidden">
+                  <div className="px-4 py-2.5 bg-black/2 dark:bg-white/2 border-b border-black/4 dark:border-white/6 flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-neutral-300">
+                      <FolderMinus size={14} className="text-blue-500" />
+                      <span>{t('tidyUp.emptyFoldersTitle', 'Empty Directories (excluding .DS_Store)')}</span>
                     </div>
-
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <p className="text-xs font-semibold text-slate-800 dark:text-neutral-200 truncate">
-                          {item.name}
-                        </p>
-                        {item.isRedundantInstaller && (
-                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
-                            {t('tidyUp.installedAppBadge', 'Installed: {name}', { name: item.installedAppName || '' })}
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-2 text-[11px] text-slate-400 dark:text-neutral-500 mt-0.5">
-                        <span>{item.lastModified}</span>
-                        <span>•</span>
-                        <span className="flex items-center gap-1 text-blue-600 dark:text-blue-400 font-mono">
-                          <ArrowRight size={10} /> {item.targetFolder}/
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-3 shrink-0">
-                      <span className="text-xs font-bold text-slate-600 dark:text-neutral-300">
-                        {formatSize(item.size)}
-                      </span>
-                      <button
-                        onClick={(e) => handleReveal(e, item.path)}
-                        title={t('common.revealInFinder')}
-                        className="p-1.5 rounded-lg text-slate-400 hover:text-blue-500 hover:bg-black/4 dark:hover:bg-white/6 opacity-60 group-hover:opacity-100 transition-all cursor-pointer"
-                      >
-                        <ExternalLink size={14} />
-                      </button>
-                    </div>
+                    <span className="text-[11px] text-slate-400 dark:text-neutral-500 font-mono">
+                      {maintenanceResult.empty_folders.length}
+                    </span>
                   </div>
-                );
-              })}
+                  <div className="divide-y divide-black/4 dark:divide-white/6">
+                    {maintenanceResult.empty_folders.map((item) => {
+                      const isChecked = selectedMaintenanceIds.has(item.id);
+                      return (
+                        <div
+                          key={item.id}
+                          className="flex items-center gap-3 px-4 py-3 hover:bg-black/2 dark:hover:bg-white/3 transition-colors group"
+                        >
+                          <Checkbox checked={isChecked} onChange={() => toggleMaintenanceSelection(item.id)} />
+                          <div className="p-2 rounded-xl bg-blue-50 dark:bg-blue-500/10 shrink-0">
+                            <FolderMinus size={16} className="text-blue-500" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-semibold text-slate-800 dark:text-neutral-200 truncate">
+                              {item.name}
+                            </p>
+                            <p className="text-[11px] text-slate-400 dark:text-neutral-500 truncate mt-0.5 font-mono">
+                              {item.path}
+                            </p>
+                          </div>
+                          <button
+                            onClick={(e) => handleReveal(e, item.path)}
+                            title={t('common.revealInFinder')}
+                            className="p-1.5 rounded-lg text-slate-400 hover:text-blue-500 hover:bg-black/4 dark:hover:bg-white/6 opacity-60 group-hover:opacity-100 transition-all cursor-pointer"
+                          >
+                            <ExternalLink size={14} />
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Broken Symlinks Section */}
+              {maintenanceResult && maintenanceResult.broken_symlinks.length > 0 && (
+                <div className="rounded-2xl glass-panel overflow-hidden">
+                  <div className="px-4 py-2.5 bg-black/2 dark:bg-white/2 border-b border-black/4 dark:border-white/6 flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-xs font-bold text-amber-700 dark:text-amber-400">
+                      <Link2Off size={14} className="text-amber-500" />
+                      <span>{t('tidyUp.brokenSymlinksTitle', 'Broken Symbolic Links')}</span>
+                    </div>
+                    <span className="text-[11px] text-slate-400 dark:text-neutral-500 font-mono">
+                      {maintenanceResult.broken_symlinks.length}
+                    </span>
+                  </div>
+                  <div className="divide-y divide-black/4 dark:divide-white/6">
+                    {maintenanceResult.broken_symlinks.map((item) => {
+                      const isChecked = selectedMaintenanceIds.has(item.id);
+                      return (
+                        <div
+                          key={item.id}
+                          className="flex items-center gap-3 px-4 py-3 hover:bg-black/2 dark:hover:bg-white/3 transition-colors group"
+                        >
+                          <Checkbox checked={isChecked} onChange={() => toggleMaintenanceSelection(item.id)} />
+                          <div className="p-2 rounded-xl bg-amber-50 dark:bg-amber-500/10 shrink-0">
+                            <Link2Off size={16} className="text-amber-500" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-semibold text-slate-800 dark:text-neutral-200 truncate">
+                              {item.name}
+                            </p>
+                            <p className="text-[11px] text-amber-600/80 dark:text-amber-400/80 truncate mt-0.5 font-mono">
+                              {item.details}
+                            </p>
+                          </div>
+                          <button
+                            onClick={(e) => handleReveal(e, item.path)}
+                            title={t('common.revealInFinder')}
+                            className="p-1.5 rounded-lg text-slate-400 hover:text-blue-500 hover:bg-black/4 dark:hover:bg-white/6 opacity-60 group-hover:opacity-100 transition-all cursor-pointer"
+                          >
+                            <ExternalLink size={14} />
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
       )}
-
-      {/* Floating Action Bar */}
-      <FloatingActionBar
-        selectedCount={selectedItems.length}
-        selectedSize={selectedSize}
-        onClean={() => setShowOrganizeModal(true)}
-        isCleaning={isProcessingAction}
-        onDeselect={() => setSelectedItemIds(new Set())}
-        cleanLabel={t('tidyUp.organizeIntoFolders', 'Organize into Folders ({count} files)', { count: selectedItems.length })}
-        actionVariant="primary"
-        showModeBadge={false}
-      />
 
       {/* Confirm Organize Modal */}
       <ConfirmModal

@@ -1,6 +1,11 @@
 import { useAppStore } from '../store/appStore';
 import { useTranslation } from '../lib/i18n';
-import { scanSystemDirectories, cleanSelectedItems, revealInFinder } from '../lib/commands';
+import {
+  scanSystemDirectories,
+  scanBrowserCaches,
+  cleanSelectedItems,
+  revealInFinder,
+} from '../lib/commands';
 import type { CleanResult } from '../lib/commands';
 import { formatSize } from '../lib/utils';
 import Card, { CardHeader, CardBody } from '../components/ui/Card';
@@ -24,6 +29,9 @@ import {
   CheckSquare,
   Square,
   Filter,
+  Compass,
+  Shield,
+  Flame,
 } from 'lucide-react';
 import { useState, useMemo, useEffect, useRef } from 'react';
 
@@ -31,6 +39,12 @@ const categoryIcons: Record<string, React.ReactNode> = {
   system_cache: <FolderOpen size={18} className="text-blue-500" />,
   user_logs: <FileText size={18} className="text-amber-500" />,
   browser_cache: <Globe size={18} className="text-emerald-500" />,
+  browser_safari: <Compass size={18} className="text-sky-500" />,
+  browser_chrome: <Globe size={18} className="text-amber-500" />,
+  browser_arc: <Globe size={18} className="text-rose-500" />,
+  browser_brave: <Shield size={18} className="text-orange-500" />,
+  browser_firefox: <Flame size={18} className="text-orange-600" />,
+  browser_edge: <Globe size={18} className="text-blue-600" />,
   trash: <Trash2 size={18} className="text-rose-500" />,
 };
 
@@ -81,7 +95,11 @@ export default function SystemClean() {
     setIsScanning(true);
     setCleanResult(null);
     try {
-      const results = await scanSystemDirectories();
+      const [sys, browsers] = await Promise.all([
+        scanSystemDirectories(),
+        scanBrowserCaches(),
+      ]);
+      const results = [...sys, ...browsers];
       setSystemCategories(results);
       setExpandedCategories(new Set(results.filter((c) => c.items.length > 0).map((c) => c.id)));
     } catch (err) {
