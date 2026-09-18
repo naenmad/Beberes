@@ -24,7 +24,7 @@ icon_size = 120.0
 text_size = 13.0
 
 # Custom retina background
-background = 'src-tauri/icons/dmg-background.png'
+background = 'src-tauri/icons/dmg-background.tiff'
 
 # Window bounds ((x, y), (width, height))
 window_rect = ((250, 150), (660, 400))

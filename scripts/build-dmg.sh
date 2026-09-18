@@ -17,7 +17,11 @@ fi
 mkdir -p "$DMG_DIR"
 rm -f "$DMG_PATH"
 
-echo "==> 2. Packaging Beberes macOS DMG Installer with custom style..."
+echo "==> 2. Generating pixel-perfect Retina DMG background..."
+swift scripts/generate_dmg_background.swift
+/usr/bin/tiffutil -cathidpicheck src-tauri/icons/dmg-background.png src-tauri/icons/dmg-background@2x.png -out src-tauri/icons/dmg-background.tiff
+
+echo "==> 3. Packaging Beberes macOS DMG Installer with custom style..."
 if command -v dmgbuild &> /dev/null; then
   dmgbuild -s scripts/dmgbuild_settings.py "Beberes" "$DMG_PATH"
 elif [ -f "${DMG_DIR}/bundle_dmg.sh" ]; then
