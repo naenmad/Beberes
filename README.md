@@ -52,26 +52,34 @@ Traditional macOS cleanup utilities often come bundled with proprietary backgrou
 
 ## Key Features
 
-Beberes comes equipped with 12 specialized modules:
+Beberes comes equipped with specialized modules designed for complete Mac maintenance, workspace hygiene, and storage reclamation:
 
 | Module | Description | Target Areas |
 | :--- | :--- | :--- |
-| **Storage Dashboard** | Live hardware overview, storage utilization, and single-click Smart Clean. | System root and attached external volumes |
-| **Disk Space Visualizer** | Interactive hierarchical treemap visualizer with drill-down exploration and breadcrumbs. | Proportional directory consumption across any path |
-| **Quick Review** | Triage downloads and desktop files with keyboard shortcuts, previews, and inline rename. | `~/Downloads`, `~/Desktop`, `~/Pictures` |
-| **Large & Duplicate Files** | Rapid SHA-256 duplicate content detector and size-ranked large file finder. | User directories, media libraries, archives |
-| **Trash Manager** | Visual macOS Trash inspector with selective file deletion and secure emptying. | `~/.Trash` and volume trash bins |
-| **Tidy Up** | Intelligent organizer grouping loose files into category folders and removing redundant installers. | Loose documents, `.dmg`, `.pkg`, `.iso` files |
-| **App Uninstaller** | Comprehensive uninstaller detecting residual preferences, caches, and Application Support files. | `/Applications`, `~/Library/Application Support` |
-| **System Clean** | Reclaim gigabytes from user caches, system logs, Xcode DerivedData, and simulator runtimes. | `~/Library/Caches`, `~/Library/Developer` |
-| **Developer Workspace** | Deep cleaner across 12 developer ecosystems: Node, Rust, Flutter, Go, Python, Java Maven, Docker, PHP Composer, AI/Local LLMs, Ruby, .NET NuGet, C/C++ CMake. | `node_modules`, `target/`, `.pub-cache`, `go-build`, `~/.m2`, `~/.cache/huggingface`, `~/.ollama` |
+| **Storage Dashboard** | Real-time hardware overview, storage utilization, 0-100% **Mac Hygiene Score**, and 1-click **Bereskan Sekaligus** master clean. | System root, RAM memory, and attached volumes |
+| **Orphaned App Leftovers** | Scans and purges abandoned directories left behind in Library by apps that have already been uninstalled. | `~/Library/Application Support`, `~/Library/Caches`, `Containers` |
+| **Smart Automation Rules** | 1-click non-destructive automated filing: auto-archives downloads > 30 days and consolidates desktop screenshots. | `~/Downloads`, `~/Desktop`, `~/Pictures/Screenshots` |
+| **Homebrew & Tooling Pruner** | Purges outdated bottles, temporary downloads, and expired lockfiles via `brew cleanup --prune=all` with live terminal log. | `/opt/homebrew`, `/usr/local/Homebrew`, package caches |
+| **Developer Workspace** | Deep workspace and package manager cleaner across 14 tech stacks: Node.js, Rust, Flutter/Dart, Go, Python, Java Maven, Docker, PHP Composer, AI/Ollama Models, Ruby, .NET NuGet, C/C++ CMake. | `node_modules`, `target/`, `.pub-cache`, `go-build`, `~/.m2`, `~/.ollama` |
+| **APFS Snapshot Purger** | Detects and safely clears local Time Machine snapshots taking up hidden gigabytes in macOS "System Data" / purgeable space. | APFS local snapshot metadata (`tmutil`) |
+| **RAM Inactive Memory Optimizer** | Flushes dormant disk cache memory back to free physical RAM via the native macOS kernel memory manager. | Inactive and purgeable memory pages (`vm_stat`, `purge`) |
+| **Deep Browser Cleaner** | Purges code caches, GPU caches, Service Worker temp files, and HTTP caches across 6 major browsers while preserving cookies and logins. | Safari, Chrome, Arc, Brave, Firefox, Edge |
+| **macOS Menu Bar Status Tray** | Native status bar menu with 1-click Quick Clean, Free RAM, Empty Trash, and direct view jumping. | macOS Menu Bar tray icon |
+| **Disk Space Visualizer** | Interactive hierarchical treemap visualizer with drill-down exploration, breadcrumbs, and proportional storage heatmaps. | Any local or external directory |
+| **Quick Review** | Rapid triage tool for Downloads and Desktop with arrow-key keyboard navigation, file previews, and inline renaming. | `~/Downloads`, `~/Desktop`, `~/Pictures` |
+| **Large & Duplicate Files** | Fast SHA-256 duplicate content detector and size-ranked large file finder. | User libraries, media collections, archives |
+| **Tidy Up** | Intelligent file organizer categorizing loose files into tidy folders and sweeping redundant `.dmg` / `.pkg` installers. | Desktop, Downloads, custom folders |
+| **App Uninstaller** | Comprehensive uninstaller with leftover inspection, bundle ID detection, and Apple system protection. | `/Applications`, `~/Applications` |
+| **Trash Manager** | Visual macOS Trash inspector with individual item deletion, path inspection, and secure emptying. | `~/.Trash` and external drive trash bins |
 | **Startup Daemons** | Inspect, enable, disable, and clean macOS `LaunchAgents` and `LaunchDaemons`. | `~/Library/LaunchAgents`, `/Library/LaunchAgents` |
-| **File Shredder** | Multi-pass hardware sanitization (1-Pass Zero, 3-Pass DoD 5220.22-M, 7-Pass Gutmann Lite). | Confidential documents, credentials, keys |
+| **File Shredder** | Multi-pass cryptographic sanitization (1-Pass Zero, 3-Pass DoD 5220.22-M, 7-Pass Gutmann Lite). | Sensitive documents, keys, credentials |
 | **Git Sweeper** | Aggressive repository compression (`git gc --prune=now`) and merged local branch pruning. | Local developer workspaces (e.g. `~/Developer`) |
 
 ### Additional Capabilities
 - **Multi-Drive & Flashdisk Detection**: Automatically enumerates external drives and USB flashdisks mounted under `/Volumes/*` with instant live switching.
 - **Global Spotlight Search (`Cmd+K`)**: Navigate anywhere in the application or trigger actions via instant keyboard search.
+- **Full Keyboard Navigation & A11y**: Direct tab switching (`Cmd+1` through `Cmd+9`), global refresh (`Cmd+R`), settings (`Cmd+,`), and Escape modal dismissal.
+- **Finder Drag & Drop**: Drag files, folders, or `.app` bundles directly into Beberes to inspect, tidy, or uninstall immediately.
 - **Thermal & Battery Throttling Awareness**: Dynamically adjusts background scan threads when your MacBook runs on low battery to prevent overheating.
 - **Audio Haptic Feedback**: Native Web Audio API sounds for trash emptying and completion chimes (with settings mute toggle).
 - **Appearance & Scaling**: Full support for native macOS Light and Dark mode, plus adjustable UI scaling (Compact, Normal, Large).
@@ -98,8 +106,8 @@ Beberes comes equipped with 12 specialized modules:
 
 Download the latest release for your Mac architecture from the [GitHub Releases](https://github.com/naenmad/Beberes/releases) page:
 
-- **Apple Silicon (M1/M2/M3/M4)**: Download `Beberes_*_aarch64.dmg`
-- **Intel Macs (x86_64)**: Download `Beberes_*_x64.dmg`
+- **Apple Silicon (M1/M2/M3/M4)**: Download `Beberes_1.1.0_aarch64.dmg`
+- **Intel Macs (x86_64)**: Download `Beberes_1.1.0_x64.dmg`
 
 Open the `.dmg` file and drag **Beberes** into your **Applications** folder.
 
@@ -108,15 +116,42 @@ Open the `.dmg` file and drag **Beberes** into your **Applications** folder.
 Install directly in a single command:
 
 ```bash
-brew install --cask naenmad/beberes/beberes
-```
-
-Or add the tap first:
-
-```bash
-brew tap naenmad/beberes
+brew tap naenmad/beberes https://github.com/naenmad/Beberes
 brew install --cask beberes
 ```
+
+---
+
+## Troubleshooting: "Beberes is damaged and can't be opened"
+
+When launching Beberes for the first time on macOS, Gatekeeper may display a security dialog:
+
+> **"Beberes is damaged and can't be opened. You should move it to the Trash."**  
+> *or*  
+> **"Apple cannot check it for malicious software."**
+
+### Why does this happen?
+Beberes is a 100% free and open-source project. Because it is not yet signed with a paid Apple Developer certificate ($99/year), macOS Gatekeeper automatically places newly downloaded binaries into quarantine. **The application is completely safe and not damaged.**
+
+### Solution 1: Terminal Command (Fastest & Recommended)
+Open **Terminal** (`Cmd + Space`, type `Terminal`) and paste the following command:
+
+```bash
+xattr -cr /Applications/Beberes.app
+```
+
+If prompted for administrative privileges, run with `sudo`:
+```bash
+sudo xattr -rd com.apple.quarantine /Applications/Beberes.app
+```
+
+Once executed, open **Beberes** normally from Launchpad or Applications.
+
+### Solution 2: macOS System Settings (GUI)
+1. In **Finder**, open your **/Applications** folder.
+2. **Right-click** (or Control-click) on **Beberes.app** and select **Open**.
+3. In the warning prompt that appears, click the **Open** button.
+4. *Alternatively*: Open **System Settings > Privacy & Security**, scroll down to the **Security** section, and click **Open Anyway**.
 
 ---
 
@@ -154,30 +189,72 @@ brew install --cask beberes
 
 ---
 
-## Architecture
+## Architecture & System Design
 
 Beberes is built with a decoupled client-core architecture:
 
-```text
-+-------------------------------------------------------------+
-|                     React 19 Frontend                       |
-|  Tailwind CSS  |  Zustand Store  |  Lucide SVG  |  i18n     |
-+-------------------------------------------------------------+
-                              |
-                     Tauri v2 IPC Bridge
-                              |
-+-------------------------------------------------------------+
-|                      Rust Core Engine                       |
-|  POSIX statvfs  |  Rayon Scanner  |  Secure Wipe  |  Git GC |
-+-------------------------------------------------------------+
-                              |
-                     macOS Kernel & APIs
-               (APFS, POSIX, osascript, launchctl)
+```mermaid
+graph TD
+    subgraph UI["Frontend Layer (React 19 + TypeScript + Tailwind CSS)"]
+        A[Dashboard & Mac Hygiene Score] --> B[Zustand Central State Store]
+        C[System Clean & Browsers] --> B
+        D[App Uninstaller & Orphaned Leftovers] --> B
+        E[Developer Workspace & Homebrew Pruner] --> B
+        F[Tidy Up & Smart Automation Rules] --> B
+        G[APFS Snapshot & Inactive RAM Purger] --> B
+        H[Disk Visualizer & Quick Review] --> B
+    end
+
+    subgraph IPC["Tauri v2 IPC Bridge"]
+        B <==>|Asynchronous Message Passing| I[Tauri Invoke Handlers]
+    end
+
+    subgraph Rust["Backend Core (Rust Native System Engine)"]
+        I --> J[Parallel Filesystem Scanner / Rayon]
+        I --> K[Apple System Whitelist Validator]
+        I --> L[macOS Memory & APFS Kernel Interface]
+        I --> M[Homebrew & Package CLI Orchestrator]
+        I --> N[POSIX statvfs Disk & Volume Metrics]
+        I --> O[Native macOS Trash & File Shredder]
+    end
+
+    subgraph OS["macOS System Layer"]
+        J --> P[APFS Filesystem / User Library]
+        L --> Q[vm_stat / purge & tmutil Snapshots]
+        M --> R[/opt/homebrew & Global Package Stores]
+        O --> S[~/.Trash & Multi-drive Volumes]
+    end
 ```
 
-- **Statvfs Volume Metrics**: Queries filesystem geometry directly through `libc::statvfs` avoiding high-overhead disk scanning or panics.
-- **Cryptographic File Sanitizer**: Implements thread-safe CSPRNG random overwriting, bitwise inverse complements, hardware cache flushing (`sync_all`), byte zeroing, and inode unlinking.
-- **Safe macOS Trash Integration**: Interacts with the native macOS Trash subsystem to guarantee items can be put back if deleted unintentionally.
+### Safety & Cleaning Pipeline
+
+Every deletion in Beberes undergoes strict safety validation before execution:
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor User as macOS User
+    participant UI as Beberes GUI (React)
+    participant Core as Rust Native Engine
+    participant Guard as System Safety Whitelist
+    participant OS as macOS Filesystem & Kernel
+
+    User->>UI: Click "Bereskan Sekaligus" / "Scan"
+    UI->>Core: invoke('scan_system_directories')
+    Core->>OS: Rayon Multi-threaded Traversal
+    Core->>Guard: Verify path != Apple System Protected
+    Guard-->>Core: Path validated (Safe)
+    Core-->>UI: Return Cleanable Items & Sizes
+    UI-->>User: Display Mac Hygiene Score & Breakdown
+    User->>UI: Confirm Cleanup (Trash / Purge)
+    UI->>Core: invoke('clean_selected_items') + purge RAM
+    Core->>OS: Move items to ~/.Trash & purge inactive RAM
+    Core-->>UI: Return Freed Bytes & Items Count
+    UI-->>User: Visual Haptic Feedback & Updated Health Score
+```
+
+> [!TIP]
+> For extended architecture flowcharts, state machine diagrams, module-to-IPC mapping tables, and safety guardrail matrices, see [docs/MERMAID.md](docs/MERMAID.md) and [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 ---
 
