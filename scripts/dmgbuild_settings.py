@@ -3,7 +3,7 @@ import os
 # Volume name shown in Finder
 volume_name = 'Beberes'
 
-# Compression format
+# Compression format (UDZO is zlib-compressed read-only DMG, native to macOS)
 format = 'UDZO'
 
 # Volume badge icon
@@ -23,11 +23,11 @@ icon_size = 110.0
 # Text label font size
 text_size = 12.0
 
-# Clean Zero-Asset background (inherits macOS native light/dark appearance seamlessly)
-background = None
+# Custom retina multi-resolution background
+background = 'src-tauri/icons/dmg-background.tiff'
 
-# Compact, focused window bounds ((x, y), (width, height))
-window_rect = ((300, 200), (540, 300))
+# Window bounds ((x, y), (width, height))
+window_rect = ((250, 150), (600, 360))
 
 # Default Finder view
 default_view = 'icon-view'
@@ -39,10 +39,10 @@ show_toolbar = False
 show_pathbar = False
 show_sidebar = False
 
-# Symmetrically positioned icons
+# Symmetrically positioned icons matching center arrow and badge
 icon_locations = {
-    'Beberes.app': (145, 120),
-    'Applications': (395, 120),
+    'Beberes.app': (130, 165),
+    'Applications': (470, 165),
 }
 
 # Hide file extension
