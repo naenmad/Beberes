@@ -5,18 +5,20 @@ import {
   scanTrashContents,
   emptyMacTrash,
   deleteSpecificTrashItems,
+  openFullDiskAccessSettings,
   revealInFinder,
   type TrashScanResult,
 } from '../lib/commands';
 import { formatSize } from '../lib/utils';
 import Button from '../components/ui/Button';
+import Checkbox from '../components/ui/Checkbox';
+import FloatingActionBar from '../components/ui/FloatingActionBar';
 import PageHeader from '../components/layout/PageHeader';
 import ConfirmModal from '../components/ui/ConfirmModal';
 import { CardSkeleton } from '../components/ui/SkeletonLoader';
 import {
   Trash2,
   Trash,
-  RefreshCw,
   ExternalLink,
   FolderCheck,
   AppWindow,
@@ -26,11 +28,12 @@ import {
   Archive,
   Package,
   Sparkles,
+  ShieldAlert,
 } from 'lucide-react';
 
 export default function TrashManager() {
   const { t } = useTranslation();
-  const { recordCleanResult } = useAppStore();
+  const { recordCleanResult, globalRefreshTrigger } = useAppStore();
 
   const [isLoading, setIsLoading] = useState(true);
   const [data, setData] = useState<TrashScanResult | null>(null);
@@ -56,7 +59,7 @@ export default function TrashManager() {
 
   useEffect(() => {
     loadData();
-  }, [loadData]);
+  }, [loadData, globalRefreshTrigger]);
 
   // Toggle path
   const togglePath = (path: string) => {
@@ -154,27 +157,15 @@ export default function TrashManager() {
         title={t('trashManager.title', 'Trash Manager')}
         subtitle={t('trashManager.subtitle', 'Inspect your macOS Trash bin, reclaim storage, or safely empty all contents.')}
         actions={
-          <>
-            <Button
-              onClick={loadData}
-              loading={isLoading}
-              variant="secondary"
-              size="sm"
-              icon={<RefreshCw size={13} />}
-            >
-              {isLoading ? t('common.scanning') : t('common.refresh')}
-            </Button>
-
-            <Button
-              variant="danger"
-              size="sm"
-              disabled={!data || data.total_items === 0}
-              onClick={() => setShowEmptyModal(true)}
-              icon={<Trash size={13} />}
-            >
-              {t('trashManager.emptyAll', 'Empty Trash')}
-            </Button>
-          </>
+          <Button
+            variant="danger"
+            size="sm"
+            disabled={!data || data.total_items === 0}
+            onClick={() => setShowEmptyModal(true)}
+            icon={<Trash size={13} />}
+          >
+            {t('trashManager.emptyAll', 'Empty Trash')}
+          </Button>
         }
       />
 
@@ -229,38 +220,57 @@ export default function TrashManager() {
 
       {/* Action bar for selection */}
       {data && data.total_items > 0 && (
-        <div className="p-3 rounded-2xl glass-panel flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
-          <div className="flex items-center gap-3 w-full sm:w-auto">
-            <Button variant="secondary" size="sm" onClick={handleSelectAll}>
-              {selectedPaths.size === data.items.length
-                ? t('common.deselectAll')
-                : t('common.selectAll')}
-            </Button>
-            <span className="text-slate-500 dark:text-neutral-400">
-              <strong>{selectedPaths.size}</strong> {t('common.selected')} (
-              <strong className="text-rose-600 dark:text-rose-400">
-                {formatSize(selectedTotalSize)}
-              </strong>
-              )
-            </span>
-          </div>
-
-          <Button
-            variant="danger"
-            size="sm"
-            disabled={selectedPaths.size === 0}
-            onClick={() => setShowDeleteSelectedModal(true)}
-            icon={<Trash2 size={13} />}
-          >
-            {t('trashManager.deleteSelected', 'Delete Permanently')} ({formatSize(selectedTotalSize)})
+        <div className="flex items-center justify-between gap-3 text-xs">
+          <Button variant="secondary" size="sm" onClick={handleSelectAll}>
+            {selectedPaths.size === data.items.length
+              ? t('common.deselectAll')
+              : t('common.selectAll')}
           </Button>
+          <span className="text-slate-500 dark:text-neutral-400">
+            {data.total_items} items ({formatSize(data.total_size)})
+          </span>
         </div>
       )}
 
-      {/* List of items */}
+      {/* List of items or Empty / Permission State */}
       {isLoading ? (
         <div className="py-12">
           <CardSkeleton />
+        </div>
+      ) : data?.permission_denied ? (
+        <div className="py-10 px-6 text-center rounded-3xl glass-panel max-w-xl mx-auto space-y-4 border border-amber-500/20 bg-amber-500/5">
+          <div className="w-14 h-14 rounded-3xl bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center mx-auto shadow-sm">
+            <ShieldAlert size={30} />
+          </div>
+          <div className="space-y-1.5">
+            <h2 className="text-base font-bold text-slate-800 dark:text-neutral-100">
+              {t('trashManager.fdaRequired', 'Full Disk Access Required')}
+            </h2>
+            <p className="text-xs text-slate-500 dark:text-neutral-400 max-w-md mx-auto leading-relaxed">
+              {t(
+                'trashManager.fdaDesc',
+                'macOS protects the Trash folder from direct scanning. Grant Full Disk Access to Beberes in System Settings to inspect individual files, or click Empty Trash below to safely clear it via Finder.'
+              )}
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+            <Button
+              variant="primary"
+              size="sm"
+              icon={<ExternalLink size={13} />}
+              onClick={() => openFullDiskAccessSettings()}
+            >
+              {t('trashManager.openSettings', 'Open System Settings')}
+            </Button>
+            <Button
+              variant="danger"
+              size="sm"
+              icon={<Trash size={13} />}
+              onClick={() => setShowEmptyModal(true)}
+            >
+              {t('trashManager.emptyAll', 'Empty Trash via Finder')}
+            </Button>
+          </div>
         </div>
       ) : !data || data.total_items === 0 ? (
         <div className="py-16 text-center rounded-3xl glass-panel max-w-md mx-auto space-y-3">
@@ -289,11 +299,9 @@ export default function TrashManager() {
                 }`}
               >
                 <div className="flex items-center gap-3 min-w-0">
-                  <input
-                    type="checkbox"
+                  <Checkbox
                     checked={isSelected}
-                    onChange={() => {}}
-                    className="rounded border-slate-300 text-rose-600 focus:ring-0 shrink-0 cursor-pointer"
+                    onChange={() => togglePath(item.path)}
                   />
                   <div className="w-8 h-8 rounded-xl bg-black/3 dark:bg-white/5 flex items-center justify-center shrink-0">
                     {getItemIcon(item.kind)}
@@ -329,6 +337,17 @@ export default function TrashManager() {
           })}
         </div>
       )}
+
+      {/* Floating Action Bar */}
+      <FloatingActionBar
+        selectedCount={selectedPaths.size}
+        selectedSize={selectedTotalSize}
+        onClean={() => setShowDeleteSelectedModal(true)}
+        onDeselect={() => setSelectedPaths(new Set())}
+        cleanLabel={`${t('trashManager.deleteSelected', 'Delete Permanently')} (${formatSize(selectedTotalSize)})`}
+        actionVariant="danger"
+        showModeBadge={false}
+      />
 
       {/* Empty Entire Trash Modal */}
       <ConfirmModal

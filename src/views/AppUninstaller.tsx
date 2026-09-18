@@ -11,6 +11,7 @@ import {
 import { formatSize } from '../lib/utils';
 import Card, { CardBody } from '../components/ui/Card';
 import Button from '../components/ui/Button';
+import Checkbox from '../components/ui/Checkbox';
 import PageHeader from '../components/layout/PageHeader';
 import ConfirmModal from '../components/ui/ConfirmModal';
 import CleaningFlowModal from '../components/ui/CleaningFlowModal';
@@ -18,7 +19,6 @@ import { CardSkeleton } from '../components/ui/SkeletonLoader';
 import {
   AppWindow,
   Search,
-  RefreshCw,
   Trash2,
   ExternalLink,
   ShieldCheck,
@@ -36,7 +36,7 @@ type SortOption = 'size' | 'name' | 'recent';
 
 export default function AppUninstaller() {
   const { t } = useTranslation();
-  const { deleteToTrash, toggleDeleteToTrash, recordCleanResult } = useAppStore();
+  const { deleteToTrash, recordCleanResult, globalRefreshTrigger } = useAppStore();
 
   const [apps, setApps] = useState<AppItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -82,7 +82,7 @@ export default function AppUninstaller() {
 
   useEffect(() => {
     runScan();
-  }, []);
+  }, [globalRefreshTrigger]);
 
   const toggleExpand = (appId: string) => {
     setExpandedAppIds((prev) => {
@@ -213,28 +213,6 @@ export default function AppUninstaller() {
           <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400">
             {t('apps.installedCount', '{count} installed', { count: apps.length })}
           </span>
-        }
-        actions={
-          <>
-            <button
-              onClick={toggleDeleteToTrash}
-              title="Toggle delete mode"
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold glass-panel text-slate-700 dark:text-neutral-200 cursor-pointer hover:border-blue-500/40 transition-colors"
-            >
-              <Trash2 size={13} className={deleteToTrash ? 'text-blue-500' : 'text-rose-500'} />
-              <span>{t('common.mode')}: {deleteToTrash ? t('common.trashMode') : t('common.directDelete')}</span>
-            </button>
-
-            <Button
-              onClick={runScan}
-              loading={isLoading}
-              variant="secondary"
-              size="sm"
-              icon={<RefreshCw size={13} />}
-            >
-              {isLoading ? t('common.scanning') : t('common.refresh')}
-            </Button>
-          </>
         }
       />
 
@@ -516,11 +494,9 @@ export default function AppUninstaller() {
                               className="flex items-center justify-between text-xs py-1.5 px-2 rounded-lg hover:bg-black/2 dark:hover:bg-white/4 cursor-pointer transition-colors"
                             >
                               <div className="flex items-center gap-2 truncate min-w-0">
-                                <input
-                                  type="checkbox"
+                                <Checkbox
                                   checked={isChecked}
                                   onChange={() => toggleLeftoverSelection(app.id, item.path)}
-                                  className="rounded text-blue-600 focus:ring-blue-500 shrink-0"
                                 />
                                 <span className="px-1.5 py-0.5 rounded text-[9px] font-semibold bg-slate-100 dark:bg-neutral-700 text-slate-600 dark:text-neutral-300 capitalize shrink-0">
                                   {item.kind.replace('_', ' ')}

@@ -10,6 +10,8 @@ import {
 } from '../lib/commands';
 import { formatSize } from '../lib/utils';
 import Button from '../components/ui/Button';
+import Checkbox from '../components/ui/Checkbox';
+import FloatingActionBar from '../components/ui/FloatingActionBar';
 import PageHeader from '../components/layout/PageHeader';
 import ConfirmModal from '../components/ui/ConfirmModal';
 import { CardSkeleton } from '../components/ui/SkeletonLoader';
@@ -17,8 +19,6 @@ import {
   Copy,
   HardDrive,
   Clock,
-  Trash2,
-  RefreshCw,
   ExternalLink,
   Layers,
   FileText,
@@ -34,7 +34,7 @@ type FinderTab = 'large' | 'duplicates' | 'old';
 
 export default function LargeAndDuplicates() {
   const { t } = useTranslation();
-  const { deleteToTrash, toggleDeleteToTrash, recordCleanResult } = useAppStore();
+  const { deleteToTrash, recordCleanResult, globalRefreshTrigger } = useAppStore();
 
   const [activeTab, setActiveTab] = useState<FinderTab>('large');
   const [minLargeSizeMb, setMinLargeSizeMb] = useState<number>(100);
@@ -63,7 +63,7 @@ export default function LargeAndDuplicates() {
 
   useEffect(() => {
     loadData(minLargeSizeMb);
-  }, [minLargeSizeMb]);
+  }, [minLargeSizeMb, globalRefreshTrigger, loadData]);
 
   // Toggle single path selection
   const togglePath = (path: string) => {
@@ -203,30 +203,6 @@ export default function LargeAndDuplicates() {
         iconColor="text-violet-500"
         title={t('largeDuplicates.title', 'Large & Duplicate Files')}
         subtitle={t('largeDuplicates.subtitle', 'Reclaim gigabytes by hunting down massive files, duplicate copies, and forgotten items.')}
-        actions={
-          <>
-            <button
-              type="button"
-              onClick={toggleDeleteToTrash}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold glass-panel text-slate-700 dark:text-neutral-200 cursor-pointer hover:border-violet-500/40 transition-colors"
-            >
-              <Trash2 size={13} className={deleteToTrash ? 'text-blue-500' : 'text-rose-500'} />
-              <span>
-                {t('common.mode')}: {deleteToTrash ? t('common.trashMode') : t('common.directDelete')}
-              </span>
-            </button>
-
-            <Button
-              onClick={() => loadData(minLargeSizeMb)}
-              loading={isLoading}
-              variant="secondary"
-              size="sm"
-              icon={<RefreshCw size={13} />}
-            >
-              {isLoading ? t('common.scanning') : t('common.refresh')}
-            </Button>
-          </>
-        }
       />
 
       {/* Tabs & Filter Header */}
@@ -331,9 +307,9 @@ export default function LargeAndDuplicates() {
         </div>
       </div>
 
-      {/* Floating Sticky Action Bar for Selection */}
-      <div className="p-3 rounded-2xl glass-panel flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
-        <div className="flex items-center gap-3 w-full sm:w-auto">
+      {/* Selection Subheader */}
+      {selectedPaths.size > 0 && (
+        <div className="flex items-center justify-between gap-3 text-xs">
           <Button
             variant="secondary"
             size="sm"
@@ -343,24 +319,10 @@ export default function LargeAndDuplicates() {
           </Button>
 
           <span className="text-slate-500 dark:text-neutral-400">
-            <strong>{selectedPaths.size}</strong> {t('common.selected')} (
-            <strong className="text-blue-600 dark:text-blue-400">
-              {formatSize(selectedTotalSize)}
-            </strong>
-            )
+            <strong>{selectedPaths.size}</strong> {t('common.selected')} ({formatSize(selectedTotalSize)})
           </span>
         </div>
-
-        <Button
-          variant="danger"
-          size="sm"
-          disabled={selectedPaths.size === 0}
-          onClick={() => setShowConfirmModal(true)}
-          icon={<Trash2 size={13} />}
-        >
-          {deleteToTrash ? t('common.trashMode') : t('common.delete')} ({formatSize(selectedTotalSize)})
-        </Button>
-      </div>
+      )}
 
       {/* Main Content Area */}
       {isLoading ? (
@@ -394,11 +356,9 @@ export default function LargeAndDuplicates() {
                   }`}
                 >
                   <div className="flex items-center gap-3 min-w-0">
-                    <input
-                      type="checkbox"
+                    <Checkbox
                       checked={isSelected}
-                      onChange={() => {}}
-                      className="rounded border-slate-300 text-blue-600 focus:ring-0 shrink-0 cursor-pointer"
+                      onChange={() => togglePath(file.path)}
                     />
                     <div className="w-8 h-8 rounded-xl bg-black/3 dark:bg-white/5 flex items-center justify-center shrink-0">
                       {getKindIcon(file.kind)}
@@ -481,11 +441,9 @@ export default function LargeAndDuplicates() {
                         }`}
                       >
                         <div className="flex items-center gap-2.5 min-w-0">
-                          <input
-                            type="checkbox"
+                          <Checkbox
                             checked={isSelected}
-                            onChange={() => {}}
-                            className="rounded border-slate-300 text-blue-600 focus:ring-0 shrink-0 cursor-pointer"
+                            onChange={() => togglePath(item.path)}
                           />
                           <div className="min-w-0">
                             <p className="text-xs font-medium truncate">{item.path}</p>
@@ -546,11 +504,9 @@ export default function LargeAndDuplicates() {
                   }`}
                 >
                   <div className="flex items-center gap-3 min-w-0">
-                    <input
-                      type="checkbox"
+                    <Checkbox
                       checked={isSelected}
-                      onChange={() => {}}
-                      className="rounded border-slate-300 text-blue-600 focus:ring-0 shrink-0 cursor-pointer"
+                      onChange={() => togglePath(file.path)}
                     />
                     <div className="w-8 h-8 rounded-xl bg-black/3 dark:bg-white/5 flex items-center justify-center shrink-0">
                       {getKindIcon(file.kind)}
@@ -587,6 +543,14 @@ export default function LargeAndDuplicates() {
           )}
         </div>
       )}
+
+      {/* Floating Action Bar */}
+      <FloatingActionBar
+        selectedCount={selectedPaths.size}
+        selectedSize={selectedTotalSize}
+        onClean={() => setShowConfirmModal(true)}
+        onDeselect={() => setSelectedPaths(new Set())}
+      />
 
       {/* Confirmation Modal */}
       <ConfirmModal

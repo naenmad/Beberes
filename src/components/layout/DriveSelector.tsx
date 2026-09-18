@@ -25,6 +25,7 @@ export default function DriveSelector({ isCollapsed }: DriveSelectorProps) {
 
   const [isOpen, setIsOpen] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [hoveredTooltip, setHoveredTooltip] = useState<{ x: number; y: number } | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Auto-detect and refresh drives on mount and periodically
@@ -133,26 +134,45 @@ export default function DriveSelector({ isCollapsed }: DriveSelectorProps) {
         </button>
       ) : (
         /* Collapsed Mode Trigger */
-        <button
-          type="button"
-          onClick={() => setIsOpen(!isOpen)}
-          title={`${activeDisk.name} (${formatSize(activeDisk.freeSpace)} free)`}
-          className={`
-            w-full flex items-center justify-center p-2.5 rounded-xl cursor-pointer
-            transition-all duration-150 relative
-            ${isOpen ? 'bg-blue-500/15 text-blue-500' : 'text-slate-600 dark:text-neutral-400 hover:bg-black/4 dark:hover:bg-white/6'}
-          `}
-        >
-          {activeDisk.isRemovable ? (
-            <Usb size={16} className="text-amber-500 shrink-0" />
-          ) : (
-            <HardDrive size={16} className="shrink-0" />
-          )}
+        <>
+          <button
+            type="button"
+            onClick={() => {
+              setHoveredTooltip(null);
+              setIsOpen(!isOpen);
+            }}
+            onMouseEnter={(e) => {
+              if (!isCollapsed || isOpen) return;
+              const rect = e.currentTarget.getBoundingClientRect();
+              setHoveredTooltip({ x: rect.right + 10, y: rect.top + rect.height / 2 });
+            }}
+            onMouseLeave={() => setHoveredTooltip(null)}
+            className={`
+              w-full flex items-center justify-center p-2.5 rounded-xl cursor-pointer
+              transition-all duration-150 relative
+              ${isOpen ? 'bg-blue-500/15 text-blue-500' : 'text-slate-600 dark:text-neutral-400 hover:bg-black/4 dark:hover:bg-white/6'}
+            `}
+          >
+            {activeDisk.isRemovable ? (
+              <Usb size={16} className="text-amber-500 shrink-0" />
+            ) : (
+              <HardDrive size={16} className="shrink-0" />
+            )}
 
-          {activeDisk.isRemovable && (
-            <span className="absolute bottom-1 right-1 w-1.5 h-1.5 rounded-full bg-amber-500 ring-2 ring-white dark:ring-neutral-900" />
+            {activeDisk.isRemovable && (
+              <span className="absolute bottom-1 right-1 w-1.5 h-1.5 rounded-full bg-amber-500 ring-2 ring-white dark:ring-neutral-900" />
+            )}
+          </button>
+
+          {isCollapsed && !isOpen && hoveredTooltip && (
+            <div
+              style={{ left: `${hoveredTooltip.x}px`, top: `${hoveredTooltip.y}px` }}
+              className="fixed -translate-y-1/2 z-50 pointer-events-none whitespace-nowrap rounded-xl px-2.5 py-1 text-xs font-semibold bg-slate-900/90 text-white dark:bg-neutral-800/95 dark:text-white shadow-xl border border-black/10 dark:border-white/10 backdrop-blur-xl animate-fade-in"
+            >
+              {activeDisk.name} ({formatSize(activeDisk.freeSpace)} {t('common.free', 'free')})
+            </div>
           )}
-        </button>
+        </>
       )}
 
       {/* Dropdown Floating Menu */}

@@ -3,7 +3,6 @@ import { useAppStore } from '../store/appStore';
 import { useTranslation } from '../lib/i18n';
 import { scanDirectoryTree, revealInFinder, type DiskTreeNode } from '../lib/commands';
 import { formatSize } from '../lib/utils';
-import Button from '../components/ui/Button';
 import PageHeader from '../components/layout/PageHeader';
 import { CardSkeleton } from '../components/ui/SkeletonLoader';
 import {
@@ -12,7 +11,6 @@ import {
   File,
   ChevronRight,
   FolderOpen,
-  RefreshCw,
   ExternalLink,
   ArrowUp,
 } from 'lucide-react';
@@ -30,7 +28,7 @@ const tileColors = [
 
 export default function DiskVisualizer() {
   const { t } = useTranslation();
-  const { selectedDiskMount } = useAppStore();
+  const { selectedDiskMount, globalRefreshTrigger } = useAppStore();
 
   const [currentPath, setCurrentPath] = useState<string>(selectedDiskMount || '/');
   const [history, setHistory] = useState<string[]>([]);
@@ -53,7 +51,7 @@ export default function DiskVisualizer() {
     setCurrentPath(selectedDiskMount);
     setHistory([]);
     loadTree(selectedDiskMount);
-  }, [selectedDiskMount, loadTree]);
+  }, [selectedDiskMount, loadTree, globalRefreshTrigger]);
 
   const handleNavigateInto = (node: DiskTreeNode) => {
     if (!node.isDir) return;
@@ -96,17 +94,6 @@ export default function DiskVisualizer() {
               {formatSize(rootNode.size)} ({rootNode.fileCount} files)
             </span>
           ) : undefined
-        }
-        actions={
-          <Button
-            onClick={() => loadTree(currentPath)}
-            loading={isLoading}
-            variant="secondary"
-            size="sm"
-            icon={<RefreshCw size={13} />}
-          >
-            {isLoading ? t('common.scanning') : t('common.refresh')}
-          </Button>
         }
       />
 

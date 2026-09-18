@@ -16,7 +16,6 @@ import { CardSkeleton } from '../components/ui/SkeletonLoader';
 import {
   GitBranch,
   FolderGit2,
-  RefreshCw,
   Folder,
   ExternalLink,
   Sparkles,
@@ -28,7 +27,7 @@ import {
 
 export default function GitSweeper() {
   const { t } = useTranslation();
-  const { recordCleanResult } = useAppStore();
+  const { recordCleanResult, globalRefreshTrigger } = useAppStore();
 
   const [isLoading, setIsLoading] = useState(true);
   const [repos, setRepos] = useState<GitRepoItem[]>([]);
@@ -52,8 +51,8 @@ export default function GitSweeper() {
   }, []);
 
   useEffect(() => {
-    loadData();
-  }, [loadData]);
+    loadData(searchRoot || undefined);
+  }, [loadData, searchRoot, globalRefreshTrigger]);
 
   // Pick custom folder root
   const handleSelectRoot = async () => {
@@ -156,16 +155,6 @@ export default function GitSweeper() {
               icon={<Folder size={13} />}
             >
               {searchRoot ? searchRoot.split('/').pop() : t('gitSweeper.changeFolder', 'Select Folder')}
-            </Button>
-
-            <Button
-              onClick={() => loadData(searchRoot || undefined)}
-              loading={isLoading}
-              variant="secondary"
-              size="sm"
-              icon={<RefreshCw size={13} />}
-            >
-              {isLoading ? t('common.scanning', 'Scanning...') : t('common.refresh', 'Refresh')}
             </Button>
 
             <Button

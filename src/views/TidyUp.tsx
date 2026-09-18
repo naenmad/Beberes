@@ -11,6 +11,7 @@ import {
 import type { TidyScanResult } from '../lib/commands';
 import { formatSize } from '../lib/utils';
 import Button from '../components/ui/Button';
+import FloatingActionBar from '../components/ui/FloatingActionBar';
 import PageHeader from '../components/layout/PageHeader';
 import Checkbox from '../components/ui/Checkbox';
 import ConfirmModal from '../components/ui/ConfirmModal';
@@ -20,7 +21,6 @@ import {
   FolderTree,
   FolderOpen,
   Trash2,
-  RefreshCw,
   Search,
   ExternalLink,
   CheckSquare,
@@ -80,7 +80,7 @@ type ActiveTargetTab = 'downloads' | 'desktop' | 'custom';
 
 export default function TidyUp() {
   const { t } = useTranslation();
-  const { deleteToTrash, recordCleanResult } = useAppStore();
+  const { deleteToTrash, recordCleanResult, globalRefreshTrigger } = useAppStore();
 
   const [activeTab, setActiveTab] = useState<ActiveTargetTab>('downloads');
   const [customPath, setCustomPath] = useState('');
@@ -124,7 +124,7 @@ export default function TidyUp() {
 
   useEffect(() => {
     runScan(currentPath);
-  }, [activeTab, customPath]);
+  }, [activeTab, customPath, globalRefreshTrigger]);
 
   const handlePickCustomFolder = async () => {
     const chosen = await pickFolder();
@@ -280,17 +280,6 @@ export default function TidyUp() {
         iconColor="text-blue-500"
         title={t('tidyUp.title')}
         subtitle={t('tidyUp.subtitle')}
-        actions={
-          <Button
-            onClick={() => runScan(currentPath)}
-            loading={isLoading}
-            icon={<RefreshCw size={14} />}
-            variant="secondary"
-            size="sm"
-          >
-            {isLoading ? t('common.scanning') : t('common.refresh')}
-          </Button>
-        }
       />
 
       {/* Target Directory Switcher */}
@@ -529,32 +518,17 @@ export default function TidyUp() {
         </div>
       )}
 
-      {/* Sticky Bottom Action Bar */}
-      {selectedItems.length > 0 && (
-        <div className="sticky bottom-0 -mx-8 px-8 py-3.5 glass-panel border-t border-black/6 dark:border-white/8 shadow-lg">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 max-w-6xl mx-auto">
-            <div className="flex items-center gap-2 text-xs font-bold text-slate-800 dark:text-neutral-200">
-              <FolderTree size={15} className="text-blue-500" />
-              <span>
-                {t('tidyUp.selectedFiles', '{count} files selected ({size})', {
-                  count: selectedItems.length,
-                  size: formatSize(selectedSize),
-                })}
-              </span>
-            </div>
-
-            <Button
-              onClick={() => setShowOrganizeModal(true)}
-              loading={isProcessingAction}
-              variant="primary"
-              size="sm"
-              icon={<FolderTree size={14} />}
-            >
-              {t('tidyUp.organizeIntoFolders', 'Organize into Folders ({count} files)', { count: selectedItems.length })}
-            </Button>
-          </div>
-        </div>
-      )}
+      {/* Floating Action Bar */}
+      <FloatingActionBar
+        selectedCount={selectedItems.length}
+        selectedSize={selectedSize}
+        onClean={() => setShowOrganizeModal(true)}
+        isCleaning={isProcessingAction}
+        onDeselect={() => setSelectedItemIds(new Set())}
+        cleanLabel={t('tidyUp.organizeIntoFolders', 'Organize into Folders ({count} files)', { count: selectedItems.length })}
+        actionVariant="primary"
+        showModeBadge={false}
+      />
 
       {/* Confirm Organize Modal */}
       <ConfirmModal

@@ -7,13 +7,12 @@ import {
   revealInFinder,
   type StartupItem,
 } from '../lib/commands';
-import Button from '../components/ui/Button';
+import { useAppStore } from '../store/appStore';
 import PageHeader from '../components/layout/PageHeader';
 import ConfirmModal from '../components/ui/ConfirmModal';
 import { CardSkeleton } from '../components/ui/SkeletonLoader';
 import {
   Zap,
-  RefreshCw,
   Search,
   ExternalLink,
   Trash2,
@@ -29,6 +28,7 @@ type FilterScope = 'all' | 'user' | 'system' | 'enabled' | 'disabled';
 
 export default function StartupManager() {
   const { t } = useTranslation();
+  const { globalRefreshTrigger } = useAppStore();
 
   const [isLoading, setIsLoading] = useState(true);
   const [items, setItems] = useState<StartupItem[]>([]);
@@ -53,28 +53,39 @@ export default function StartupManager() {
 
   useEffect(() => {
     loadData();
-  }, [loadData]);
+  }, [loadData, globalRefreshTrigger]);
 
-  // Toggle item state
+  // Toggle item state with optimistic UI update
   const handleToggle = async (item: StartupItem) => {
+    const targetState = !item.isEnabled;
+    const previousItems = [...items];
+
+    // Optimistic update: flip switch immediately
+    setItems((prev) =>
+      prev.map((i) =>
+        i.id === item.id
+          ? {
+              ...i,
+              isEnabled: targetState,
+              path: targetState
+                ? i.path.replace(/\.disabled$/, '')
+                : (i.path.endsWith('.disabled') ? i.path : `${i.path}.disabled`),
+            }
+          : i
+      )
+    );
+
     setIsProcessing(true);
     try {
-      const success = await toggleStartupItem(item.path, !item.isEnabled);
-      if (success) {
-        setItems((prev) =>
-          prev.map((i) =>
-            i.id === item.id
-              ? {
-                  ...i,
-                  isEnabled: !i.isEnabled,
-                  path: !i.isEnabled ? i.path.replace(/\.disabled$/, '') : (i.path.endsWith('.disabled') ? i.path : `${i.path}.disabled`),
-                }
-              : i
-          )
-        );
+      const success = await toggleStartupItem(item.path, targetState);
+      if (!success) {
+        // Revert if backend indicated failure
+        setItems(previousItems);
       }
     } catch (err) {
       console.error('Failed to toggle startup item:', err);
+      // Revert on error
+      setItems(previousItems);
     } finally {
       setIsProcessing(false);
     }
@@ -134,17 +145,6 @@ export default function StartupManager() {
         iconColor="text-amber-500"
         title={t('startupManager.title', 'Startup & Background Services')}
         subtitle={t('startupManager.subtitle', 'Inspect and control macOS LaunchAgents and LaunchDaemons to speed up boot times and reduce background overhead.')}
-        actions={
-          <Button
-            onClick={loadData}
-            loading={isLoading}
-            variant="secondary"
-            size="sm"
-            icon={<RefreshCw size={13} />}
-          >
-            {isLoading ? t('common.scanning', 'Scanning...') : t('common.refresh', 'Refresh')}
-          </Button>
-        }
       />
 
       {/* Quick Stats Grid */}

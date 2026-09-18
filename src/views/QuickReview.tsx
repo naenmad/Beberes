@@ -55,7 +55,7 @@ interface UndoAction {
 
 export default function QuickReview() {
   const { t } = useTranslation();
-  const { deleteToTrash, toggleDeleteToTrash, recordCleanResult } = useAppStore();
+  const { deleteToTrash, recordCleanResult, globalRefreshTrigger } = useAppStore();
 
   // Target directory & filter
   const [targetDir, setTargetDir] = useState<ReviewTargetDir>('downloads');
@@ -116,7 +116,7 @@ export default function QuickReview() {
 
   useEffect(() => {
     loadDirectory(currentDirStr, filter);
-  }, [targetDir, customPath, filter]);
+  }, [targetDir, customPath, filter, globalRefreshTrigger]);
 
   // Current active item
   const currentItem = useMemo(() => {
@@ -450,35 +450,6 @@ export default function QuickReview() {
           <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-600 dark:text-purple-400">
             {items.length} {t('quickReview.filesInQueue')}
           </span>
-        }
-        actions={
-          <>
-            <button
-              type="button"
-              onClick={toggleDeleteToTrash}
-              title={
-                deleteToTrash
-                  ? 'Current: Move to macOS Trash (can be restored)'
-                  : 'Current: Direct Delete (instantly frees storage)'
-              }
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold glass-panel text-slate-700 dark:text-neutral-200 cursor-pointer hover:border-purple-500/40 transition-colors"
-            >
-              <Trash2 size={13} className={deleteToTrash ? 'text-blue-500' : 'text-rose-500'} />
-              <span>
-                {t('common.mode')}: {deleteToTrash ? t('common.trashMode') : t('common.directDelete')}
-              </span>
-            </button>
-
-            <Button
-              onClick={() => loadDirectory(currentDirStr, filter)}
-              loading={isLoading}
-              variant="secondary"
-              size="sm"
-              icon={<RefreshCw size={13} />}
-            >
-              {isLoading ? t('common.scanning') : t('common.refresh')}
-            </Button>
-          </>
         }
       />
 

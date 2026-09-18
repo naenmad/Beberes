@@ -6,6 +6,7 @@ import { formatSize } from '../lib/utils';
 import Card, { CardHeader, CardBody } from '../components/ui/Card';
 import Checkbox from '../components/ui/Checkbox';
 import Button from '../components/ui/Button';
+import FloatingActionBar from '../components/ui/FloatingActionBar';
 import PageHeader from '../components/layout/PageHeader';
 import ConfirmModal from '../components/ui/ConfirmModal';
 import CleaningFlowModal from '../components/ui/CleaningFlowModal';
@@ -13,8 +14,6 @@ import { CardSkeleton } from '../components/ui/SkeletonLoader';
 import {
   FolderOpen,
   Trash2,
-  RefreshCw,
-  AlertTriangle,
   ChevronDown,
   ChevronRight,
   Sparkles,
@@ -26,7 +25,7 @@ import {
   Square,
   Filter,
 } from 'lucide-react';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 
 const categoryIcons: Record<string, React.ReactNode> = {
   system_cache: <FolderOpen size={18} className="text-blue-500" />,
@@ -47,13 +46,13 @@ export default function SystemClean() {
     isCleaning,
     setIsCleaning,
     deleteToTrash,
-    toggleDeleteToTrash,
     toggleCategorySelection,
     toggleItemSelection,
     selectAll,
     getSelectedSize,
     getSelectedItems,
     recordCleanResult,
+    globalRefreshTrigger,
   } = useAppStore();
 
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
@@ -91,6 +90,10 @@ export default function SystemClean() {
       setIsScanning(false);
     }
   };
+
+  useEffect(() => {
+    runScan();
+  }, [globalRefreshTrigger]);
 
   const handleCleanClick = () => {
     if (selectedItems.length === 0) return;
@@ -162,28 +165,6 @@ export default function SystemClean() {
               {t('systemClean.itemsCount', '{count} items', { count: totalItemsCount })}
             </span>
           ) : undefined
-        }
-        actions={
-          <>
-            <button
-              onClick={toggleDeleteToTrash}
-              title="Toggle delete mode"
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold glass-panel text-slate-700 dark:text-neutral-200 cursor-pointer hover:border-blue-500/40 transition-colors"
-            >
-              <Trash2 size={13} className={deleteToTrash ? 'text-blue-500' : 'text-rose-500'} />
-              <span>{t('common.mode')}: {deleteToTrash ? t('common.trashMode') : t('common.directDelete')}</span>
-            </button>
-
-            <Button
-              onClick={runScan}
-              loading={isScanning}
-              icon={<RefreshCw size={14} />}
-              variant="secondary"
-              size="sm"
-            >
-              {isScanning ? t('common.scanning') : t('systemClean.scanButton')}
-            </Button>
-          </>
         }
       />
 
@@ -345,47 +326,14 @@ export default function SystemClean() {
         </div>
       )}
 
-      {/* Sticky Clean Bar */}
-      {selectedItems.length > 0 && (
-        <div className="sticky bottom-0 -mx-8 px-8 py-3.5 glass-panel border-t border-black/6 dark:border-white/8 shadow-lg">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 max-w-6xl mx-auto">
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2 text-xs font-bold text-slate-800 dark:text-neutral-200">
-                <AlertTriangle size={15} className="text-amber-500" />
-                <span>
-                  {selectedItems.length} {t('common.selected')} ({formatSize(selectedSize)})
-                </span>
-              </div>
-
-              <button
-                type="button"
-                onClick={toggleDeleteToTrash}
-                title="Click to toggle between macOS Trash and Direct Permanent Delete"
-                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border transition-colors cursor-pointer ${
-                  deleteToTrash
-                    ? 'bg-blue-500/10 text-blue-600 border-blue-500/30 dark:text-blue-400'
-                    : 'bg-rose-500/10 text-rose-600 border-rose-500/30 dark:text-rose-400'
-                }`}
-              >
-                <Trash2 size={11} />
-                <span>{t('common.mode')}: {deleteToTrash ? t('common.trashMode') : t('common.directDelete')}</span>
-              </button>
-            </div>
-
-            <Button
-              onClick={handleCleanClick}
-              loading={isCleaning}
-              variant={deleteToTrash ? 'primary' : 'danger'}
-              size="sm"
-              icon={<Trash2 size={14} />}
-            >
-              {deleteToTrash
-                ? `${t('systemClean.cleanToTrash')} (${formatSize(selectedSize)})`
-                : `${t('systemClean.cleanSelected')} (${formatSize(selectedSize)})`}
-            </Button>
-          </div>
-        </div>
-      )}
+      {/* Floating Action Bar */}
+      <FloatingActionBar
+        selectedCount={selectedItems.length}
+        selectedSize={selectedSize}
+        onClean={handleCleanClick}
+        isCleaning={isCleaning}
+        onDeselect={() => selectAll('system', false)}
+      />
 
       {/* Confirmation Modal */}
       <ConfirmModal

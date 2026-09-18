@@ -17,7 +17,6 @@ import {
   Sparkles,
   Code2,
   ArrowRight,
-  RefreshCw,
   Award,
   History,
   Clock,
@@ -53,6 +52,7 @@ export default function Dashboard() {
     cleanHistory,
     recordCleanResult,
     deleteToTrash,
+    globalRefreshTrigger,
   } = useAppStore();
 
   const [quickCleanResult, setQuickCleanResult] = useState<CleanResult | null>(null);
@@ -125,7 +125,7 @@ export default function Dashboard() {
   useEffect(() => {
     refreshDisks();
     runFullScan();
-  }, [selectedDiskMount]);
+  }, [selectedDiskMount, globalRefreshTrigger]);
 
   return (
     <div className="space-y-6 animate-fade-in pb-16">
@@ -165,16 +165,6 @@ export default function Dashboard() {
                 {t('dashboard.smartClean')} ({formatSize(totalCleanable)})
               </Button>
             )}
-
-            <Button
-              onClick={runFullScan}
-              loading={isScanning}
-              variant="primary"
-              size="sm"
-              icon={<RefreshCw size={14} />}
-            >
-              {t('dashboard.scanSystem')}
-            </Button>
           </>
         }
       />

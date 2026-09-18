@@ -22,6 +22,7 @@ pub struct TrashScanResult {
     pub total_size: u64,
     pub items: Vec<TrashItem>,
     pub category_sizes: std::collections::HashMap<String, u64>,
+    pub permission_denied: bool,
 }
 
 fn get_home_dir() -> PathBuf {
@@ -71,6 +72,7 @@ pub async fn scan_trash_contents() -> Result<TrashScanResult, String> {
             total_size: 0,
             items: Vec::new(),
             category_sizes: std::collections::HashMap::new(),
+            permission_denied: false,
         });
     }
 
@@ -78,11 +80,13 @@ pub async fn scan_trash_contents() -> Result<TrashScanResult, String> {
         Ok(e) => e,
         Err(err) => {
             eprintln!("Notice: Unable to directly read ~/.Trash: {}. Full Disk Access may be needed.", err);
+            let is_perm_denied = err.kind() == std::io::ErrorKind::PermissionDenied || err.raw_os_error() == Some(1);
             return Ok(TrashScanResult {
                 total_items: 0,
                 total_size: 0,
                 items: Vec::new(),
                 category_sizes: std::collections::HashMap::new(),
+                permission_denied: is_perm_denied,
             });
         }
     };
@@ -139,6 +143,7 @@ pub async fn scan_trash_contents() -> Result<TrashScanResult, String> {
         total_size,
         items,
         category_sizes,
+        permission_denied: false,
     })
 }
 
@@ -199,4 +204,13 @@ fn md5_hash(input: &str) -> u64 {
     let mut s = DefaultHasher::new();
     s.write(input.as_bytes());
     s.finish()
+}
+
+#[tauri::command]
+pub fn open_full_disk_access_settings() -> Result<(), String> {
+    let _ = std::process::Command::new("open")
+        .arg("x-apple.systempreferences:com.apple.preference.security?Privacy_AllFiles")
+        .spawn()
+        .map_err(|e| e.to_string())?;
+    Ok(())
 }

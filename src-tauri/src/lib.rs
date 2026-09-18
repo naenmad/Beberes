@@ -12,7 +12,10 @@ use commands::scanner::{
 };
 use commands::shredder::shred_paths;
 use commands::startup::{delete_startup_item, scan_startup_items, toggle_startup_item};
-use commands::trash::{delete_specific_trash_items, empty_mac_trash, scan_trash_contents};
+use commands::trash::{
+    delete_specific_trash_items, empty_mac_trash, open_full_disk_access_settings,
+    scan_trash_contents,
+};
 use commands::uninstaller::{scan_installed_apps, uninstall_app};
 use commands::visualizer::scan_directory_tree;
 
@@ -45,6 +48,7 @@ pub fn run() {
             scan_trash_contents,
             empty_mac_trash,
             delete_specific_trash_items,
+            open_full_disk_access_settings,
             scan_directory_tree,
             scan_startup_items,
             toggle_startup_item,

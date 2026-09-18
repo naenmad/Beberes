@@ -137,10 +137,10 @@ pub fn toggle_startup_item(path: String, enable: bool) -> Result<bool, String> {
         let _ = Command::new("launchctl").arg("unload").arg(&file_str).output();
         let new_path = format!("{}.disabled", file_str);
         fs::rename(&file_path, &new_path).map_err(|e| e.to_string())?;
-        return Ok(false);
+        return Ok(true);
     }
 
-    Ok(enable)
+    Ok(true)
 }
 
 #[tauri::command]
