@@ -1,4 +1,5 @@
 import { invoke } from '@tauri-apps/api/core';
+import { open as openDialog } from '@tauri-apps/plugin-dialog';
 import type { ScanCategory, DiskInfo, DiskDetail } from '../store/appStore';
 export type { DiskDetail };
 
@@ -112,14 +113,26 @@ export async function scanCustomPaths(paths: string[]): Promise<ScanCategory[]> 
  * Open native system folder picker dialog and return chosen path (or null if cancelled).
  */
 export async function pickFolder(): Promise<string | null> {
-  return await invoke<string | null>('pick_folder');
+  const selected = await openDialog({
+    directory: true,
+    multiple: false,
+    title: 'Select Directory',
+  });
+  if (!selected) return null;
+  return Array.isArray(selected) ? (selected[0] ?? null) : selected;
 }
 
 /**
  * Open native system file picker dialog allowing multiple selection.
  */
 export async function pickFiles(): Promise<string[]> {
-  return await invoke<string[]>('pick_files');
+  const selected = await openDialog({
+    directory: false,
+    multiple: true,
+    title: 'Select Files to Shred',
+  });
+  if (!selected) return [];
+  return Array.isArray(selected) ? selected : [selected];
 }
 
 /**

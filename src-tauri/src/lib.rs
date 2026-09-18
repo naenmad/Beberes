@@ -30,6 +30,7 @@ fn exit_app(app: tauri::AppHandle) {
 pub fn run() {
     let app = tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_dialog::init())
         .on_window_event(|window, event| {
             if let tauri::WindowEvent::CloseRequested { api, .. } = event {
                 #[cfg(target_os = "macos")]
