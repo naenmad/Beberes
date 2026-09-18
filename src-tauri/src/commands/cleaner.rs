@@ -89,6 +89,43 @@ pub fn pick_folder() -> Result<Option<String>, String> {
     }
 }
 
+/// Open native system file picker allowing multiple selection.
+#[tauri::command]
+pub fn pick_files() -> Result<Vec<String>, String> {
+    #[cfg(target_os = "macos")]
+    {
+        let script = r#"
+            set selectedFiles to choose file with prompt "Select Files to Shred" with multiple selections allowed
+            set output to ""
+            repeat with aFile in selectedFiles
+                set output to output & (POSIX path of aFile) & linefeed
+            end repeat
+            return output
+        "#;
+        let output = std::process::Command::new("osascript")
+            .arg("-e")
+            .arg(script)
+            .output()
+            .map_err(|e| format!("Failed to open file picker: {}", e))?;
+
+        if output.status.success() {
+            let out_str = String::from_utf8_lossy(&output.stdout);
+            let paths: Vec<String> = out_str
+                .lines()
+                .map(|l| l.trim().to_string())
+                .filter(|l| !l.is_empty())
+                .collect();
+            Ok(paths)
+        } else {
+            Ok(vec![])
+        }
+    }
+    #[cfg(not(target_os = "macos"))]
+    {
+        Ok(vec![])
+    }
+}
+
 /// Clean selected items by their file paths (supports dry_run simulation).
 ///
 /// Performs safety checks:

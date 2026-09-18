@@ -23,6 +23,10 @@ import {
   ArrowUpDown,
   RefreshCw,
   Info,
+  PieChart,
+  Zap,
+  ShieldAlert,
+  GitBranch,
 } from 'lucide-react';
 
 interface SpotlightItem {
@@ -170,6 +174,42 @@ export default function SpotlightModal() {
         category: 'page',
         icon: <Terminal size={15} className="text-purple-500" />,
         action: () => navigateTo('dev-workspace'),
+        badge: 'Page',
+      },
+      {
+        id: 'page-disk-visualizer',
+        title: t('nav.diskVisualizer', 'Disk Space Visualizer'),
+        subtitle: t('diskVisualizer.subtitle', 'Interactive hierarchical storage usage visualizer map'),
+        category: 'page',
+        icon: <PieChart size={15} className="text-cyan-500" />,
+        action: () => navigateTo('disk-visualizer'),
+        badge: 'Page',
+      },
+      {
+        id: 'page-startup-manager',
+        title: t('nav.startupManager', 'Startup Services'),
+        subtitle: t('startupManager.subtitle', 'Manage macOS LaunchAgents and background daemons'),
+        category: 'page',
+        icon: <Zap size={15} className="text-amber-500" />,
+        action: () => navigateTo('startup-manager'),
+        badge: 'Page',
+      },
+      {
+        id: 'page-file-shredder',
+        title: t('nav.fileShredder', 'File Shredder'),
+        subtitle: t('fileShredder.subtitle', 'Permanently destroy sensitive files with multi-pass wipe'),
+        category: 'page',
+        icon: <ShieldAlert size={15} className="text-rose-500" />,
+        action: () => navigateTo('file-shredder'),
+        badge: 'Page',
+      },
+      {
+        id: 'page-git-sweeper',
+        title: t('nav.gitSweeper', 'Git Sweeper'),
+        subtitle: t('gitSweeper.subtitle', 'Clean dangling objects and merged git branches'),
+        category: 'page',
+        icon: <GitBranch size={15} className="text-purple-500" />,
+        action: () => navigateTo('git-sweeper'),
         badge: 'Page',
       },
       {
@@ -328,7 +368,7 @@ export default function SpotlightModal() {
         onClick={(e) => e.stopPropagation()}
       >
         {/* Search input header */}
-        <div className="flex items-center gap-3 px-4 py-3.5 border-b border-black/[0.06] dark:border-white/[0.08]">
+        <div className="flex items-center gap-3 px-4 py-3.5 border-b border-black/6 dark:border-white/8">
           <Search size={18} className="text-blue-500 shrink-0" />
           <input
             ref={inputRef}
@@ -376,7 +416,7 @@ export default function SpotlightModal() {
                   className={`flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition-colors ${
                     isSelected
                       ? 'bg-blue-500/10 dark:bg-blue-500/20 text-blue-600 dark:text-blue-300'
-                      : 'text-slate-700 dark:text-neutral-300 hover:bg-black/[0.03] dark:hover:bg-white/[0.04]'
+                      : 'text-slate-700 dark:text-neutral-300 hover:bg-black/3 dark:hover:bg-white/4'
                   }`}
                 >
                   <div className="flex items-center gap-3 min-w-0">
@@ -384,7 +424,7 @@ export default function SpotlightModal() {
                       className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
                         isSelected
                           ? 'bg-blue-500/20 text-blue-600 dark:text-blue-300'
-                          : 'bg-black/[0.04] dark:bg-white/[0.06] text-slate-500'
+                          : 'bg-black/4 dark:bg-white/6 text-slate-500'
                       }`}
                     >
                       {item.icon}
@@ -404,7 +444,7 @@ export default function SpotlightModal() {
 
                   <div className="flex items-center gap-2 shrink-0">
                     {item.badge && (
-                      <span className="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded-md bg-black/[0.04] dark:bg-white/[0.06] text-slate-400 dark:text-neutral-400">
+                      <span className="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded-md bg-black/4 dark:bg-white/6 text-slate-400 dark:text-neutral-400">
                         {item.badge}
                       </span>
                     )}
@@ -419,7 +459,7 @@ export default function SpotlightModal() {
         </div>
 
         {/* Footer shortcuts helper */}
-        <div className="px-4 py-2 bg-black/[0.02] dark:bg-white/[0.02] border-t border-black/[0.04] dark:border-white/[0.06] flex items-center justify-between text-[10px] text-slate-400 dark:text-neutral-500 font-mono">
+        <div className="px-4 py-2 bg-black/2 dark:bg-white/2 border-t border-black/4 dark:border-white/6 flex items-center justify-between text-[10px] text-slate-400 dark:text-neutral-500 font-mono">
           <div className="flex items-center gap-3">
             <span className="flex items-center gap-1">
               <ArrowUpDown size={11} /> {t('spotlight.navigate', 'Navigate')}

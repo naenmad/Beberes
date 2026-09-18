@@ -1,0 +1,63 @@
+name: Bug Report
+description: File a bug report to help improve Beberes
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for reporting an issue with Beberes. Please fill out the details below to help us investigate.
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug Description
+      description: A clear and concise description of what the problem is.
+    validations:
+      required: true
+  - type: dropdown
+    id: arch
+    attributes:
+      label: Architecture / Mac Model
+      options:
+        - Apple Silicon (M1/M2/M3/M4)
+        - Intel (x86_64)
+    validations:
+      required: true
+  - type: input
+    id: macos-version
+    attributes:
+      label: macOS Version
+      description: e.g. macOS Sonoma 14.5, macOS Sequoia 15.0
+    validations:
+      required: true
+  - type: input
+    id: app-version
+    attributes:
+      label: Beberes App Version
+      description: e.g. v0.1.0 (check About Beberes modal)
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+      description: How can maintainers reproduce this bug?
+      placeholder: |
+        1. Open Beberes
+        2. Navigate to '...'
+        3. Click on '...'
+        4. See error
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: A clear description of what you expected to happen.
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Console Logs / Screenshots
+      description: Paste any error messages from terminal or dev console.

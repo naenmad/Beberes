@@ -116,6 +116,13 @@ export async function pickFolder(): Promise<string | null> {
 }
 
 /**
+ * Open native system file picker dialog allowing multiple selection.
+ */
+export async function pickFiles(): Promise<string[]> {
+  return await invoke<string[]>('pick_files');
+}
+
+/**
  * Scan a directory for loose unorganized files and redundant installers.
  */
 export async function scanTidyDirectory(path: string): Promise<TidyScanResult> {
@@ -354,4 +361,84 @@ export async function emptyMacTrash(): Promise<number> {
 export async function deleteSpecificTrashItems(paths: string[]): Promise<number> {
   return await invoke<number>('delete_specific_trash_items', { paths });
 }
+
+// ==========================================
+// 1. Disk Visualizer Types & Commands
+// ==========================================
+export interface DiskTreeNode {
+  id: string;
+  name: string;
+  path: string;
+  size: number;
+  isDir: boolean;
+  children: DiskTreeNode[];
+  fileCount: number;
+}
+
+export async function scanDirectoryTree(path: string, maxDepth?: number): Promise<DiskTreeNode> {
+  return await invoke<DiskTreeNode>('scan_directory_tree', { path, maxDepth });
+}
+
+// ==========================================
+// 2. Startup Items Types & Commands
+// ==========================================
+export interface StartupItem {
+  id: string;
+  name: string;
+  label: string;
+  path: string;
+  program: string | null;
+  isUser: boolean;
+  isEnabled: boolean;
+  fileSize: number;
+  kindLabel: string;
+}
+
+export async function scanStartupItems(): Promise<StartupItem[]> {
+  return await invoke<StartupItem[]>('scan_startup_items');
+}
+
+export async function toggleStartupItem(path: string, enable: boolean): Promise<boolean> {
+  return await invoke<boolean>('toggle_startup_item', { path, enable });
+}
+
+export async function deleteStartupItem(path: string): Promise<boolean> {
+  return await invoke<boolean>('delete_startup_item', { path });
+}
+
+// ==========================================
+// 3. File Shredder Types & Commands
+// ==========================================
+export interface ShredResult {
+  shreddedCount: number;
+  totalBytes: number;
+  errors: string[];
+}
+
+export async function shredPaths(paths: string[], passes?: number): Promise<ShredResult> {
+  return await invoke<ShredResult>('shred_paths', { paths, passes });
+}
+
+// ==========================================
+// 4. Git Repository Sweeper Types & Commands
+// ==========================================
+export interface GitRepoItem {
+  id: string;
+  name: string;
+  path: string;
+  gitFolderSize: number;
+  activeBranch: string;
+  mergedBranches: string[];
+  uncommittedChanges: boolean;
+  lastCommitDate: string;
+}
+
+export async function scanGitRepos(searchRoot?: string): Promise<GitRepoItem[]> {
+  return await invoke<GitRepoItem[]>('scan_git_repos', { searchRoot });
+}
+
+export async function optimizeGitRepo(repoPath: string, deleteMergedBranches: boolean): Promise<number> {
+  return await invoke<number>('optimize_git_repo', { repoPath, deleteMergedBranches });
+}
+
 

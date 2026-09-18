@@ -26,11 +26,11 @@ export default function AboutModal() {
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="relative p-6 text-center border-b border-black/[0.04] dark:border-white/[0.06] bg-gradient-to-b from-blue-500/[0.04] to-transparent">
+        <div className="relative p-6 text-center border-b border-black/4 dark:border-white/6 bg-gradient-to-b from-blue-500/4 to-transparent">
           <button
             type="button"
             onClick={closeAboutModal}
-            className="absolute top-4 right-4 p-1.5 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors cursor-pointer"
+            className="absolute top-4 right-4 p-1.5 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-black/4 dark:hover:bg-white/6 transition-colors cursor-pointer"
           >
             <X size={16} />
           </button>
@@ -45,9 +45,12 @@ export default function AboutModal() {
           <h2 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">
             {t('common.appName', 'Beberes')}
           </h2>
-          <p className="text-xs text-blue-600 dark:text-blue-400 font-mono font-medium mt-0.5">
-            v0.1.0 • macOS Edition
-          </p>
+          <div className="flex items-center justify-center gap-1.5 mt-1">
+            <span className="text-xs font-semibold text-blue-600 dark:text-blue-400 font-mono">v1.0.0</span>
+            <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+              Apex
+            </span>
+          </div>
           <p className="text-xs text-slate-500 dark:text-neutral-400 mt-2 max-w-xs mx-auto leading-relaxed">
             {t('about.subtitle', 'High-Performance System Cleaner & Storage Optimizer for macOS and Developers.')}
           </p>
@@ -56,7 +59,7 @@ export default function AboutModal() {
         {/* Info Highlights */}
         <div className="p-6 space-y-4 text-xs">
           <div className="grid grid-cols-2 gap-2.5">
-            <div className="p-3 rounded-2xl bg-black/[0.02] dark:bg-white/[0.03] border border-black/[0.04] dark:border-white/[0.06] space-y-1">
+            <div className="p-3 rounded-2xl bg-black/2 dark:bg-white/3 border border-black/4 dark:border-white/6 space-y-1">
               <div className="flex items-center gap-1.5 text-blue-600 dark:text-blue-400 font-semibold">
                 <Cpu size={14} />
                 <span>{t('about.engine', 'Core Engine')}</span>
@@ -66,7 +69,7 @@ export default function AboutModal() {
               </p>
             </div>
 
-            <div className="p-3 rounded-2xl bg-black/[0.02] dark:bg-white/[0.03] border border-black/[0.04] dark:border-white/[0.06] space-y-1">
+            <div className="p-3 rounded-2xl bg-black/2 dark:bg-white/3 border border-black/4 dark:border-white/6 space-y-1">
               <div className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 font-semibold">
                 <Lock size={14} />
                 <span>{t('about.privacy', 'Privacy First')}</span>
@@ -78,7 +81,7 @@ export default function AboutModal() {
           </div>
 
           {/* Architecture Details */}
-          <div className="p-3 rounded-2xl bg-black/[0.02] dark:bg-white/[0.03] border border-black/[0.04] dark:border-white/[0.06] space-y-2">
+          <div className="p-3 rounded-2xl bg-black/2 dark:bg-white/3 border border-black/4 dark:border-white/6 space-y-2">
             <div className="flex items-center gap-2 text-slate-700 dark:text-neutral-300 font-semibold">
               <ShieldCheck size={14} className="text-blue-500" />
               <span>{t('about.safetyHighlights', 'Safety & Precision Highlights')}</span>
@@ -109,7 +112,7 @@ export default function AboutModal() {
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 bg-black/[0.02] dark:bg-white/[0.02] border-t border-black/[0.04] dark:border-white/[0.06] flex items-center justify-end">
+        <div className="px-6 py-4 bg-black/2 dark:bg-white/2 border-t border-black/4 dark:border-white/6 flex items-center justify-end">
           <Button variant="primary" size="sm" onClick={closeAboutModal}>
             {t('common.close', 'Close')}
           </Button>

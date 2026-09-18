@@ -1,0 +1,88 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  validate:
+    name: Build & Lint Checks
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+
+      - name: Rust Cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: './src-tauri -> target'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check Zero Emoji Policy
+        run: |
+          python3 -c "
+          import os, sys
+
+          def has_emoji(text):
+              for ch in text:
+                  cp = ord(ch)
+                  if (
+                      0x1F600 <= cp <= 0x1F64F or
+                      0x1F300 <= cp <= 0x1F5FF or
+                      0x1F680 <= cp <= 0x1F6FF or
+                      0x1F700 <= cp <= 0x1F77F or
+                      0x1F780 <= cp <= 0x1F7FF or
+                      0x1F800 <= cp <= 0x1F8FF or
+                      0x1F900 <= cp <= 0x1F9FF or
+                      0x1FA00 <= cp <= 0x1FA6F or
+                      0x1FA70 <= cp <= 0x1FAFF or
+                      0x2600 <= cp <= 0x26FF or
+                      0x2700 <= cp <= 0x27BF
+                  ):
+                      return True, ch, hex(cp)
+              return False, None, None
+
+          found = False
+          dirs = ['src', 'src-tauri/src']
+          for d in dirs:
+              for root, _, files in os.walk(d):
+                  for f in files:
+                      if f.endswith(('.ts', '.tsx', '.rs', '.json', '.css', '.html')):
+                          path = os.path.join(root, f)
+                          with open(path, 'r', encoding='utf-8', errors='ignore') as fp:
+                              for line_no, line in enumerate(fp, 1):
+                                  has, ch, cp = has_emoji(line)
+                                  if has:
+                                      print(f'Error: Emoji found in {path}:{line_no} -> {ch} ({cp})')
+                                      found = True
+          if found:
+              sys.exit(1)
+          print('Emoji check passed: 0 emojis found.')
+          "
+
+      - name: TypeScript & Vite Build Check
+        run: npm run build
+
+      - name: Cargo Check
+        run: |
+          cd src-tauri
+          cargo check
+          cargo clippy -- -D warnings

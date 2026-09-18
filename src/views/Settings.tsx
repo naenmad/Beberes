@@ -153,14 +153,14 @@ export default function Settings() {
       />
 
       {/* Segmented Navigation Tabs */}
-      <div className="flex items-center gap-1.5 p-1 rounded-2xl glass-panel border border-black/[0.06] dark:border-white/[0.08] overflow-x-auto">
+      <div className="flex items-center gap-1.5 p-1 rounded-2xl glass-panel border border-black/6 dark:border-white/8 overflow-x-auto">
         <button
           type="button"
           onClick={() => setActiveTab('general')}
           className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
             activeTab === 'general'
               ? 'bg-blue-500 text-white shadow-sm'
-              : 'text-slate-600 dark:text-neutral-300 hover:bg-black/[0.04] dark:hover:bg-white/[0.05]'
+              : 'text-slate-600 dark:text-neutral-300 hover:bg-black/4 dark:hover:bg-white/5'
           }`}
         >
           <Sliders size={14} />
@@ -173,7 +173,7 @@ export default function Settings() {
           className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
             activeTab === 'appearance'
               ? 'bg-blue-500 text-white shadow-sm'
-              : 'text-slate-600 dark:text-neutral-300 hover:bg-black/[0.04] dark:hover:bg-white/[0.05]'
+              : 'text-slate-600 dark:text-neutral-300 hover:bg-black/4 dark:hover:bg-white/5'
           }`}
         >
           <Type size={14} />
@@ -186,7 +186,7 @@ export default function Settings() {
           className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
             activeTab === 'folders'
               ? 'bg-blue-500 text-white shadow-sm'
-              : 'text-slate-600 dark:text-neutral-300 hover:bg-black/[0.04] dark:hover:bg-white/[0.05]'
+              : 'text-slate-600 dark:text-neutral-300 hover:bg-black/4 dark:hover:bg-white/5'
           }`}
         >
           <Shield size={14} />
@@ -199,7 +199,7 @@ export default function Settings() {
           className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
             activeTab === 'system'
               ? 'bg-blue-500 text-white shadow-sm'
-              : 'text-slate-600 dark:text-neutral-300 hover:bg-black/[0.04] dark:hover:bg-white/[0.05]'
+              : 'text-slate-600 dark:text-neutral-300 hover:bg-black/4 dark:hover:bg-white/5'
           }`}
         >
           <Laptop size={14} />
@@ -212,7 +212,7 @@ export default function Settings() {
           className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
             activeTab === 'data'
               ? 'bg-blue-500 text-white shadow-sm'
-              : 'text-slate-600 dark:text-neutral-300 hover:bg-black/[0.04] dark:hover:bg-white/[0.05]'
+              : 'text-slate-600 dark:text-neutral-300 hover:bg-black/4 dark:hover:bg-white/5'
           }`}
         >
           <History size={14} />
@@ -257,7 +257,7 @@ export default function Settings() {
                       }`}
                     >
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-xl bg-black/[0.04] dark:bg-white/[0.06] flex items-center justify-center font-mono font-bold text-xs uppercase text-slate-700 dark:text-neutral-300">
+                        <div className="w-8 h-8 rounded-xl bg-black/4 dark:bg-white/6 flex items-center justify-center font-mono font-bold text-xs uppercase text-slate-700 dark:text-neutral-300">
                           {lang.code}
                         </div>
                         <div>
@@ -713,7 +713,7 @@ export default function Settings() {
                           {path}
                         </span>
                         {isCoreSystem && (
-                          <span className="text-[10px] uppercase font-bold text-slate-400 dark:text-neutral-500 px-1.5 py-0.5 rounded bg-black/[0.04] dark:bg-white/[0.05]">
+                          <span className="text-[10px] uppercase font-bold text-slate-400 dark:text-neutral-500 px-1.5 py-0.5 rounded bg-black/4 dark:bg-white/5">
                             {t('settings.whitelist.systemLocked')}
                           </span>
                         )}

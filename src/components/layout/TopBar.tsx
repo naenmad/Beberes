@@ -74,7 +74,7 @@ export default function TopBar() {
   return (
     <header
       data-tauri-drag-region
-      className="h-12 shrink-0 border-b border-black/[0.04] dark:border-white/[0.06] bg-white/40 dark:bg-black/40 backdrop-blur-xl px-4 sm:px-6 flex items-center justify-between gap-3 select-none z-20"
+      className="h-12 shrink-0 border-b border-black/4 dark:border-white/6 bg-white/40 dark:bg-black/40 backdrop-blur-xl px-4 sm:px-6 flex items-center justify-between gap-3 select-none z-20"
     >
       {/* Left side: Page Title & Disk Info */}
       <div data-tauri-drag-region className="flex items-center gap-2.5 shrink-0 min-w-0">
@@ -87,7 +87,7 @@ export default function TopBar() {
             type="button"
             onClick={() => setCurrentPage('dashboard')}
             title={t('topBar.diskTooltip', 'Click to view storage details in Dashboard')}
-            className="hidden md:flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-medium bg-black/[0.04] dark:bg-white/[0.06] text-slate-600 dark:text-neutral-400 hover:text-blue-500 dark:hover:text-blue-400 transition-colors cursor-pointer"
+            className="hidden md:flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-medium bg-black/4 dark:bg-white/6 text-slate-600 dark:text-neutral-400 hover:text-blue-500 dark:hover:text-blue-400 transition-colors cursor-pointer"
           >
             <HardDrive size={11} className="text-blue-500 shrink-0" />
             <span>
@@ -102,7 +102,7 @@ export default function TopBar() {
         <button
           type="button"
           onClick={openSpotlight}
-          className="w-full flex items-center justify-between gap-2 px-3 py-1.5 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] border border-black/[0.06] dark:border-white/[0.08] hover:bg-white/80 dark:hover:bg-neutral-800/80 hover:border-blue-500/40 dark:hover:border-blue-500/40 text-slate-400 dark:text-neutral-500 hover:text-slate-700 dark:hover:text-neutral-200 transition-all cursor-pointer shadow-2xs group"
+          className="w-full flex items-center justify-between gap-2 px-3 py-1.5 rounded-xl bg-black/3 dark:bg-white/5 border border-black/6 dark:border-white/8 hover:bg-white/80 dark:hover:bg-neutral-800/80 hover:border-blue-500/40 dark:hover:border-blue-500/40 text-slate-400 dark:text-neutral-500 hover:text-slate-700 dark:hover:text-neutral-200 transition-all cursor-pointer shadow-2xs group"
         >
           <div className="flex items-center gap-2 truncate">
             <Search
@@ -114,7 +114,7 @@ export default function TopBar() {
             </span>
           </div>
 
-          <div className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-md bg-black/[0.06] dark:bg-white/[0.08] text-[10px] font-mono text-slate-500 dark:text-neutral-400 shrink-0 shadow-2xs">
+          <div className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-md bg-black/6 dark:bg-white/8 text-[10px] font-mono text-slate-500 dark:text-neutral-400 shrink-0 shadow-2xs">
             <Command size={10} />
             <span>K</span>
           </div>
@@ -132,7 +132,7 @@ export default function TopBar() {
               ? t('settings.trashModeTitle') + ' (Click to change)'
               : t('settings.directDeleteTitle') + ' (Click to change)'
           }
-          className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-black/[0.03] dark:bg-white/[0.05] hover:bg-black/[0.06] dark:hover:bg-white/[0.1] text-slate-700 dark:text-neutral-300 transition-colors cursor-pointer"
+          className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-black/3 dark:bg-white/5 hover:bg-black/6 dark:hover:bg-white/10 text-slate-700 dark:text-neutral-300 transition-colors cursor-pointer"
         >
           <Trash2 size={12} className={deleteToTrash ? 'text-blue-500' : 'text-rose-500'} />
           <span className="hidden lg:inline text-[11px]">
@@ -158,7 +158,7 @@ export default function TopBar() {
           <button
             type="button"
             onClick={() => setShowLangMenu(!showLangMenu)}
-            className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium text-slate-600 dark:text-neutral-300 hover:bg-black/[0.05] dark:hover:bg-white/[0.08] transition-colors cursor-pointer"
+            className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium text-slate-600 dark:text-neutral-300 hover:bg-black/5 dark:hover:bg-white/8 transition-colors cursor-pointer"
             title={t('settings.language')}
           >
             <Globe size={12} />
@@ -179,7 +179,7 @@ export default function TopBar() {
                   className={`w-full flex items-center justify-between px-3 py-1.5 text-xs text-left cursor-pointer transition-colors ${
                     language === lang.code
                       ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400 font-semibold'
-                      : 'text-slate-700 dark:text-neutral-200 hover:bg-black/[0.04] dark:hover:bg-white/[0.06]'
+                      : 'text-slate-700 dark:text-neutral-200 hover:bg-black/4 dark:hover:bg-white/6'
                   }`}
                 >
                   <span>{lang.name}</span>
@@ -197,7 +197,7 @@ export default function TopBar() {
           type="button"
           onClick={toggleDarkMode}
           title={isDarkMode ? t('settings.lightMode') : t('settings.darkMode')}
-          className="p-1.5 rounded-lg text-slate-600 dark:text-neutral-300 hover:bg-black/[0.05] dark:hover:bg-white/[0.08] transition-colors cursor-pointer"
+          className="p-1.5 rounded-lg text-slate-600 dark:text-neutral-300 hover:bg-black/5 dark:hover:bg-white/8 transition-colors cursor-pointer"
         >
           {isDarkMode ? <Sun size={13} /> : <Moon size={13} />}
         </button>

@@ -158,7 +158,7 @@ export default function CleaningFlowModal({
           <button
             onClick={onClose}
             title="Close dialog"
-            className="absolute top-4 right-4 p-1.5 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors cursor-pointer z-20"
+            className="absolute top-4 right-4 p-1.5 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-black/4 dark:hover:bg-white/6 transition-colors cursor-pointer z-20"
           >
             <X size={16} />
           </button>
@@ -213,7 +213,7 @@ export default function CleaningFlowModal({
             </div>
 
             {/* Stage Checklist */}
-            <div className="space-y-2 text-left bg-black/[0.02] dark:bg-white/[0.04] p-3.5 rounded-2xl border border-black/[0.04] dark:border-white/[0.06]">
+            <div className="space-y-2 text-left bg-black/2 dark:bg-white/4 p-3.5 rounded-2xl border border-black/4 dark:border-white/6">
               <div className="flex items-center gap-2.5 text-xs font-semibold text-slate-800 dark:text-neutral-200">
                 <div className="p-1 rounded-lg bg-blue-500/10 text-blue-500 shrink-0">
                   <CurrentStageIcon size={14} className="animate-spin-slow" />
@@ -223,7 +223,7 @@ export default function CleaningFlowModal({
 
               {/* Live Path Ticker */}
               {tickerPath && (
-                <p className="text-[10px] font-mono text-slate-400 dark:text-neutral-500 truncate pt-1 border-t border-black/[0.04] dark:border-white/[0.06]">
+                <p className="text-[10px] font-mono text-slate-400 dark:text-neutral-500 truncate pt-1 border-t border-black/4 dark:border-white/6">
                   {tickerPath}
                 </p>
               )}
@@ -270,7 +270,7 @@ export default function CleaningFlowModal({
             </div>
 
             {/* Metric Box */}
-            <div className="grid grid-cols-2 gap-3 p-4 rounded-2xl bg-black/[0.02] dark:bg-white/[0.04] border border-black/[0.04] dark:border-white/[0.06]">
+            <div className="grid grid-cols-2 gap-3 p-4 rounded-2xl bg-black/2 dark:bg-white/4 border border-black/4 dark:border-white/6">
               <div>
                 <span className="text-[11px] text-slate-400">
                   {isOrganize ? 'Total Size' : 'Total Reclaimed'}

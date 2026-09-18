@@ -17,13 +17,13 @@ export default function PageHeader({
   badge,
   actions,
 }: PageHeaderProps) {
-  const bgClass = iconBgColor || 'bg-black/[0.04] dark:bg-white/[0.06]';
+  const bgClass = iconBgColor || 'bg-black/4 dark:bg-white/6';
 
   return (
     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-0.5">
       <div className="flex items-center gap-3 min-w-0">
         <div
-          className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 shadow-2xs border border-black/[0.04] dark:border-white/[0.06] ${bgClass} ${iconColor}`}
+          className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 shadow-2xs border border-black/4 dark:border-white/6 ${bgClass} ${iconColor}`}
         >
           {icon}
         </div>

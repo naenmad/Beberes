@@ -34,10 +34,10 @@ Aplikasi menggunakan layout **Sidebar + Main Content**.
 - Lebar tetap (sekitar `w-64`).
 - Berisi logo aplikasi "Beberes".
 - Menu Navigasi:
-  - 🏠 Dashboard (Ringkasan)
-  - 🧹 System Clean (Pembersihan Umum)
-  - 💻 Dev Workspace (Pembersihan khusus Developer)
-  - ⚙️ Settings (Pengaturan & Whitelist)
+  - Dashboard (Ringkasan)
+  - System Clean (Pembersihan Umum)
+  - Dev Workspace (Pembersihan khusus Developer)
+  - Settings (Pengaturan & Whitelist)
 
 ### B. Main Content (Area Kanan)
 

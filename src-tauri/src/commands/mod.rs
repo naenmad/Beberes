@@ -5,3 +5,8 @@ pub mod uninstaller;
 pub mod reviewer;
 pub mod finder;
 pub mod trash;
+pub mod visualizer;
+pub mod startup;
+pub mod shredder;
+pub mod git_sweeper;
+

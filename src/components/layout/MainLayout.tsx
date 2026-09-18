@@ -9,7 +9,7 @@ interface MainLayoutProps {
 
 export default function MainLayout({ children }: MainLayoutProps) {
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-[#f5f6f8] dark:bg-[#121212] transition-colors">
+    <div className="flex h-screen w-screen overflow-hidden bg-bg-primary dark:bg-bg-primary-dark transition-colors">
       <FloatingSidebar />
       <div className="flex-1 flex flex-col h-full min-w-0 overflow-hidden">
         <TopBar />

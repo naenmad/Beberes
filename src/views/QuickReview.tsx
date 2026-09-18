@@ -556,7 +556,7 @@ export default function QuickReview() {
               className={`px-2.5 py-1 rounded-full font-medium transition-colors cursor-pointer capitalize ${
                 filter === f
                   ? 'bg-blue-600 text-white shadow-xs'
-                  : 'bg-black/[0.04] dark:bg-white/[0.06] text-slate-600 dark:text-neutral-400 hover:bg-black/[0.08] dark:hover:bg-white/[0.1]'
+                  : 'bg-black/4 dark:bg-white/6 text-slate-600 dark:text-neutral-400 hover:bg-black/8 dark:hover:bg-white/10'
               }`}
             >
               {f === 'all'
@@ -646,25 +646,25 @@ export default function QuickReview() {
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 py-2 max-w-md mx-auto">
-            <div className="p-3 rounded-2xl bg-black/[0.02] dark:bg-white/[0.04]">
+            <div className="p-3 rounded-2xl bg-black/2 dark:bg-white/4">
               <span className="text-[10px] text-slate-400">{t('quickReview.statTrashed')}</span>
               <p className="text-lg font-bold text-rose-600 dark:text-rose-400 mt-0.5">
                 {sessionTrashedCount}
               </p>
             </div>
-            <div className="p-3 rounded-2xl bg-black/[0.02] dark:bg-white/[0.04]">
+            <div className="p-3 rounded-2xl bg-black/2 dark:bg-white/4">
               <span className="text-[10px] text-slate-400">{t('quickReview.actionRename')}</span>
               <p className="text-lg font-bold text-amber-600 dark:text-amber-400 mt-0.5">
                 {sessionRenamedCount}
               </p>
             </div>
-            <div className="p-3 rounded-2xl bg-black/[0.02] dark:bg-white/[0.04]">
+            <div className="p-3 rounded-2xl bg-black/2 dark:bg-white/4">
               <span className="text-[10px] text-slate-400">{t('quickReview.statKept')}</span>
               <p className="text-lg font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">
                 {sessionKeptCount}
               </p>
             </div>
-            <div className="p-3 rounded-2xl bg-black/[0.02] dark:bg-white/[0.04]">
+            <div className="p-3 rounded-2xl bg-black/2 dark:bg-white/4">
               <span className="text-[10px] text-slate-400">{t('quickReview.statFreed')}</span>
               <p className="text-lg font-bold text-blue-600 dark:text-blue-400 mt-0.5">
                 {formatSize(sessionFreedBytes)}
@@ -712,7 +712,7 @@ export default function QuickReview() {
         </div>
       ) : currentItem ? (
         /* Focus Card */
-        <div className="relative max-w-3xl mx-auto rounded-3xl glass-panel p-6 shadow-2xl border border-black/[0.06] dark:border-white/[0.08] transition-all">
+        <div className="relative max-w-3xl mx-auto rounded-3xl glass-panel p-6 shadow-2xl border border-black/6 dark:border-white/8 transition-all">
           {/* Action Feedback Badge Overlay */}
           {actionFeedback && (
             <div className="absolute inset-0 z-30 flex items-center justify-center bg-black/10 backdrop-blur-[2px] rounded-3xl pointer-events-none animate-fade-in">
@@ -738,7 +738,7 @@ export default function QuickReview() {
           )}
 
           {/* Media / Preview Screen */}
-          <div className="relative w-full h-80 sm:h-96 rounded-2xl bg-black/[0.03] dark:bg-black/40 border border-black/[0.04] dark:border-white/[0.06] flex items-center justify-center overflow-hidden group">
+          <div className="relative w-full h-80 sm:h-96 rounded-2xl bg-black/3 dark:bg-black/40 border border-black/4 dark:border-white/6 flex items-center justify-center overflow-hidden group">
             {isLoadingThumb ? (
               <div className="flex flex-col items-center gap-2 text-slate-400">
                 <RefreshCw size={24} className="animate-spin text-blue-500" />
@@ -763,7 +763,7 @@ export default function QuickReview() {
             ) : (
               /* Non-image File Icon Box */
               <div className="flex flex-col items-center justify-center gap-3 p-6 text-center">
-                <div className="w-20 h-20 rounded-3xl bg-black/[0.04] dark:bg-white/[0.06] flex items-center justify-center border border-black/[0.06] dark:border-white/[0.08] shadow-xs">
+                <div className="w-20 h-20 rounded-3xl bg-black/4 dark:bg-white/6 flex items-center justify-center border border-black/6 dark:border-white/8 shadow-xs">
                   {getFileKindIcon(currentItem.kind)}
                 </div>
                 <div>
@@ -803,14 +803,14 @@ export default function QuickReview() {
                 onClick={() => setCurrentIndex((prev) => Math.max(0, prev - 1))}
                 disabled={currentIndex === 0}
                 title="Previous file (Left Arrow)"
-                className="p-2 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] hover:bg-black/[0.06] dark:hover:bg-white/[0.1] text-slate-600 dark:text-neutral-300 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer transition-colors"
+                className="p-2 rounded-xl bg-black/3 dark:bg-white/5 hover:bg-black/6 dark:hover:bg-white/10 text-slate-600 dark:text-neutral-300 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer transition-colors"
               >
                 <ChevronLeft size={16} />
               </button>
               <button
                 onClick={() => setCurrentIndex((prev) => Math.min(items.length, prev + 1))}
                 title="Next file (Right Arrow)"
-                className="p-2 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] hover:bg-black/[0.06] dark:hover:bg-white/[0.1] text-slate-600 dark:text-neutral-300 cursor-pointer transition-colors"
+                className="p-2 rounded-xl bg-black/3 dark:bg-white/5 hover:bg-black/6 dark:hover:bg-white/10 text-slate-600 dark:text-neutral-300 cursor-pointer transition-colors"
               >
                 <ChevronRight size={16} />
               </button>
@@ -834,7 +834,7 @@ export default function QuickReview() {
             {/* Rename Action */}
             <button
               onClick={handleOpenRename}
-              className="flex items-center justify-center gap-2 py-3 px-4 rounded-2xl bg-black/[0.04] hover:bg-black/[0.08] dark:bg-white/[0.06] dark:hover:bg-white/[0.12] text-slate-700 dark:text-neutral-200 border border-black/[0.06] dark:border-white/[0.08] transition-all font-semibold text-xs cursor-pointer shadow-xs active:scale-[0.98]"
+              className="flex items-center justify-center gap-2 py-3 px-4 rounded-2xl bg-black/4 hover:bg-black/8 dark:bg-white/6 dark:hover:bg-white/12 text-slate-700 dark:text-neutral-200 border border-black/6 dark:border-white/8 transition-all font-semibold text-xs cursor-pointer shadow-xs active:scale-[0.98]"
             >
               <Edit3 size={15} />
               <span>{t('quickReview.actionRename')}</span>
@@ -857,7 +857,7 @@ export default function QuickReview() {
           </div>
 
           {/* Bottom Secondary Controls & Undo */}
-          <div className="mt-4 pt-4 border-t border-black/[0.04] dark:border-white/[0.06] flex items-center justify-between text-xs text-slate-400 dark:text-neutral-500">
+          <div className="mt-4 pt-4 border-t border-black/4 dark:border-white/6 flex items-center justify-between text-xs text-slate-400 dark:text-neutral-500">
             <div className="flex items-center gap-3">
               <button
                 onClick={handleUndo}
@@ -921,7 +921,7 @@ export default function QuickReview() {
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 animate-fade-in">
           <div
             onClick={(e) => e.stopPropagation()}
-            className="w-full max-w-md rounded-3xl glass-panel p-6 shadow-2xl border border-black/[0.08] dark:border-white/[0.1] space-y-4"
+            className="w-full max-w-md rounded-3xl glass-panel p-6 shadow-2xl border border-black/8 dark:border-white/10 space-y-4"
           >
             <div className="flex items-center gap-2.5">
               <div className="w-8 h-8 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center">
@@ -942,7 +942,7 @@ export default function QuickReview() {
                   type="text"
                   value={newFileName}
                   onChange={(e) => setNewFileName(e.target.value)}
-                  className="w-full px-3.5 py-2 text-xs rounded-xl bg-white dark:bg-neutral-800 border border-black/[0.08] dark:border-white/[0.1] text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono"
+                  className="w-full px-3.5 py-2 text-xs rounded-xl bg-white dark:bg-neutral-800 border border-black/8 dark:border-white/10 text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono"
                 />
                 {renameError && (
                   <p className="text-xs text-rose-500 mt-1 flex items-center gap-1">

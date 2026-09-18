@@ -9,6 +9,10 @@ import AppUninstaller from './views/AppUninstaller';
 import QuickReview from './views/QuickReview';
 import LargeAndDuplicates from './views/LargeAndDuplicates';
 import TrashManager from './views/TrashManager';
+import DiskVisualizer from './views/DiskVisualizer';
+import StartupManager from './views/StartupManager';
+import FileShredder from './views/FileShredder';
+import GitSweeper from './views/GitSweeper';
 import Settings from './views/Settings';
 
 // Beberes macOS Modern Clean Architecture
@@ -34,6 +38,8 @@ export default function App() {
     switch (currentPage) {
       case 'dashboard':
         return <Dashboard />;
+      case 'disk-visualizer':
+        return <DiskVisualizer />;
       case 'quick-review':
         return <QuickReview />;
       case 'large-duplicates':
@@ -48,6 +54,12 @@ export default function App() {
         return <SystemClean />;
       case 'dev-workspace':
         return <DevWorkspace />;
+      case 'startup-manager':
+        return <StartupManager />;
+      case 'file-shredder':
+        return <FileShredder />;
+      case 'git-sweeper':
+        return <GitSweeper />;
       case 'settings':
         return <Settings />;
       default:

@@ -10,7 +10,7 @@ beberes/
 │   ├── ARCHITECTURE.md
 │   └── STRUCTURE.md
 │
-├── src-tauri/                   # ⚙️ BACKEND (Rust / Tauri Core)
+├── src-tauri/                   # BACKEND (Rust / Tauri Core)
 │   ├── src/
 │   │   ├── commands/            # Logika spesifik yang dipanggil dari UI
 │   │   │   ├── scanner.rs       # Fungsi pemindaian sistem
@@ -21,7 +21,7 @@ beberes/
 │   ├── Cargo.toml               # Dependensi Rust
 │   └── tauri.conf.json          # Konfigurasi jendela & build Tauri
 │
-├── src/                         # 🎨 FRONTEND (React / Vite)
+├── src/                         # FRONTEND (React / Vite)
 │   ├── assets/                  # CSS global, font, logo statis
 │   ├── components/              # Komponen UI Reusable
 │   │   ├── layout/              # Sidebar, Header, MainLayout

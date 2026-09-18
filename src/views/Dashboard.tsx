@@ -181,7 +181,7 @@ export default function Dashboard() {
 
       {/* Active Storage Drive Banner */}
       {diskInfo && (
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-4 py-3 rounded-2xl glass-panel border border-black/[0.04] dark:border-white/[0.06]">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-4 py-3 rounded-2xl glass-panel border border-black/4 dark:border-white/6">
           <div className="flex items-center gap-3 min-w-0">
             <div
               className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
@@ -195,7 +195,7 @@ export default function Dashboard() {
                 <span className="text-xs font-bold text-slate-900 dark:text-white truncate">
                   {diskInfo.diskName || activeDisk?.name || 'Macintosh HD'}
                 </span>
-                <span className="text-[10px] px-1.5 py-0.5 rounded font-semibold bg-black/[0.05] dark:bg-white/[0.08] text-slate-600 dark:text-neutral-400 font-mono">
+                <span className="text-[10px] px-1.5 py-0.5 rounded font-semibold bg-black/5 dark:bg-white/8 text-slate-600 dark:text-neutral-400 font-mono">
                   {selectedDiskMount}
                 </span>
                 {activeDisk?.isRemovable && (

@@ -180,7 +180,7 @@ export default function TrashManager() {
 
       {/* Storage & Statistics Card */}
       {data && (
-        <div className="p-4 rounded-3xl glass-panel grid grid-cols-1 sm:grid-cols-3 gap-4 border border-black/[0.06] dark:border-white/[0.06]">
+        <div className="p-4 rounded-3xl glass-panel grid grid-cols-1 sm:grid-cols-3 gap-4 border border-black/6 dark:border-white/6">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-2xl bg-rose-500/10 text-rose-500 flex items-center justify-center shrink-0">
               <Trash2 size={20} />
@@ -284,7 +284,7 @@ export default function TrashManager() {
                 onClick={() => togglePath(item.path)}
                 className={`flex items-center justify-between gap-3 p-3 rounded-2xl glass-panel cursor-pointer transition-all ${
                   isSelected
-                    ? 'border-rose-500/50 bg-rose-500/[0.03]'
+                    ? 'border-rose-500/50 bg-rose-500/3'
                     : 'hover:border-black/10 dark:hover:border-white/10'
                 }`}
               >
@@ -295,7 +295,7 @@ export default function TrashManager() {
                     onChange={() => {}}
                     className="rounded border-slate-300 text-rose-600 focus:ring-0 shrink-0 cursor-pointer"
                   />
-                  <div className="w-8 h-8 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] flex items-center justify-center shrink-0">
+                  <div className="w-8 h-8 rounded-xl bg-black/3 dark:bg-white/5 flex items-center justify-center shrink-0">
                     {getItemIcon(item.kind)}
                   </div>
                   <div className="min-w-0">
@@ -319,7 +319,7 @@ export default function TrashManager() {
                       revealInFinder(item.path);
                     }}
                     title={t('common.revealInFinder')}
-                    className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-neutral-200 hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors cursor-pointer"
+                    className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-neutral-200 hover:bg-black/4 dark:hover:bg-white/6 transition-colors cursor-pointer"
                   >
                     <ExternalLink size={13} />
                   </button>

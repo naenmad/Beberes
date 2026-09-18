@@ -201,7 +201,7 @@ export default function DevWorkspace() {
             placeholder={t('devWorkspace.searchPlaceholder')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 text-xs bg-white dark:bg-neutral-800 border border-black/[0.06] dark:border-white/[0.08] rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 dark:text-neutral-200"
+            className="w-full pl-9 pr-4 py-2 text-xs bg-white dark:bg-neutral-800 border border-black/6 dark:border-white/8 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 dark:text-neutral-200"
           />
         </div>
         <div className="flex items-center gap-2">
@@ -231,7 +231,7 @@ export default function DevWorkspace() {
               className={`px-3 py-1 rounded-full font-semibold transition-colors cursor-pointer ${
                 sizeFilter === f
                   ? 'bg-blue-600 text-white shadow-xs'
-                  : 'bg-black/[0.04] dark:bg-white/[0.06] text-slate-600 dark:text-neutral-400 hover:bg-black/[0.07] dark:hover:bg-white/[0.1]'
+                  : 'bg-black/4 dark:bg-white/6 text-slate-600 dark:text-neutral-400 hover:bg-black/7 dark:hover:bg-white/10'
               }`}
             >
               {f === 'all'
@@ -260,7 +260,7 @@ export default function DevWorkspace() {
 
             return (
               <Card key={category.id} className="stagger-item" style={{ animationDelay: `${idx * 0.05}s` }}>
-                <CardHeader className="!py-3">
+                <CardHeader className="py-3!">
                   <div className="flex items-center gap-3">
                     <Checkbox
                       checked={allSelected}
@@ -271,7 +271,7 @@ export default function DevWorkspace() {
                       onClick={() => toggleExpand(category.id)}
                       className="flex items-center gap-3 flex-1 cursor-pointer"
                     >
-                      <div className="p-2 rounded-xl bg-black/[0.03] dark:bg-white/[0.05]">
+                      <div className="p-2 rounded-xl bg-black/3 dark:bg-white/5">
                         {categoryIcons[category.id] || <FolderOpen size={18} className="text-slate-400" />}
                       </div>
                       <div className="text-left flex-1">
@@ -295,12 +295,12 @@ export default function DevWorkspace() {
                 </CardHeader>
 
                 {isExpanded && (
-                  <CardBody className="!py-2">
-                    <div className="divide-y divide-black/[0.04] dark:divide-white/[0.06]">
+                  <CardBody className="py-2!">
+                    <div className="divide-y divide-black/4 dark:divide-white/6">
                       {category.items.map((item) => (
                         <div
                           key={item.id}
-                          className="flex items-center gap-3 py-2.5 hover:bg-black/[0.02] dark:hover:bg-white/[0.03] -mx-2 px-2 rounded-xl transition-colors group"
+                          className="flex items-center gap-3 py-2.5 hover:bg-black/2 dark:hover:bg-white/3 -mx-2 px-2 rounded-xl transition-colors group"
                         >
                           <Checkbox
                             checked={item.selected}
@@ -330,7 +330,7 @@ export default function DevWorkspace() {
                             <button
                               onClick={(e) => handleReveal(e, item.path)}
                               title={t('common.revealInFinder')}
-                              className="p-1.5 rounded-lg text-slate-400 hover:text-blue-500 hover:bg-black/[0.04] dark:hover:bg-white/[0.06] opacity-60 group-hover:opacity-100 transition-all"
+                              className="p-1.5 rounded-lg text-slate-400 hover:text-blue-500 hover:bg-black/4 dark:hover:bg-white/6 opacity-60 group-hover:opacity-100 transition-all"
                             >
                               <ExternalLink size={14} />
                             </button>
@@ -359,7 +359,7 @@ export default function DevWorkspace() {
 
       {/* Sticky Clean Bar with Dry Run Toggle */}
       {selectedItems.length > 0 && (
-        <div className="sticky bottom-0 -mx-8 px-8 py-3.5 glass-panel border-t border-black/[0.06] dark:border-white/[0.08] shadow-lg">
+        <div className="sticky bottom-0 -mx-8 px-8 py-3.5 glass-panel border-t border-black/6 dark:border-white/8 shadow-lg">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 max-w-6xl mx-auto">
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2 text-xs font-bold text-slate-800 dark:text-neutral-200">

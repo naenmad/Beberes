@@ -240,7 +240,7 @@ export default function AppUninstaller() {
 
       {/* Summary KPI Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <Card className="!p-3.5">
+        <Card className="p-3.5!">
           <div className="flex items-center gap-2 text-slate-400 dark:text-neutral-500 text-xs font-medium">
             <AppWindow size={14} className="text-blue-500" />
             <span>{t('apps.statTotalApps')}</span>
@@ -253,7 +253,7 @@ export default function AppUninstaller() {
           </span>
         </Card>
 
-        <Card className="!p-3.5">
+        <Card className="p-3.5!">
           <div className="flex items-center gap-2 text-slate-400 dark:text-neutral-500 text-xs font-medium">
             <HardDrive size={14} className="text-indigo-500" />
             <span>{t('apps.statFootprint')}</span>
@@ -266,7 +266,7 @@ export default function AppUninstaller() {
           </span>
         </Card>
 
-        <Card className="!p-3.5">
+        <Card className="p-3.5!">
           <div className="flex items-center gap-2 text-slate-400 dark:text-neutral-500 text-xs font-medium">
             <Layers size={14} className="text-amber-500" />
             <span>{t('apps.statResidual')}</span>
@@ -279,7 +279,7 @@ export default function AppUninstaller() {
           </span>
         </Card>
 
-        <Card className="!p-3.5">
+        <Card className="p-3.5!">
           <div className="flex items-center gap-2 text-slate-400 dark:text-neutral-500 text-xs font-medium">
             <ShieldCheck size={14} className="text-emerald-500" />
             <span>{t('apps.statSystemShield')}</span>
@@ -330,7 +330,7 @@ export default function AppUninstaller() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder={t('apps.searchPlaceholder')}
-              className="w-full pl-8 pr-3 py-1.5 text-xs rounded-xl bg-white dark:bg-neutral-800 border border-black/[0.06] dark:border-white/[0.08] text-slate-800 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="w-full pl-8 pr-3 py-1.5 text-xs rounded-xl bg-white dark:bg-neutral-800 border border-black/6 dark:border-white/8 text-slate-800 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-500"
             />
           </div>
 
@@ -374,11 +374,11 @@ export default function AppUninstaller() {
 
             return (
               <Card key={app.id} className="overflow-hidden">
-                <CardBody className="!p-4">
+                <CardBody className="p-4!">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     {/* App Header & Basic Info */}
                     <div className="flex items-start gap-3.5 min-w-0">
-                      <div className="w-10 h-10 rounded-2xl bg-black/[0.04] dark:bg-white/[0.06] border border-black/[0.06] dark:border-white/[0.08] flex items-center justify-center shrink-0 shadow-xs overflow-hidden">
+                      <div className="w-10 h-10 rounded-2xl bg-black/4 dark:bg-white/6 border border-black/6 dark:border-white/8 flex items-center justify-center shrink-0 shadow-xs overflow-hidden">
                         {app.icon ? (
                           <img
                             src={app.icon}
@@ -408,7 +408,7 @@ export default function AppUninstaller() {
                               {t('apps.systemAppBadge')}
                             </span>
                           ) : (
-                            <span className="text-[10px] font-medium text-slate-500 dark:text-neutral-400 bg-black/[0.03] dark:bg-white/[0.05] px-2 py-0.5 rounded-full">
+                            <span className="text-[10px] font-medium text-slate-500 dark:text-neutral-400 bg-black/3 dark:bg-white/5 px-2 py-0.5 rounded-full">
                               {t('apps.userAppBadge')}
                             </span>
                           )}
@@ -440,7 +440,7 @@ export default function AppUninstaller() {
                       <button
                         onClick={(e) => handleReveal(e, app.path)}
                         title={t('common.revealInFinder')}
-                        className="p-2 rounded-xl text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors cursor-pointer"
+                        className="p-2 rounded-xl text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-black/4 dark:hover:bg-white/6 transition-colors cursor-pointer"
                       >
                         <ExternalLink size={14} />
                       </button>
@@ -450,7 +450,7 @@ export default function AppUninstaller() {
                         <button
                           onClick={() => toggleExpand(app.id)}
                           title="Inspect residual leftover files"
-                          className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-black/[0.02] dark:bg-white/[0.04] text-slate-600 dark:text-neutral-300 hover:bg-black/[0.05] dark:hover:bg-white/[0.08] text-xs font-semibold cursor-pointer transition-colors"
+                          className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-black/2 dark:bg-white/4 text-slate-600 dark:text-neutral-300 hover:bg-black/5 dark:hover:bg-white/8 text-xs font-semibold cursor-pointer transition-colors"
                         >
                           <span>{t('apps.dataFilesCount', '{count} data files', { count: app.leftovers.length })}</span>
                           {isExpanded ? <ChevronDown size={13} /> : <ChevronRight size={13} />}
@@ -471,7 +471,7 @@ export default function AppUninstaller() {
                         <button
                           disabled
                           title={t('apps.systemAppLockTooltip')}
-                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium text-slate-400 bg-black/[0.02] dark:bg-white/[0.02] border border-black/[0.04] dark:border-white/[0.04] cursor-not-allowed opacity-60"
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium text-slate-400 bg-black/2 dark:bg-white/2 border border-black/4 dark:border-white/4 cursor-not-allowed opacity-60"
                         >
                           <ShieldCheck size={13} />
                           <span>{t('apps.protected')}</span>
@@ -482,7 +482,7 @@ export default function AppUninstaller() {
 
                   {/* Leftover Data Drawer */}
                   {isExpanded && app.leftovers.length > 0 && (
-                    <div className="mt-4 pt-3 border-t border-black/[0.04] dark:border-white/[0.06] space-y-2">
+                    <div className="mt-4 pt-3 border-t border-black/4 dark:border-white/6 space-y-2">
                       <div className="flex items-center justify-between text-xs text-slate-500 dark:text-neutral-400 px-1">
                         <span className="font-semibold flex items-center gap-1.5">
                           <Database size={12} className="text-blue-500" />
@@ -491,7 +491,7 @@ export default function AppUninstaller() {
                         <span>{t('apps.selectedTotal', 'Selected: {size}', { size: formatSize(totalActionSize) })}</span>
                       </div>
 
-                      <div className="space-y-1 rounded-2xl bg-black/[0.02] dark:bg-white/[0.03] p-2 border border-black/[0.04] dark:border-white/[0.06]">
+                      <div className="space-y-1 rounded-2xl bg-black/2 dark:bg-white/3 p-2 border border-black/4 dark:border-white/6">
                         {/* Main App binary row */}
                         <div className="flex items-center justify-between text-xs py-1.5 px-2 rounded-lg bg-white/60 dark:bg-neutral-800/60">
                           <div className="flex items-center gap-2 truncate">
@@ -513,7 +513,7 @@ export default function AppUninstaller() {
                           return (
                             <label
                               key={item.path}
-                              className="flex items-center justify-between text-xs py-1.5 px-2 rounded-lg hover:bg-black/[0.02] dark:hover:bg-white/[0.04] cursor-pointer transition-colors"
+                              className="flex items-center justify-between text-xs py-1.5 px-2 rounded-lg hover:bg-black/2 dark:hover:bg-white/4 cursor-pointer transition-colors"
                             >
                               <div className="flex items-center gap-2 truncate min-w-0">
                                 <input

@@ -14,12 +14,17 @@ import {
   Layers,
   Trash2,
   Info,
+  PieChart,
+  Zap,
+  ShieldAlert,
+  GitBranch,
 } from 'lucide-react';
 import { useTranslation } from '../../lib/i18n';
 import DriveSelector from './DriveSelector';
 
 const navDefinitions: { id: ViewPage; labelKey: string; icon: React.ReactNode }[] = [
   { id: 'dashboard', labelKey: 'nav.dashboard', icon: <LayoutDashboard size={16} /> },
+  { id: 'disk-visualizer', labelKey: 'nav.diskVisualizer', icon: <PieChart size={16} /> },
   { id: 'quick-review', labelKey: 'nav.quickReview', icon: <Eye size={16} /> },
   { id: 'large-duplicates', labelKey: 'nav.largeDuplicates', icon: <Layers size={16} /> },
   { id: 'trash-manager', labelKey: 'nav.trashManager', icon: <Trash2 size={16} /> },
@@ -27,6 +32,9 @@ const navDefinitions: { id: ViewPage; labelKey: string; icon: React.ReactNode }[
   { id: 'apps', labelKey: 'nav.apps', icon: <AppWindow size={16} /> },
   { id: 'system-clean', labelKey: 'nav.systemClean', icon: <Sparkles size={16} /> },
   { id: 'dev-workspace', labelKey: 'nav.devWorkspace', icon: <Code2 size={16} /> },
+  { id: 'startup-manager', labelKey: 'nav.startupManager', icon: <Zap size={16} /> },
+  { id: 'file-shredder', labelKey: 'nav.fileShredder', icon: <ShieldAlert size={16} /> },
+  { id: 'git-sweeper', labelKey: 'nav.gitSweeper', icon: <GitBranch size={16} /> },
 ];
 
 const MIN_WIDTH = 64;
@@ -128,7 +136,7 @@ export default function FloatingSidebar() {
       `}
     >
       {/* Top Header: Logo & Collapse Button */}
-      <div className="flex items-center justify-between px-3 py-3.5 border-b border-black/[0.04] dark:border-white/[0.06]">
+      <div className="flex items-center justify-between px-3 py-3.5 border-b border-black/4 dark:border-white/6">
         {!isCollapsed ? (
           <div className="flex items-center gap-2.5 min-w-0">
             <img
@@ -166,7 +174,7 @@ export default function FloatingSidebar() {
           <button
             onClick={handleToggleCollapse}
             title="Collapse to icons"
-            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors cursor-pointer shrink-0"
+            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-black/4 dark:hover:bg-white/6 transition-colors cursor-pointer shrink-0"
           >
             <PanelLeftClose size={14} />
           </button>
@@ -195,7 +203,7 @@ export default function FloatingSidebar() {
                 ${
                   isActive
                     ? 'bg-blue-600 text-white shadow-xs shadow-blue-500/20'
-                    : 'text-slate-600 dark:text-neutral-400 hover:bg-black/[0.03] dark:hover:bg-white/[0.05] hover:text-slate-900 dark:hover:text-white'
+                    : 'text-slate-600 dark:text-neutral-400 hover:bg-black/3 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white'
                 }
               `}
             >
@@ -207,12 +215,12 @@ export default function FloatingSidebar() {
       </nav>
 
       {/* Footer Area: Multi-Drive Selector & Settings / About */}
-      <div className="p-2 border-t border-black/[0.04] dark:border-white/[0.06] space-y-1.5">
+      <div className="p-2 border-t border-black/4 dark:border-white/6 space-y-1.5">
         {/* Interactive Drive / Flashdisk Selector */}
         <DriveSelector isCollapsed={isCollapsed} />
 
         {/* Bottom Actions: Settings & About App */}
-        <div className="space-y-1 pt-1 border-t border-black/[0.04] dark:border-white/[0.06]">
+        <div className="space-y-1 pt-1 border-t border-black/4 dark:border-white/6">
           {/* Settings Button */}
           <button
             onClick={() => setCurrentPage('settings')}
@@ -224,7 +232,7 @@ export default function FloatingSidebar() {
               ${
                 currentPage === 'settings'
                   ? 'bg-blue-600 text-white shadow-xs shadow-blue-500/20'
-                  : 'text-slate-600 dark:text-neutral-400 hover:bg-black/[0.03] dark:hover:bg-white/[0.05] hover:text-slate-900 dark:hover:text-white'
+                  : 'text-slate-600 dark:text-neutral-400 hover:bg-black/3 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white'
               }
             `}
           >
@@ -239,7 +247,7 @@ export default function FloatingSidebar() {
             className={`
               w-full flex items-center gap-2.5 rounded-xl text-xs font-semibold
               transition-all duration-150 cursor-pointer text-slate-500 dark:text-neutral-400
-              hover:bg-black/[0.03] dark:hover:bg-white/[0.05] hover:text-slate-900 dark:hover:text-white
+              hover:bg-black/3 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white
               ${isCollapsed ? 'justify-center p-2.5' : 'px-3 py-2 text-left'}
             `}
           >
@@ -252,7 +260,7 @@ export default function FloatingSidebar() {
             <button
               onClick={handleToggleCollapse}
               title={t('nav.expand')}
-              className="w-full flex items-center justify-center p-2.5 rounded-xl text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-black/[0.04] dark:hover:bg-white/[0.06] cursor-pointer"
+              className="w-full flex items-center justify-center p-2.5 rounded-xl text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-black/4 dark:hover:bg-white/6 cursor-pointer"
             >
               <PanelLeftOpen size={14} />
             </button>

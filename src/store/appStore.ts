@@ -53,10 +53,14 @@ export type ViewPage =
   | 'quick-review'
   | 'large-duplicates'
   | 'trash-manager'
+  | 'disk-visualizer'
   | 'tidy-up'
   | 'apps'
   | 'system-clean'
   | 'dev-workspace'
+  | 'startup-manager'
+  | 'file-shredder'
+  | 'git-sweeper'
   | 'settings';
 export type UiScale = 'compact' | 'normal' | 'large';
 
@@ -80,10 +84,14 @@ function getStoredPage(): ViewPage {
       'quick-review',
       'large-duplicates',
       'trash-manager',
+      'disk-visualizer',
       'tidy-up',
       'apps',
       'system-clean',
       'dev-workspace',
+      'startup-manager',
+      'file-shredder',
+      'git-sweeper',
       'settings',
     ];
     if (val && validPages.includes(val)) return val;

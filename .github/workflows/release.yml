@@ -1,0 +1,71 @@
+name: Release Build
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release Git tag (e.g. v1.0.0)'
+        required: true
+        default: 'v1.0.0'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: 'macos-latest'
+            args: '--target aarch64-apple-darwin'
+            arch_name: 'arm64'
+          - platform: 'macos-13'
+            args: '--target x86_64-apple-darwin'
+            arch_name: 'x64'
+
+    runs-on: ${{ matrix.platform }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.args && contains(matrix.args, '--target') && replace(matrix.args, '--target ', '') || '' }}
+
+      - name: Rust Cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: './src-tauri -> target'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Tauri Application & Publish Release
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: ${{ github.ref_name || github.event.inputs.tag }}
+          releaseName: 'Beberes ${{ github.ref_name || github.event.inputs.tag }}'
+          releaseBody: |
+            See [CHANGELOG.md](https://github.com/naenmad/Beberes/blob/main/CHANGELOG.md) for detailed notes on this release.
+
+            ### Downloads
+            Download the appropriate installer below:
+            - **Apple Silicon (M1/M2/M3/M4)**: `Beberes_*_aarch64.dmg`
+            - **Intel Macs (x86_64)**: `Beberes_*_x64.dmg`
+          releaseDraft: false
+          prerelease: false
+          args: ${{ matrix.args }}

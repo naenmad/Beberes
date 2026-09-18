@@ -1,0 +1,111 @@
+use rayon::prelude::*;
+use serde::{Deserialize, Serialize};
+use std::fs;
+use std::path::{Path, PathBuf};
+use walkdir::WalkDir;
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DiskTreeNode {
+    pub id: String,
+    pub name: String,
+    pub path: String,
+    pub size: u64,
+    #[serde(rename = "isDir")]
+    pub is_dir: bool,
+    pub children: Vec<DiskTreeNode>,
+    #[serde(rename = "fileCount")]
+    pub file_count: usize,
+}
+
+fn calculate_allocated_size(path: &Path) -> (u64, usize) {
+    if path.is_file() {
+        let size = path.metadata().map(|m| m.len()).unwrap_or(0);
+        return (size, 1);
+    }
+
+    let mut total_size = 0u64;
+    let mut file_count = 0usize;
+
+    for entry in WalkDir::new(path)
+        .min_depth(1)
+        .into_iter()
+        .filter_map(|e| e.ok())
+    {
+        if entry.file_type().is_file() {
+            if let Ok(m) = entry.metadata() {
+                total_size += m.len();
+                file_count += 1;
+            }
+        }
+    }
+
+    (total_size, file_count)
+}
+
+fn build_tree(path: &Path, current_depth: usize, max_depth: usize) -> DiskTreeNode {
+    let name = path
+        .file_name()
+        .map(|n| n.to_string_lossy().to_string())
+        .unwrap_or_else(|| path.to_string_lossy().to_string());
+
+    let is_dir = path.is_dir();
+
+    if !is_dir || current_depth >= max_depth {
+        let (size, file_count) = calculate_allocated_size(path);
+        return DiskTreeNode {
+            id: path.to_string_lossy().to_string(),
+            name,
+            path: path.to_string_lossy().to_string(),
+            size,
+            is_dir,
+            children: Vec::new(),
+            file_count,
+        };
+    }
+
+    let direct_entries: Vec<PathBuf> = match fs::read_dir(path) {
+        Ok(rd) => rd.filter_map(|e| e.ok()).map(|e| e.path()).collect(),
+        Err(_) => Vec::new(),
+    };
+
+    // Parallel scan of direct children
+    let mut children: Vec<DiskTreeNode> = direct_entries
+        .par_iter()
+        .map(|child_path| build_tree(child_path, current_depth + 1, max_depth))
+        .filter(|node| node.size > 0)
+        .collect();
+
+    // Sort children descending by size
+    children.sort_by(|a, b| b.size.cmp(&a.size));
+
+    let total_size: u64 = children.iter().map(|c| c.size).sum();
+    let total_files: usize = children.iter().map(|c| c.file_count).sum();
+
+    DiskTreeNode {
+        id: path.to_string_lossy().to_string(),
+        name,
+        path: path.to_string_lossy().to_string(),
+        size: total_size,
+        is_dir,
+        children,
+        file_count: total_files,
+    }
+}
+
+#[tauri::command]
+pub async fn scan_directory_tree(
+    path: String,
+    max_depth: Option<usize>,
+) -> Result<DiskTreeNode, String> {
+    let target = PathBuf::from(&path);
+    if !target.exists() {
+        return Err(format!("Directory not found: {}", path));
+    }
+
+    let depth = max_depth.unwrap_or(2).min(4);
+    let root_node = tokio::task::spawn_blocking(move || build_tree(&target, 0, depth))
+        .await
+        .map_err(|e| e.to_string())?;
+
+    Ok(root_node)
+}

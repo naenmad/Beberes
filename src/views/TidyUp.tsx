@@ -403,7 +403,7 @@ export default function TidyUp() {
             placeholder={t('tidyUp.searchPlaceholder')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 text-xs bg-white dark:bg-neutral-800 border border-black/[0.06] dark:border-white/[0.08] rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 dark:text-neutral-200"
+            className="w-full pl-9 pr-4 py-2 text-xs bg-white dark:bg-neutral-800 border border-black/6 dark:border-white/8 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 dark:text-neutral-200"
           />
         </div>
 
@@ -441,7 +441,7 @@ export default function TidyUp() {
                   className={`px-3 py-1 rounded-full font-semibold transition-colors shrink-0 cursor-pointer ${
                     selectedCategory === cat
                       ? 'bg-blue-600 text-white shadow-xs'
-                      : 'bg-black/[0.04] dark:bg-white/[0.06] text-slate-600 dark:text-neutral-400 hover:bg-black/[0.07] dark:hover:bg-white/[0.1]'
+                      : 'bg-black/4 dark:bg-white/6 text-slate-600 dark:text-neutral-400 hover:bg-black/7 dark:hover:bg-white/10'
                   }`}
                 >
                   {getCategoryLabel(cat)} ({count})
@@ -473,7 +473,7 @@ export default function TidyUp() {
               </p>
             </div>
           ) : (
-            <div className="divide-y divide-black/[0.04] dark:divide-white/[0.06]">
+            <div className="divide-y divide-black/4 dark:divide-white/6">
               {filteredItems.map((item) => {
                 const isChecked = selectedItemIds.has(item.id);
                 const meta = categoryMeta[item.category] || categoryMeta['Other'];
@@ -481,7 +481,7 @@ export default function TidyUp() {
                 return (
                   <div
                     key={item.id}
-                    className="flex items-center gap-3 px-4 py-3 hover:bg-black/[0.02] dark:hover:bg-white/[0.03] transition-colors group"
+                    className="flex items-center gap-3 px-4 py-3 hover:bg-black/2 dark:hover:bg-white/3 transition-colors group"
                   >
                     <Checkbox checked={isChecked} onChange={() => toggleItemSelection(item.id)} />
 
@@ -516,7 +516,7 @@ export default function TidyUp() {
                       <button
                         onClick={(e) => handleReveal(e, item.path)}
                         title={t('common.revealInFinder')}
-                        className="p-1.5 rounded-lg text-slate-400 hover:text-blue-500 hover:bg-black/[0.04] dark:hover:bg-white/[0.06] opacity-60 group-hover:opacity-100 transition-all cursor-pointer"
+                        className="p-1.5 rounded-lg text-slate-400 hover:text-blue-500 hover:bg-black/4 dark:hover:bg-white/6 opacity-60 group-hover:opacity-100 transition-all cursor-pointer"
                       >
                         <ExternalLink size={14} />
                       </button>
@@ -531,7 +531,7 @@ export default function TidyUp() {
 
       {/* Sticky Bottom Action Bar */}
       {selectedItems.length > 0 && (
-        <div className="sticky bottom-0 -mx-8 px-8 py-3.5 glass-panel border-t border-black/[0.06] dark:border-white/[0.08] shadow-lg">
+        <div className="sticky bottom-0 -mx-8 px-8 py-3.5 glass-panel border-t border-black/6 dark:border-white/8 shadow-lg">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 max-w-6xl mx-auto">
             <div className="flex items-center gap-2 text-xs font-bold text-slate-800 dark:text-neutral-200">
               <FolderTree size={15} className="text-blue-500" />

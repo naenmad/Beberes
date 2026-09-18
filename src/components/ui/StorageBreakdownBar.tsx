@@ -110,10 +110,10 @@ export default function StorageBreakdownBar({
               onMouseEnter={() => setHoveredSegment(seg.id)}
               onMouseLeave={() => setHoveredSegment(null)}
               className={`flex items-center gap-2.5 p-2 rounded-xl transition-colors cursor-pointer ${
-                isHovered ? 'bg-black/[0.04] dark:bg-white/[0.06]' : ''
+                isHovered ? 'bg-black/4 dark:bg-white/6' : ''
               }`}
             >
-              <div className={`p-1.5 rounded-lg bg-black/[0.03] dark:bg-white/[0.06] ${seg.textColor}`}>
+              <div className={`p-1.5 rounded-lg bg-black/3 dark:bg-white/6 ${seg.textColor}`}>
                 {seg.icon}
               </div>
               <div className="min-w-0 flex-1">

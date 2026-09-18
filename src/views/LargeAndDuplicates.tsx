@@ -301,7 +301,7 @@ export default function LargeAndDuplicates() {
                   className={`px-2 py-0.5 rounded-md text-[11px] font-mono cursor-pointer transition-colors ${
                     minLargeSizeMb === mb
                       ? 'bg-blue-600 text-white shadow-2xs font-semibold'
-                      : 'bg-black/[0.04] dark:bg-white/[0.06] text-slate-600 dark:text-neutral-400 hover:bg-black/[0.08]'
+                      : 'bg-black/4 dark:bg-white/6 text-slate-600 dark:text-neutral-400 hover:bg-black/8'
                   }`}
                 >
                   {mb >= 1024 ? `${mb / 1024} GB` : `${mb} MB`}
@@ -315,14 +315,14 @@ export default function LargeAndDuplicates() {
               <button
                 type="button"
                 onClick={() => handleSelectDuplicates('keep-newest')}
-                className="px-2.5 py-1 rounded-lg text-xs font-medium bg-black/[0.04] dark:bg-white/[0.06] text-slate-700 dark:text-neutral-300 hover:bg-black/[0.08] cursor-pointer"
+                className="px-2.5 py-1 rounded-lg text-xs font-medium bg-black/4 dark:bg-white/6 text-slate-700 dark:text-neutral-300 hover:bg-black/8 cursor-pointer"
               >
                 {t('largeDuplicates.keepNewest', 'Keep Newest')}
               </button>
               <button
                 type="button"
                 onClick={() => handleSelectDuplicates('keep-oldest')}
-                className="px-2.5 py-1 rounded-lg text-xs font-medium bg-black/[0.04] dark:bg-white/[0.06] text-slate-700 dark:text-neutral-300 hover:bg-black/[0.08] cursor-pointer"
+                className="px-2.5 py-1 rounded-lg text-xs font-medium bg-black/4 dark:bg-white/6 text-slate-700 dark:text-neutral-300 hover:bg-black/8 cursor-pointer"
               >
                 {t('largeDuplicates.keepOldest', 'Keep Oldest')}
               </button>
@@ -389,7 +389,7 @@ export default function LargeAndDuplicates() {
                   onClick={() => togglePath(file.path)}
                   className={`flex items-center justify-between gap-3 p-3 rounded-2xl glass-panel cursor-pointer transition-all ${
                     isSelected
-                      ? 'border-blue-500/50 bg-blue-500/[0.04]'
+                      ? 'border-blue-500/50 bg-blue-500/4'
                       : 'hover:border-black/10 dark:hover:border-white/10'
                   }`}
                 >
@@ -400,7 +400,7 @@ export default function LargeAndDuplicates() {
                       onChange={() => {}}
                       className="rounded border-slate-300 text-blue-600 focus:ring-0 shrink-0 cursor-pointer"
                     />
-                    <div className="w-8 h-8 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] flex items-center justify-center shrink-0">
+                    <div className="w-8 h-8 rounded-xl bg-black/3 dark:bg-white/5 flex items-center justify-center shrink-0">
                       {getKindIcon(file.kind)}
                     </div>
                     <div className="min-w-0">
@@ -424,7 +424,7 @@ export default function LargeAndDuplicates() {
                         revealInFinder(file.path);
                       }}
                       title={t('common.revealInFinder')}
-                      className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-neutral-200 hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors cursor-pointer"
+                      className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-neutral-200 hover:bg-black/4 dark:hover:bg-white/6 transition-colors cursor-pointer"
                     >
                       <ExternalLink size={13} />
                     </button>
@@ -451,9 +451,9 @@ export default function LargeAndDuplicates() {
             data.duplicate_groups.map((group, gIdx) => (
               <div
                 key={group.id}
-                className="p-4 rounded-3xl glass-panel space-y-2.5 border border-black/[0.06] dark:border-white/[0.06]"
+                className="p-4 rounded-3xl glass-panel space-y-2.5 border border-black/6 dark:border-white/6"
               >
-                <div className="flex items-center justify-between gap-2 pb-2 border-b border-black/[0.04] dark:border-white/[0.04]">
+                <div className="flex items-center justify-between gap-2 pb-2 border-b border-black/4 dark:border-white/4">
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-bold text-slate-800 dark:text-neutral-200">
                       {t('largeDuplicates.group', 'Duplicate Group #{index}', { index: gIdx + 1 })}
@@ -477,7 +477,7 @@ export default function LargeAndDuplicates() {
                         className={`flex items-center justify-between gap-3 p-2.5 rounded-xl cursor-pointer transition-all ${
                           isSelected
                             ? 'bg-blue-500/10 dark:bg-blue-500/20 text-blue-600 dark:text-blue-300'
-                            : 'hover:bg-black/[0.02] dark:hover:bg-white/[0.02] text-slate-700 dark:text-neutral-300'
+                            : 'hover:bg-black/2 dark:hover:bg-white/2 text-slate-700 dark:text-neutral-300'
                         }`}
                       >
                         <div className="flex items-center gap-2.5 min-w-0">
@@ -541,7 +541,7 @@ export default function LargeAndDuplicates() {
                   onClick={() => togglePath(file.path)}
                   className={`flex items-center justify-between gap-3 p-3 rounded-2xl glass-panel cursor-pointer transition-all ${
                     isSelected
-                      ? 'border-blue-500/50 bg-blue-500/[0.04]'
+                      ? 'border-blue-500/50 bg-blue-500/4'
                       : 'hover:border-black/10 dark:hover:border-white/10'
                   }`}
                 >
@@ -552,7 +552,7 @@ export default function LargeAndDuplicates() {
                       onChange={() => {}}
                       className="rounded border-slate-300 text-blue-600 focus:ring-0 shrink-0 cursor-pointer"
                     />
-                    <div className="w-8 h-8 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] flex items-center justify-center shrink-0">
+                    <div className="w-8 h-8 rounded-xl bg-black/3 dark:bg-white/5 flex items-center justify-center shrink-0">
                       {getKindIcon(file.kind)}
                     </div>
                     <div className="min-w-0">
@@ -576,7 +576,7 @@ export default function LargeAndDuplicates() {
                         revealInFinder(file.path);
                       }}
                       title={t('common.revealInFinder')}
-                      className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-neutral-200 hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors cursor-pointer"
+                      className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-neutral-200 hover:bg-black/4 dark:hover:bg-white/6 transition-colors cursor-pointer"
                     >
                       <ExternalLink size={13} />
                     </button>
