@@ -2,8 +2,8 @@
 # frozen_string_literal: true
 
 cask "beberes" do
-  version "1.0.0"
-  sha256 "671e04583c3d9604c562141591aca78ad90fdcdfeb07f9148157576b245a33c4"
+  version "1.1.0"
+  sha256 "b7ac080eb7b10b80514df9ccfb5f284e7ca945ef8718431e96a22667fe8b2c55"
 
   url "https://github.com/naenmad/Beberes/releases/download/v#{version}/Beberes_#{version}_aarch64.dmg"
   name "Beberes"
