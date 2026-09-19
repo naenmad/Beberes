@@ -174,12 +174,12 @@ export default function DevWorkspace() {
     try {
       const res = await runBrewCleanup();
       setBrewOutput(
-        res.trim() || 'Homebrew cleanup selesai: Semua bottle lama dan lockfile kadaluarsa telah dibersihkan.'
+        res.trim() || t('devWorkspace.homebrewSuccess')
       );
       setShowBrewLog(true);
       await runScan();
     } catch (err: any) {
-      setBrewOutput(`Gagal menjalankan brew cleanup: ${err}`);
+      setBrewOutput(t('devWorkspace.homebrewError', 'Failed to run brew cleanup: {error}', { error: String(err) }));
       setShowBrewLog(true);
     } finally {
       setIsCleaningBrew(false);
@@ -467,14 +467,14 @@ export default function DevWorkspace() {
                 <div>
                   <div className="flex items-center gap-2">
                     <h4 className="text-xs font-bold text-slate-900 dark:text-white">
-                      Pemeliharaan Global Homebrew & Bottle Cache
+                      {t('devWorkspace.homebrewTitle')}
                     </h4>
                     <span className="px-2 py-0.5 rounded text-[9px] font-semibold bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
                       brew cleanup --prune=all
                     </span>
                   </div>
                   <p className="text-[11px] text-slate-500 dark:text-neutral-400 mt-0.5">
-                    Bersihkan unduhan bottle usang, lockfile kadaluarsa, dan berkas sementara Homebrew di macOS.
+                    {t('devWorkspace.homebrewDesc')}
                   </p>
                 </div>
               </div>
@@ -487,7 +487,7 @@ export default function DevWorkspace() {
                     onClick={() => setShowBrewLog(!showBrewLog)}
                     className="text-xs"
                   >
-                    {showBrewLog ? 'Tutup Log' : 'Lihat Log Output'}
+                    {showBrewLog ? t('devWorkspace.homebrewCloseLog') : t('devWorkspace.homebrewShowLog')}
                   </Button>
                 )}
 
@@ -499,7 +499,7 @@ export default function DevWorkspace() {
                   className="flex items-center gap-1.5"
                 >
                   <RefreshCw size={13} className={isCleaningBrew ? 'animate-spin' : ''} />
-                  <span>{isCleaningBrew ? 'Membersihkan...' : 'Prune Homebrew'}</span>
+                  <span>{isCleaningBrew ? t('devWorkspace.homebrewCleaning') : t('devWorkspace.homebrewPruneBtn')}</span>
                 </Button>
               </div>
             </div>
@@ -507,7 +507,7 @@ export default function DevWorkspace() {
             {brewOutput && showBrewLog && (
               <div className="mt-3 pt-3 border-t border-black/5 dark:border-white/5">
                 <div className="flex items-center justify-between mb-1.5 text-[11px] text-slate-400">
-                  <span>Output Konsol Homebrew:</span>
+                  <span>{t('devWorkspace.homebrewOutputTitle')}</span>
                   <button
                     type="button"
                     onClick={() => setShowBrewLog(false)}
@@ -754,7 +754,7 @@ export default function DevWorkspace() {
               <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
                 type="text"
-                placeholder="Cari port (3000, 8080), nama proses, PID..."
+                placeholder={t('devWorkspace.portsPlaceholder')}
                 value={portSearch}
                 onChange={(e) => setPortSearch(e.target.value)}
                 className="w-full pl-9 pr-8 py-1.5 text-xs rounded-xl bg-white/60 dark:bg-neutral-900/60 border border-black/8 dark:border-white/8 focus:border-blue-500 focus:outline-none transition-all placeholder:text-slate-400"
@@ -778,7 +778,7 @@ export default function DevWorkspace() {
               className="flex items-center gap-1.5 text-xs"
             >
               <RefreshCw size={13} className={isLoadingPorts ? 'animate-spin' : ''} />
-              <span>{t('devWorkspace.portsRefresh', 'Segarkan Port')}</span>
+              <span>{t('devWorkspace.portsRefresh', 'Refresh Ports')}</span>
             </Button>
           </div>
 
@@ -794,7 +794,7 @@ export default function DevWorkspace() {
                   <Radio size={20} />
                 </div>
                 <h4 className="text-xs font-semibold text-slate-800 dark:text-neutral-200">
-                  {t('devWorkspace.portsEmpty', 'Tidak ada port TCP aktif yang terdeteksi')}
+                  {t('devWorkspace.portsEmpty', 'No active listening TCP ports detected')}
                 </h4>
               </div>
             </Card>
@@ -803,11 +803,11 @@ export default function DevWorkspace() {
               <table className="w-full text-left border-collapse text-xs">
                 <thead>
                   <tr className="border-b border-black/5 dark:border-white/5 bg-black/[0.02] dark:bg-white/[0.02] text-slate-400 font-medium text-[11px]">
-                    <th className="py-2.5 px-4 font-mono">Port</th>
-                    <th className="py-2.5 px-4">Proses & PID</th>
-                    <th className="py-2.5 px-4">Alamat Binding</th>
-                    <th className="py-2.5 px-4">Pengguna</th>
-                    <th className="py-2.5 px-4 text-right">Aksi</th>
+                    <th className="py-2.5 px-4 font-mono">{t('devWorkspace.portsColPort')}</th>
+                    <th className="py-2.5 px-4">{t('devWorkspace.portsColProcess')}</th>
+                    <th className="py-2.5 px-4">{t('devWorkspace.portsColAddress')}</th>
+                    <th className="py-2.5 px-4">{t('devWorkspace.portsColUser')}</th>
+                    <th className="py-2.5 px-4 text-right">{t('devWorkspace.portsColAction')}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-black/5 dark:divide-white/5">
@@ -845,7 +845,7 @@ export default function DevWorkspace() {
                           onClick={() => setKillTarget(p)}
                           className="text-[11px] py-1 px-2.5 rounded-lg"
                         >
-                          Hentikan
+                          {t('devWorkspace.portsKillBtn')}
                         </Button>
                       </td>
                     </tr>
@@ -865,7 +865,10 @@ export default function DevWorkspace() {
                   </div>
                   <div>
                     <h3 className="text-sm font-bold text-slate-900 dark:text-white">
-                      Hentikan {killTarget.process_name}?
+                      {t('devWorkspace.portsKillConfirmTitle', 'Terminate {name} (PID {pid})?', {
+                        name: killTarget.process_name,
+                        pid: killTarget.pid,
+                      })}
                     </h3>
                     <p className="text-xs text-slate-500 dark:text-neutral-400 font-mono">
                       PID: {killTarget.pid} &bull; Port :{killTarget.port}
@@ -873,7 +876,9 @@ export default function DevWorkspace() {
                   </div>
                 </div>
                 <p className="text-xs text-slate-600 dark:text-neutral-300">
-                  Aksi ini akan mengirim sinyal terminasi paksa (SIGKILL) untuk membebaskan port :{killTarget.port}. Perubahan yang belum disimpan pada proses ini akan hilang.
+                  {t('devWorkspace.portsKillConfirmDesc', 'This will send a force termination signal (SIGKILL) to free port :{port}. Unsaved state in this process will be lost.', {
+                    port: killTarget.port,
+                  })}
                 </p>
                 <div className="flex items-center justify-end gap-2 pt-2">
                   <Button
@@ -882,7 +887,7 @@ export default function DevWorkspace() {
                     onClick={() => setKillTarget(null)}
                     disabled={isKillingPort}
                   >
-                    Batal
+                    {t('devWorkspace.portsCancel')}
                   </Button>
                   <Button
                     variant="danger"
@@ -890,7 +895,7 @@ export default function DevWorkspace() {
                     onClick={executeKillPort}
                     disabled={isKillingPort}
                   >
-                    {isKillingPort ? 'Menghentikan...' : 'Hentikan Proses'}
+                    {isKillingPort ? t('devWorkspace.portsKilling') : t('devWorkspace.portsKillSubmit')}
                   </Button>
                 </div>
               </div>
@@ -923,10 +928,12 @@ export default function DevWorkspace() {
                   </div>
                   <div>
                     <h4 className="text-xs font-bold text-slate-900 dark:text-white">
-                      {xcodeReport.unavailable_simulators_count} Simulator Tidak Tersedia Terdeteksi
+                      {t('devWorkspace.xcodeUnavailableBadge', '{count} Unavailable Simulators Detected', {
+                        count: xcodeReport.unavailable_simulators_count,
+                      })}
                     </h4>
                     <p className="text-[11px] text-slate-500 dark:text-neutral-400 mt-0.5">
-                      Simulator ini mengacu pada runtime iOS/watchOS lama yang sudah dihapus dari Mac. Aman untuk dihapus.
+                      {t('devWorkspace.xcodeUnavailableDesc')}
                     </p>
                   </div>
                 </div>
@@ -939,7 +946,7 @@ export default function DevWorkspace() {
                   className="shrink-0 flex items-center gap-1.5"
                 >
                   <RefreshCw size={13} className={isPurgingSims ? 'animate-spin' : ''} />
-                  <span>{isPurgingSims ? 'Menghapus...' : 'Hapus Simulator Usang'}</span>
+                  <span>{isPurgingSims ? t('devWorkspace.xcodePurgingSims') : t('devWorkspace.xcodePurgeSimsBtn')}</span>
                 </Button>
               </div>
             </Card>
@@ -972,7 +979,7 @@ export default function DevWorkspace() {
 
                   <div className="flex items-center justify-between pt-2 border-t border-black/5 dark:border-white/5">
                     <span className="text-[10px] text-slate-400">
-                      {target.is_safe ? 'Sangat aman dibersihkan' : 'Butuh diskresi pengguna'}
+                      {target.is_safe ? t('devWorkspace.xcodeSafeBadge') : t('devWorkspace.xcodeDiscretionBadge')}
                     </span>
                     <Button
                       variant={target.is_safe ? 'secondary' : 'ghost'}
@@ -981,7 +988,7 @@ export default function DevWorkspace() {
                       onClick={() => handleCleanXcodeTarget(target.id)}
                       className="text-xs"
                     >
-                      {cleaningXcodeId === target.id ? 'Membersihkan...' : 'Bersihkan Target'}
+                      {cleaningXcodeId === target.id ? t('devWorkspace.xcodeCleaning') : t('devWorkspace.xcodeCleanTargetBtn')}
                     </Button>
                   </div>
                 </Card>
@@ -1010,7 +1017,7 @@ export default function DevWorkspace() {
               <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
                 type="text"
-                placeholder="Cari nama repositori dorman..."
+                placeholder={t('devWorkspace.hibernatePlaceholder')}
                 value={dormantSearch}
                 onChange={(e) => setDormantSearch(e.target.value)}
                 className="w-full pl-9 pr-8 py-1.5 text-xs rounded-xl bg-white/60 dark:bg-neutral-900/60 border border-black/8 dark:border-white/8 focus:border-amber-500 focus:outline-none transition-all placeholder:text-slate-400"
@@ -1041,7 +1048,7 @@ export default function DevWorkspace() {
                       : 'text-slate-500 dark:text-neutral-400 hover:text-slate-800 dark:hover:text-neutral-200'
                   }`}
                 >
-                  &gt; {d} Hari
+                  {t('devWorkspace.thresholdDays', '> {days} Days', { days: d })}
                 </button>
               ))}
             </div>
@@ -1054,7 +1061,7 @@ export default function DevWorkspace() {
               className="flex items-center gap-1.5 text-xs"
             >
               <RefreshCw size={13} className={isLoadingDormant ? 'animate-spin' : ''} />
-              <span>Pindai Repositori</span>
+              <span>{isLoadingDormant ? t('devWorkspace.hibernateScanning') : t('devWorkspace.hibernateScanBtn')}</span>
             </Button>
           </div>
 
@@ -1070,10 +1077,10 @@ export default function DevWorkspace() {
                   <CheckCircle2 size={20} />
                 </div>
                 <h4 className="text-xs font-semibold text-slate-800 dark:text-neutral-200">
-                  Tidak ada repositori dorman yang menyimpan folder build
+                  {t('devWorkspace.hibernateEmptyTitle')}
                 </h4>
                 <p className="text-[11px] text-slate-500 dark:text-neutral-400">
-                  Semua proyek aktif atau sudah dihibernasi secara rapi.
+                  {t('devWorkspace.hibernateEmptyDesc')}
                 </p>
               </div>
             </Card>
@@ -1088,7 +1095,7 @@ export default function DevWorkspace() {
                           {proj.name}
                         </h4>
                         <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-amber-500/10 text-amber-600 dark:text-amber-400">
-                          {proj.inactive_days} hari lalu
+                          {t('devWorkspace.hibernateDaysAgo', '{days} days ago', { days: proj.inactive_days })}
                         </span>
                       </div>
                       <p className="text-[10px] text-slate-400 font-mono mt-0.5 truncate">{proj.path}</p>
@@ -1120,7 +1127,7 @@ export default function DevWorkspace() {
                         className="text-xs flex items-center gap-1.5"
                       >
                         <Moon size={12} className={hibernatingPath === proj.path ? 'animate-spin' : ''} />
-                        <span>{hibernatingPath === proj.path ? 'Menghibernasi...' : 'Hibernasi Proyek'}</span>
+                        <span>{hibernatingPath === proj.path ? t('devWorkspace.hibernateActionActive') : t('devWorkspace.hibernateActionBtn')}</span>
                       </Button>
                     </div>
                   </div>

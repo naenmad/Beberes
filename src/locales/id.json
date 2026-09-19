@@ -79,7 +79,8 @@
     "historyModalSubtitle": "Sesi optimasi penyimpanan sebelumnya",
     "noHistory": "Belum ada sesi pembersihan yang tercatat.",
     "freed": "Dibebaskan",
-    "items": "item"
+    "items": "item",
+    "tidyUpDesc": "Rapikan berkas yang berantakan dan bersihkan installer berlebih secara cerdas"
   },
   "systemClean": {
     "title": "Pembersihan Sistem",
@@ -134,7 +135,46 @@
     "hibernateBtn": "Hibernasi Proyek",
     "hibernateSuccess": "Proyek berhasil dihibernasi. Kode sumber dan riwayat git tetap aman 100%.",
     "lastCommit": "Commit terakhir: {time} ({subject})",
-    "reclaimable": "Dapat dibebaskan: {size}"
+    "reclaimable": "Dapat dibebaskan: {size}",
+    "homebrewTitle": "Pemeliharaan Global Homebrew & Bottle Cache",
+    "homebrewDesc": "Bersihkan unduhan bottle usang, lockfile kadaluarsa, dan berkas sementara Homebrew di macOS.",
+    "homebrewPruneBtn": "Prune Homebrew",
+    "homebrewCleaning": "Membersihkan...",
+    "homebrewShowLog": "Lihat Log Output",
+    "homebrewCloseLog": "Tutup Log",
+    "homebrewOutputTitle": "Output Konsol Homebrew:",
+    "homebrewSuccess": "Homebrew cleanup selesai: Semua bottle lama dan lockfile kadaluarsa telah dibersihkan.",
+    "homebrewError": "Gagal menjalankan brew cleanup: {error}",
+    "portsPlaceholder": "Cari port (3000, 8080), nama proses, PID...",
+    "portsColPort": "Port",
+    "portsColProcess": "Proses & PID",
+    "portsColAddress": "Alamat Binding",
+    "portsColUser": "Pengguna",
+    "portsColAction": "Aksi",
+    "portsKillBtn": "Hentikan",
+    "portsKillConfirmTitle": "Hentikan Proses {name} (PID {pid})?",
+    "portsKillConfirmDesc": "Aksi ini akan mengirim sinyal terminasi paksa (SIGKILL) untuk membebaskan port :{port}. Perubahan yang belum disimpan pada proses ini akan hilang.",
+    "portsCancel": "Batal",
+    "portsKilling": "Menghentikan...",
+    "portsKillSubmit": "Hentikan Proses",
+    "xcodeSafeBadge": "Sangat aman dibersihkan",
+    "xcodeDiscretionBadge": "Butuh diskresi pengguna",
+    "xcodeCleaning": "Membersihkan...",
+    "xcodeCleanTargetBtn": "Bersihkan Target",
+    "xcodeUnavailableBadge": "{count} Simulator Tidak Tersedia Terdeteksi",
+    "xcodeUnavailableDesc": "Simulator ini mengacu pada runtime iOS/watchOS lama yang sudah dihapus dari Mac. Aman untuk dihapus.",
+    "xcodePurgeSimsBtn": "Hapus Simulator Usang",
+    "xcodePurgingSims": "Menghapus...",
+    "hibernatePlaceholder": "Cari nama repositori dorman...",
+    "hibernateDaysAgo": "{days} hari lalu",
+    "hibernateScanBtn": "Pindai Repositori",
+    "hibernateScanning": "Memindai...",
+    "hibernateEmptyTitle": "Tidak ada repositori dorman yang menyimpan folder build",
+    "hibernateEmptyDesc": "Semua proyek aktif atau sudah dihibernasi secara rapi.",
+    "hibernateActionBtn": "Hibernasi Proyek",
+    "hibernateActionActive": "Menghibernasi...",
+    "thresholdDays": "> {days} Hari",
+    "emptySearch": "Tidak ada cache pengembang yang cocok ditemukan."
   },
   "tidyUp": {
     "title": "Rapikan Desktop & Unduhan",
@@ -183,7 +223,29 @@
     "brokenSymlinksTitle": "Tautan Simbolik Rusak",
     "noEmptyFolders": "Tidak ada folder kosong di jalur ini.",
     "noBrokenSymlinks": "Tidak ada tautan rusak yang ditemukan.",
-    "cleanAllGood": "Direktori bersih! Tidak ada folder kosong atau tautan rusak."
+    "cleanAllGood": "Direktori bersih! Tidak ada folder kosong atau tautan rusak.",
+    "modeSmartRules": "Aturan Otomasi Pintar",
+    "smartRulesTitle": "Otomasi Kebersihan Ruang Kerja macOS",
+    "smartRulesSubtitle": "Aturan 1-klik untuk menjaga kebersihan folder harian secara otomatis. Memindahkan berkas lama dan tangkapan layar ke lokasi arsip tanpa pernah menghapus data penting Anda.",
+    "rescanRules": "Pindai Ulang Aturan",
+    "ruleDownloadsTitle": "Arsip Unduhan Lama",
+    "ruleDownloadsAge": "Umur berkas > 30 hari",
+    "ruleDownloadsBadge": "{count} berkas ({size})",
+    "ruleDownloadsDesc": "Pindahkan berkas di folder Unduhan yang tidak dibuka lebih dari 30 hari ke ~/Archive/Downloads/. Menjaga folder Downloads Anda tetap bersih dan teratur.",
+    "ruleDownloadsTarget": "Target: ~/Archive/Downloads/",
+    "ruleDownloadsBtn": "Arsipkan Sekarang",
+    "ruleDownloadsActive": "Mengarsipkan...",
+    "ruleDownloadsSuccess": "Berhasil mengarsipkan {count} berkas unduhan lama ke ~/Archive/Downloads",
+    "ruleDownloadsError": "Gagal mengarsipkan unduhan: {error}",
+    "ruleScreenshotsTitle": "Konsolidasi Screenshot Desktop",
+    "ruleScreenshotsAge": "Screen Shot / Tangkapan Layar",
+    "ruleScreenshotsBadge": "{count} tangkapan ({size})",
+    "ruleScreenshotsDesc": "Kumpulkan tangkapan layar macOS yang berserakan di Desktop dan rapikan ke ~/Pictures/Screenshots/ secara otomatis.",
+    "ruleScreenshotsTarget": "Target: ~/Pictures/Screenshots/",
+    "ruleScreenshotsBtn": "Kumpulkan ke Pictures",
+    "ruleScreenshotsActive": "Memindahkan...",
+    "ruleScreenshotsSuccess": "Berhasil mengumpulkan {count} tangkapan layar ke ~/Pictures/Screenshots",
+    "ruleScreenshotsError": "Gagal mengumpulkan screenshot: {error}"
   },
   "apps": {
     "title": "Aplikasi",
@@ -222,7 +284,23 @@
     "confirmUninstallTitle": "Copot {name}",
     "confirmTrashBtn": "Pindahkan ke Tong Sampah ({size})",
     "confirmDirectBtn": "Copot Permanen ({size})",
-    "uninstallingFlowTitle": "Mencopot {name}"
+    "uninstallingFlowTitle": "Mencopot {name}",
+    "orphanedTab": "Sisa Berkas Ditinggalkan",
+    "installedTab": "Aplikasi Terpasang",
+    "orphanedBadge": "{count} sisa ditemukan ({size})",
+    "orphanedSelected": "{count} terpilih ({size})",
+    "orphanedCleanBtn": "Bereskan Sisa ({size})",
+    "orphanedConfirmTitle": "Hapus Permanen {count} Berkas Sisa ({size})",
+    "orphanedConfirmDesc": "Berkas-berkas ini ditinggalkan oleh aplikasi yang telah dihapus sebelumnya. Berkas akan dihapus permanen.",
+    "orphanedSuccess": "Berhasil membersihkan {count} folder sisa berkas aplikasi",
+    "orphanedTitle": "Sisa Aplikasi Terhapus (Orphaned)",
+    "orphanedSubtitle": "Pindai dan bersihkan folder sisa, cache, dan data aplikasi yang sudah lama dihapus dari sistem macOS.",
+    "selectResidual": "Pilih berkas residual yang ingin ikut dihapus:",
+    "orphanedPlaceholder": "Cari sisa aplikasi atau folder...",
+    "orphanedEmptyTitle": "Sistem Bersih dan Tertata",
+    "orphanedEmptyDesc": "Tidak ditemukan sisa berkas dari aplikasi yang telah dihapus. Library macOS Anda dalam kondisi prima.",
+    "orphanedCleaning": "Membersihkan Berkas Sisa...",
+    "orphanedCleaningFlowTitle": "Membersihkan Berkas Sisa Aplikasi..."
   },
   "settings": {
     "title": "Pengaturan & Preferensi",
@@ -247,7 +325,8 @@
       "trashDesc": "Berkas dikirim ke Tong Sampah macOS. Jika ada yang salah terhapus, Anda dapat membuka Tong Sampah dan memilih \"Kembalikan\" kapan saja.",
       "directTitle": "Mode Langsung Hapus (Permanen)",
       "directBadge": "Permanen • Mengosongkan Ruang Lebih Cepat",
-      "directDesc": "Melewati Tong Sampah macOS dan langsung menghapus berkas dari disk. Direktori penting sistem tetap terlindungi secara otomatis."
+      "directDesc": "Melewati Tong Sampah macOS dan langsung menghapus berkas dari disk. Direktori penting sistem tetap terlindungi secara otomatis.",
+      "directDelete": "Hapus Langsung"
     },
     "safety": {
       "title": "Keamanan & Pengoperasian",
@@ -392,7 +471,7 @@
   },
   "topBar": {
     "diskTooltip": "Klik untuk melihat rincian penyimpanan di Dasbor",
-    "searchPlaceholder": "Cari aplikasi, file, aksi... (⌘K)"
+    "searchPlaceholder": "Cari aplikasi, file, aksi... (CmdK)"
   },
   "spotlight": {
     "placeholder": "Ketik perintah, aplikasi, atau halaman...",
@@ -574,7 +653,16 @@
     "launchApp": "Mulai Beberes",
     "next": "Lanjutkan",
     "back": "Kembali",
-    "skip": "Lewati untuk sekarang"
+    "skip": "Lewati untuk sekarang",
+    "privacyDesc": "Nol telemetri dan nol koneksi server luar. Semuanya berjalan 100% lokal di Mac Anda.",
+    "privacyTitle": "100% Lokal & Privat",
+    "safetyDesc": "Direktori krusial macOS, area SIP, dan aplikasi aktif dilindungi secara ketat oleh whitelist.",
+    "safetyTitle": "Perlindungan Sistem Apple",
+    "smartDesc": "Bebaskan ruang dari node_modules, kontainer Docker, Xcode DerivedData, dan simulator dalam 1 klik.",
+    "smartTitle": "Optimasi Khusus Developer",
+    "startBtn": "Mulai Gunakan Beberes",
+    "subtitle": "Pembersih dan pengoptimal sistem macOS lokal yang super cepat",
+    "title": "Selamat Datang di Beberes"
   },
   "updates": {
     "title": "Pembaruan Perangkat Lunak",
@@ -598,11 +686,17 @@
     "subtitle": "Total ruang penyimpanan dan sumber daya sistem yang telah dipulihkan oleh Beberes",
     "storageFreed": "Total Ruang Diselamatkan",
     "cleanCycles": "Siklus Bersih Dijalankan",
-    "recycledItems": "Berkas Diproses"
+    "recycledItems": "Berkas Diproses",
+    "avgFreed": "Rata-rata Dibersihkan",
+    "cleanOps": "Operasi Pembersihan",
+    "rescuedBadge": "Penyimpanan Diselamatkan"
   },
   "holdQuit": {
     "title": "Tahan Cmd+Q untuk Keluar",
-    "releaseToCancel": "Lepas untuk membatalkan"
+    "releaseToCancel": "Lepas untuk membatalkan",
+    "settingDesc": "Memerlukan menahan Cmd + Q selama satu detik sebelum keluar.",
+    "settingTitle": "Tahan Cmd + Q untuk Keluar",
+    "subtitle": "Mencegah penutupan aplikasi secara tidak sengaja"
   },
   "lowDiskWarning": {
     "title": "Peringatan Sisa Disk Sedikit",
@@ -613,7 +707,9 @@
     "criticalWarningTitle": "Berkas Kritis / Baru Terdeteksi",
     "criticalWarningDesc": "Berkas yang dipilih mencakup berkas berukuran lebih dari 5 GB atau dimodifikasi dalam 24 jam terakhir. Harap pastikan kembali sebelum melanjutkan.",
     "criticalBadge": "Kritis (> 5 GB)",
-    "recentBadge": "Baru (< 24 jam)"
+    "recentBadge": "Baru (< 24 jam)",
+    "whitelistNotice": "Proteksi Daftar Putih Aktif",
+    "whitelistNoticeDesc": "Berkas sistem dan folder yang dilindungi telah dikecualikan dengan aman."
   },
   "installer": {
     "title": "Pindahkan ke Folder Applications?",
@@ -627,8 +723,20 @@
     "moveBtn": "Pindahkan ke Applications & Mulai Ulang",
     "moving": "Memindahkan...",
     "dontMove": "Tetap di Lokasi Saat Ini",
-    "dontAskAgain": "Jangan tanyakan lagi di perangkat ini"
+    "dontAskAgain": "Jangan tanyakan lagi di perangkat ini",
+    "dontMoveBtn": "Tetap di Lokasi Saat Ini",
+    "promptDesc": "Untuk performa optimal dan izin yang tepat, disarankan menjalankan aplikasi dari /Applications.",
+    "promptTitle": "Pindahkan Beberes ke folder Aplikasi?"
+  },
+  "healthGauge": {
+    "optimal": "Kondisi Optimal",
+    "fair": "Kondisi Cukup Baik",
+    "action": "Perlu Pembersihan",
+    "optimalDesc": "SSD Mac Anda memiliki ruang longgar yang luas dan sampah minimal.",
+    "fairDesc": "Pertimbangkan menjalankan Smart Clean untuk melegakan kapasitas penyimpanan SSD.",
+    "actionDesc": "Kapasitas penyimpanan menipis. Bersihkan sampah agar performa APFS tetap prima.",
+    "hygiene": "Higienitas",
+    "cleanAll": "Bereskan Sekaligus",
+    "cleaning": "Membersihkan..."
   }
 }
-
-

@@ -135,7 +135,46 @@
     "hibernateBtn": "Hibernate Project",
     "hibernateSuccess": "Project hibernated safely. Source code and git history preserved.",
     "lastCommit": "Last commit: {time} ({subject})",
-    "reclaimable": "Reclaimable: {size}"
+    "reclaimable": "Reclaimable: {size}",
+    "homebrewTitle": "Global Homebrew & Bottle Cache Maintenance",
+    "homebrewDesc": "Purge outdated bottle downloads, expired lockfiles, and temporary Homebrew files on macOS.",
+    "homebrewPruneBtn": "Prune Homebrew",
+    "homebrewCleaning": "Cleaning...",
+    "homebrewShowLog": "View Log Output",
+    "homebrewCloseLog": "Close Log",
+    "homebrewOutputTitle": "Homebrew Console Output:",
+    "homebrewSuccess": "Homebrew cleanup finished: all outdated bottles and expired lockfiles have been cleaned.",
+    "homebrewError": "Failed to run brew cleanup: {error}",
+    "portsPlaceholder": "Search port (3000, 8080), process name, PID...",
+    "portsColPort": "Port",
+    "portsColProcess": "Process & PID",
+    "portsColAddress": "Binding Address",
+    "portsColUser": "User",
+    "portsColAction": "Action",
+    "portsKillBtn": "Kill",
+    "portsKillConfirmTitle": "Terminate {name} (PID {pid})?",
+    "portsKillConfirmDesc": "This will send a force termination signal (SIGKILL) to free port :{port}. Unsaved state in this process will be lost.",
+    "portsCancel": "Cancel",
+    "portsKilling": "Terminating...",
+    "portsKillSubmit": "Terminate Process",
+    "xcodeSafeBadge": "Very safe to clean",
+    "xcodeDiscretionBadge": "Requires user discretion",
+    "xcodeCleaning": "Cleaning...",
+    "xcodeCleanTargetBtn": "Clean Target",
+    "xcodeUnavailableBadge": "{count} Unavailable Simulators Detected",
+    "xcodeUnavailableDesc": "These simulators reference legacy iOS/watchOS runtimes that have been removed from your Mac. Safe to delete.",
+    "xcodePurgeSimsBtn": "Purge Unavailable Simulators",
+    "xcodePurgingSims": "Deleting...",
+    "hibernatePlaceholder": "Search dormant repository name...",
+    "hibernateDaysAgo": "{days} days ago",
+    "hibernateScanBtn": "Scan Repositories",
+    "hibernateScanning": "Scanning...",
+    "hibernateEmptyTitle": "No dormant repositories hoarding build folders",
+    "hibernateEmptyDesc": "All projects are active or cleanly hibernated.",
+    "hibernateActionBtn": "Hibernate Project",
+    "hibernateActionActive": "Hibernating...",
+    "thresholdDays": "> {days} Days",
+    "emptySearch": "No matching development caches found."
   },
   "tidyUp": {
     "title": "Tidy Up Desktop & Downloads",
@@ -184,7 +223,29 @@
     "brokenSymlinksTitle": "Broken Symbolic Links",
     "noEmptyFolders": "No empty folders found.",
     "noBrokenSymlinks": "No broken symlinks found.",
-    "cleanAllGood": "Directory is clean! No empty folders or broken links."
+    "cleanAllGood": "Directory is clean! No empty folders or broken links.",
+    "modeSmartRules": "Smart Automation Rules",
+    "smartRulesTitle": "macOS Workspace Hygiene Automation",
+    "smartRulesSubtitle": "1-click rules to automatically keep your daily workspace clean. Moves old files and screenshots to archives without deleting your important data.",
+    "rescanRules": "Rescan Rules",
+    "ruleDownloadsTitle": "Archive Old Downloads",
+    "ruleDownloadsAge": "File age > 30 days",
+    "ruleDownloadsBadge": "{count} files ({size})",
+    "ruleDownloadsDesc": "Move files in Downloads not opened for more than 30 days to ~/Archive/Downloads/. Keeps your Downloads folder clean and uncluttered.",
+    "ruleDownloadsTarget": "Target: ~/Archive/Downloads/",
+    "ruleDownloadsBtn": "Archive Now",
+    "ruleDownloadsActive": "Archiving...",
+    "ruleDownloadsSuccess": "Successfully archived {count} old download files to ~/Archive/Downloads",
+    "ruleDownloadsError": "Failed to archive downloads: {error}",
+    "ruleScreenshotsTitle": "Consolidate Desktop Screenshots",
+    "ruleScreenshotsAge": "Screen Shot / Screen Capture",
+    "ruleScreenshotsBadge": "{count} screenshots ({size})",
+    "ruleScreenshotsDesc": "Collect scattered macOS screenshots on Desktop and organize them into ~/Pictures/Screenshots/ automatically.",
+    "ruleScreenshotsTarget": "Target: ~/Pictures/Screenshots/",
+    "ruleScreenshotsBtn": "Consolidate to Pictures",
+    "ruleScreenshotsActive": "Moving...",
+    "ruleScreenshotsSuccess": "Successfully consolidated {count} screenshots to ~/Pictures/Screenshots",
+    "ruleScreenshotsError": "Failed to consolidate screenshots: {error}"
   },
   "apps": {
     "title": "Applications",
@@ -223,7 +284,23 @@
     "confirmUninstallTitle": "Uninstall {name}",
     "confirmTrashBtn": "Move to Trash ({size})",
     "confirmDirectBtn": "Uninstall Permanently ({size})",
-    "uninstallingFlowTitle": "Uninstalling {name}"
+    "uninstallingFlowTitle": "Uninstalling {name}",
+    "orphanedTab": "Orphaned App Leftovers",
+    "installedTab": "Installed Applications",
+    "orphanedBadge": "{count} leftovers found ({size})",
+    "orphanedSelected": "{count} selected ({size})",
+    "orphanedCleanBtn": "Clean Leftovers ({size})",
+    "orphanedConfirmTitle": "Permanently Delete {count} Leftover Files ({size})",
+    "orphanedConfirmDesc": "These files were abandoned by previously uninstalled apps. They will be removed permanently.",
+    "orphanedSuccess": "Successfully cleaned {count} orphaned leftover folders",
+    "orphanedTitle": "Orphaned App Leftovers",
+    "orphanedSubtitle": "Scan and clean leftover folders, caches, and orphaned files from apps previously uninstalled from macOS.",
+    "selectResidual": "Select residual files to remove:",
+    "orphanedPlaceholder": "Search leftovers or folder...",
+    "orphanedEmptyTitle": "System is Clean and Tidy",
+    "orphanedEmptyDesc": "No leftover files from uninstalled applications found. Your macOS Library is in prime condition.",
+    "orphanedCleaning": "Cleaning Leftovers...",
+    "orphanedCleaningFlowTitle": "Cleaning Leftover Application Files..."
   },
   "settings": {
     "title": "Settings & Preferences",
@@ -248,7 +325,8 @@
       "trashDesc": "Files and caches are sent to macOS Trash. If anything was removed by mistake, you can open Trash and click \"Put Back\" anytime.",
       "directTitle": "Direct Permanent Delete",
       "directBadge": "Permanent • Fast Free Space",
-      "directDesc": "Bypasses macOS Trash and erases items immediately to free storage space on APFS. System-critical paths remain protected."
+      "directDesc": "Bypasses macOS Trash and erases items immediately to free storage space on APFS. System-critical paths remain protected.",
+      "directDelete": "Direct Delete"
     },
     "safety": {
       "title": "Safety & Operational Guardrails",
@@ -575,7 +653,16 @@
     "launchApp": "Launch Beberes",
     "next": "Continue",
     "back": "Back",
-    "skip": "Skip for now"
+    "skip": "Skip for now",
+    "privacyDesc": "Zero telemetry and zero external server connections. Everything runs exclusively on your Mac.",
+    "privacyTitle": "100% Local & Private",
+    "safetyDesc": "Critical macOS directories, SIP protected areas, and active applications are safely guarded by whitelists.",
+    "safetyTitle": "Apple System Protection",
+    "smartDesc": "Reclaim space from node_modules, Docker containers, Xcode DerivedData, and simulators in 1 click.",
+    "smartTitle": "Developer Optimization",
+    "startBtn": "Get Started with Beberes",
+    "subtitle": "Ultra-fast, native, and local system cleaner & optimizer for macOS",
+    "title": "Welcome to Beberes"
   },
   "updates": {
     "title": "Software Updates",
@@ -599,11 +686,17 @@
     "subtitle": "Total lifetime storage and system resources recovered by Beberes",
     "storageFreed": "Total Storage Rescued",
     "cleanCycles": "Clean Cycles Run",
-    "recycledItems": "Files Processed"
+    "recycledItems": "Files Processed",
+    "avgFreed": "Average Freed",
+    "cleanOps": "Clean Operations",
+    "rescuedBadge": "Storage Rescued"
   },
   "holdQuit": {
     "title": "Hold Cmd+Q to Quit",
-    "releaseToCancel": "Release to cancel"
+    "releaseToCancel": "Release to cancel",
+    "settingDesc": "Requires holding Cmd + Q for one second before quitting.",
+    "settingTitle": "Hold Cmd + Q to Quit",
+    "subtitle": "Prevents accidental application quitting"
   },
   "lowDiskWarning": {
     "title": "Low Disk Space Alert",
@@ -614,7 +707,9 @@
     "criticalWarningTitle": "Critical / Recent Files Detected",
     "criticalWarningDesc": "Selected items include files exceeding 5 GB or modified within the last 24 hours. Please verify before proceeding.",
     "criticalBadge": "Critical (> 5 GB)",
-    "recentBadge": "Recent (< 24h)"
+    "recentBadge": "Recent (< 24h)",
+    "whitelistNotice": "Active Whitelist Protection",
+    "whitelistNoticeDesc": "System files and protected folders are securely excluded."
   },
   "installer": {
     "title": "Move to Applications Folder?",
@@ -628,8 +723,20 @@
     "moveBtn": "Move to Applications & Relaunch",
     "moving": "Moving...",
     "dontMove": "Keep in Current Location",
-    "dontAskAgain": "Do not ask again on this device"
+    "dontAskAgain": "Do not ask again on this device",
+    "dontMoveBtn": "Keep in Current Location",
+    "promptDesc": "For optimal performance and proper permissions, running from /Applications is recommended.",
+    "promptTitle": "Move Beberes to Applications folder?"
+  },
+  "healthGauge": {
+    "optimal": "Optimal Health",
+    "fair": "Good Condition",
+    "action": "Action Recommended",
+    "optimalDesc": "Your SSD has plenty of headroom and low clutter.",
+    "fairDesc": "Consider running Smart Clean to free up additional SSD space.",
+    "actionDesc": "Storage is running low. Clean junk to maintain peak APFS performance.",
+    "hygiene": "Hygiene",
+    "cleanAll": "Clean Everything",
+    "cleaning": "Cleaning..."
   }
 }
-
-

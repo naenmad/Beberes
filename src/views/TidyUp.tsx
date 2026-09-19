@@ -119,11 +119,17 @@ export default function TidyUp() {
     setIsExecutingRule('downloads');
     try {
       const moved = await archiveOldDownloads(30);
-      setMaintenanceToast(`Berhasil mengarsipkan ${moved} berkas unduhan lama ke ~/Archive/Downloads`);
+      setMaintenanceToast(
+        t('tidyUp.ruleDownloadsSuccess', 'Successfully archived {count} old download files to ~/Archive/Downloads', {
+          count: moved,
+        })
+      );
       setTimeout(() => setMaintenanceToast(null), 4000);
       await loadSmartStats();
     } catch (err: any) {
-      setMaintenanceToast(`Gagal mengarsipkan unduhan: ${err}`);
+      setMaintenanceToast(
+        t('tidyUp.ruleDownloadsError', 'Failed to archive downloads: {error}', { error: String(err) })
+      );
       setTimeout(() => setMaintenanceToast(null), 4000);
     } finally {
       setIsExecutingRule(null);
@@ -134,11 +140,17 @@ export default function TidyUp() {
     setIsExecutingRule('screenshots');
     try {
       const moved = await consolidateDesktopScreenshots();
-      setMaintenanceToast(`Berhasil mengumpulkan ${moved} tangkapan layar ke ~/Pictures/Screenshots`);
+      setMaintenanceToast(
+        t('tidyUp.ruleScreenshotsSuccess', 'Successfully consolidated {count} screenshots to ~/Pictures/Screenshots', {
+          count: moved,
+        })
+      );
       setTimeout(() => setMaintenanceToast(null), 4000);
       await loadSmartStats();
     } catch (err: any) {
-      setMaintenanceToast(`Gagal mengumpulkan screenshot: ${err}`);
+      setMaintenanceToast(
+        t('tidyUp.ruleScreenshotsError', 'Failed to consolidate screenshots: {error}', { error: String(err) })
+      );
       setTimeout(() => setMaintenanceToast(null), 4000);
     } finally {
       setIsExecutingRule(null);
@@ -441,7 +453,7 @@ export default function TidyUp() {
             }`}
           >
             <Sparkles size={13} />
-            <span>Aturan Otomasi Pintar</span>
+            <span>{t('tidyUp.modeSmartRules', 'Smart Automation Rules')}</span>
           </button>
           <button
             onClick={() => setTidyMode('maintenance')}
@@ -915,10 +927,10 @@ export default function TidyUp() {
               </div>
               <div>
                 <h3 className="text-sm font-bold text-slate-900 dark:text-white">
-                  Otomasi Kebersihan Ruang Kerja macOS
+                  {t('tidyUp.smartRulesTitle')}
                 </h3>
                 <p className="text-xs text-slate-500 dark:text-neutral-400 mt-1">
-                  Aturan 1-klik untuk menjaga kebersihan folder harian secara otomatis. Memindahkan berkas lama dan tangkapan layar ke lokasi arsip tanpa pernah menghapus data penting Anda.
+                  {t('tidyUp.smartRulesSubtitle')}
                 </p>
               </div>
             </div>
@@ -926,7 +938,7 @@ export default function TidyUp() {
             <button
               onClick={loadSmartStats}
               disabled={isLoadingSmartStats}
-              title="Pindai Ulang Aturan"
+              title={t('tidyUp.rescanRules')}
               className="p-2 rounded-xl bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 text-slate-600 dark:text-neutral-300 transition-colors cursor-pointer shrink-0 disabled:opacity-50"
             >
               <RefreshCw size={14} className={isLoadingSmartStats ? 'animate-spin' : ''} />
@@ -944,24 +956,27 @@ export default function TidyUp() {
                     </div>
                     <div>
                       <h4 className="text-xs font-bold text-slate-900 dark:text-white">
-                        Arsip Unduhan Lama
+                        {t('tidyUp.ruleDownloadsTitle')}
                       </h4>
-                      <span className="text-[10px] text-slate-400">Umur berkas &gt; 30 hari</span>
+                      <span className="text-[10px] text-slate-400">{t('tidyUp.ruleDownloadsAge')}</span>
                     </div>
                   </div>
                   <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400">
-                    {smartStats?.old_downloads_count ?? 0} berkas ({formatSize(smartStats?.old_downloads_size ?? 0)})
+                    {t('tidyUp.ruleDownloadsBadge', '{count} files ({size})', {
+                      count: smartStats?.old_downloads_count ?? 0,
+                      size: formatSize(smartStats?.old_downloads_size ?? 0),
+                    })}
                   </span>
                 </div>
 
                 <p className="text-xs text-slate-500 dark:text-neutral-400 leading-relaxed">
-                  Pindahkan berkas di folder Unduhan yang tidak dibuka lebih dari 30 hari ke <code className="font-mono text-[11px] bg-black/5 dark:bg-white/5 px-1 py-0.5 rounded">~/Archive/Downloads/</code>. Menjaga folder Downloads Anda tetap bersih dan teratur.
+                  {t('tidyUp.ruleDownloadsDesc')}
                 </p>
               </div>
 
               <div className="pt-3 border-t border-black/5 dark:border-white/5 flex items-center justify-between">
                 <span className="text-[11px] text-slate-400">
-                  Target: ~/Archive/Downloads/
+                  {t('tidyUp.ruleDownloadsTarget')}
                 </span>
                 <Button
                   variant="primary"
@@ -971,7 +986,7 @@ export default function TidyUp() {
                   className="flex items-center gap-1.5"
                 >
                   <Archive size={13} />
-                  <span>{isExecutingRule === 'downloads' ? 'Mengarsipkan...' : 'Arsipkan Sekarang'}</span>
+                  <span>{isExecutingRule === 'downloads' ? t('tidyUp.ruleDownloadsActive') : t('tidyUp.ruleDownloadsBtn')}</span>
                 </Button>
               </div>
             </div>
@@ -986,24 +1001,27 @@ export default function TidyUp() {
                     </div>
                     <div>
                       <h4 className="text-xs font-bold text-slate-900 dark:text-white">
-                        Konsolidasi Screenshot Desktop
+                        {t('tidyUp.ruleScreenshotsTitle')}
                       </h4>
-                      <span className="text-[10px] text-slate-400">Screen Shot / Tangkapan Layar</span>
+                      <span className="text-[10px] text-slate-400">{t('tidyUp.ruleScreenshotsAge')}</span>
                     </div>
                   </div>
                   <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-pink-500/10 text-pink-600 dark:text-pink-400">
-                    {smartStats?.screenshots_count ?? 0} tangkapan ({formatSize(smartStats?.screenshots_size ?? 0)})
+                    {t('tidyUp.ruleScreenshotsBadge', '{count} screenshots ({size})', {
+                      count: smartStats?.screenshots_count ?? 0,
+                      size: formatSize(smartStats?.screenshots_size ?? 0),
+                    })}
                   </span>
                 </div>
 
                 <p className="text-xs text-slate-500 dark:text-neutral-400 leading-relaxed">
-                  Kumpulkan tangkapan layar macOS yang berserakan di Desktop dan rapikan ke <code className="font-mono text-[11px] bg-black/5 dark:bg-white/5 px-1 py-0.5 rounded">~/Pictures/Screenshots/</code> secara otomatis.
+                  {t('tidyUp.ruleScreenshotsDesc')}
                 </p>
               </div>
 
               <div className="pt-3 border-t border-black/5 dark:border-white/5 flex items-center justify-between">
                 <span className="text-[11px] text-slate-400">
-                  Target: ~/Pictures/Screenshots/
+                  {t('tidyUp.ruleScreenshotsTarget')}
                 </span>
                 <Button
                   variant="secondary"
@@ -1013,7 +1031,7 @@ export default function TidyUp() {
                   className="flex items-center gap-1.5"
                 >
                   <Camera size={13} />
-                  <span>{isExecutingRule === 'screenshots' ? 'Memindahkan...' : 'Kumpulkan ke Pictures'}</span>
+                  <span>{isExecutingRule === 'screenshots' ? t('tidyUp.ruleScreenshotsActive') : t('tidyUp.ruleScreenshotsBtn')}</span>
                 </Button>
               </div>
             </div>

@@ -1,4 +1,5 @@
 import { ShieldCheck, ShieldAlert, Sparkles, Zap } from 'lucide-react';
+import { useTranslation } from '../../lib/i18n';
 
 interface HealthGaugeProps {
   freeSpace: number;
@@ -15,6 +16,8 @@ export default function HealthGauge({
   onMasterClean,
   isCleaning,
 }: HealthGaugeProps) {
+  const { t } = useTranslation();
+
   // Compute health score (0-100)
   // Higher free space and lower junk -> higher score
   const freePercent = totalSpace > 0 ? (freeSpace / totalSpace) * 100 : 50;
@@ -39,16 +42,16 @@ export default function HealthGauge({
     : '#ef4444';
 
   const statusLabel = isOptimal
-    ? 'Optimal Health'
+    ? t('healthGauge.optimal', 'Optimal Health')
     : isFair
-    ? 'Good Condition'
-    : 'Action Recommended';
+    ? t('healthGauge.fair', 'Good Condition')
+    : t('healthGauge.action', 'Action Recommended');
 
   const statusDesc = isOptimal
-    ? 'Your SSD has plenty of headroom and low clutter.'
+    ? t('healthGauge.optimalDesc', 'Your SSD has plenty of headroom and low clutter.')
     : isFair
-    ? 'Consider running Smart Clean to free up additional SSD space.'
-    : 'Storage is running low. Clean junk to maintain peak APFS performance.';
+    ? t('healthGauge.fairDesc', 'Consider running Smart Clean to free up additional SSD space.')
+    : t('healthGauge.actionDesc', 'Storage is running low. Clean junk to maintain peak APFS performance.');
 
   // SVG ring calculation (radius 36, circumference ~226)
   const radius = 36;
@@ -85,7 +88,9 @@ export default function HealthGauge({
           <span className="text-xl font-extrabold text-slate-900 dark:text-white leading-none">
             {score}%
           </span>
-          <span className="text-[10px] text-slate-400 font-medium mt-0.5">Hygiene</span>
+          <span className="text-[10px] text-slate-400 font-medium mt-0.5">
+            {t('healthGauge.hygiene', 'Hygiene')}
+          </span>
         </div>
       </div>
 
@@ -115,7 +120,7 @@ export default function HealthGauge({
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-xs transition-colors cursor-pointer disabled:opacity-50"
             >
               <Zap size={13} />
-              <span>{isCleaning ? 'Membersihkan...' : 'Bereskan Sekaligus'}</span>
+              <span>{isCleaning ? t('healthGauge.cleaning', 'Cleaning...') : t('healthGauge.cleanAll', 'Clean Everything')}</span>
             </button>
           </div>
         )}

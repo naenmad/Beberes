@@ -309,11 +309,11 @@ export default function AppUninstaller() {
       <PageHeader
         icon={viewMode === 'installed' ? <AppWindow size={20} /> : <Ghost size={20} />}
         iconColor={viewMode === 'installed' ? 'text-blue-500' : 'text-amber-500'}
-        title={viewMode === 'installed' ? t('apps.title') : 'Sisa Aplikasi Terhapus (Orphaned)'}
+        title={viewMode === 'installed' ? t('apps.title') : t('apps.orphanedTitle', 'Orphaned App Leftovers')}
         subtitle={
           viewMode === 'installed'
             ? t('apps.subtitle')
-            : 'Pindai dan bersihkan folder sisa, cache, dan data aplikasi yang sudah lama dihapus dari sistem macOS.'
+            : t('apps.orphanedSubtitle', 'Scan and clean leftover folders, caches, and orphaned files from apps previously uninstalled from macOS.')
         }
         badge={
           <span
@@ -325,7 +325,10 @@ export default function AppUninstaller() {
           >
             {viewMode === 'installed'
               ? t('apps.installedCount', '{count} installed', { count: apps.length })
-              : `${orphanedStats.totalCount} sisa ditemukan (${formatSize(orphanedStats.totalSize)})`}
+              : t('apps.orphanedBadge', '{count} leftovers found ({size})', {
+                  count: orphanedStats.totalCount,
+                  size: formatSize(orphanedStats.totalSize),
+                })}
           </span>
         }
       />
@@ -341,7 +344,7 @@ export default function AppUninstaller() {
           }`}
         >
           <AppWindow size={15} />
-          <span>Aplikasi Terpasang</span>
+          <span>{t('apps.installedTab', 'Installed Applications')}</span>
           <span
             className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold ${
               viewMode === 'installed'
@@ -365,7 +368,7 @@ export default function AppUninstaller() {
           }`}
         >
           <Ghost size={15} />
-          <span>Sisa Aplikasi Dihapus</span>
+          <span>{t('apps.orphanedTab', 'Orphaned App Leftovers')}</span>
           {orphanedStats.totalCount > 0 && (
             <span
               className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold ${
@@ -593,7 +596,7 @@ export default function AppUninstaller() {
                       {isExpanded && app.leftovers.length > 0 && (
                         <div className="mt-4 pt-3 border-t border-black/5 dark:border-white/5 space-y-2">
                           <div className="flex items-center justify-between text-xs text-slate-500 font-medium">
-                            <span>Pilih berkas residual yang ingin ikut dihapus:</span>
+                            <span>{t('apps.selectResidual', 'Select residual files to remove:')}</span>
                             <span>{formatSize(totalLeftoversSize)}</span>
                           </div>
 
@@ -703,22 +706,25 @@ export default function AppUninstaller() {
                 <CheckCheck size={13} />
                 <span>
                   {selectedOrphanedIds.size === filteredOrphaned.length
-                    ? 'Batal Pilih Semua'
-                    : 'Pilih Semua'}
+                    ? t('common.deselectAll', 'Deselect All')
+                    : t('common.selectAll', 'Select All')}
                 </span>
               </button>
 
               <button
                 onClick={runOrphanedScan}
                 disabled={isLoadingOrphaned}
-                title="Pindai Ulang"
+                title={t('common.refresh', 'Refresh')}
                 className="p-2 rounded-xl bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 text-slate-600 dark:text-neutral-300 transition-colors cursor-pointer disabled:opacity-50"
               >
                 <RefreshCw size={13} className={isLoadingOrphaned ? 'animate-spin' : ''} />
               </button>
 
               <span className="text-xs text-slate-400 font-medium">
-                {orphanedStats.selectedCount} terpilih ({formatSize(orphanedStats.selectedSize)})
+                {t('apps.orphanedSelected', '{count} selected ({size})', {
+                  count: orphanedStats.selectedCount,
+                  size: formatSize(orphanedStats.selectedSize),
+                })}
               </span>
             </div>
 
@@ -732,7 +738,7 @@ export default function AppUninstaller() {
                   type="text"
                   value={orphanedSearchQuery}
                   onChange={(e) => setOrphanedSearchQuery(e.target.value)}
-                  placeholder="Cari sisa aplikasi atau folder..."
+                  placeholder={t('apps.orphanedPlaceholder', 'Search leftovers or folder...')}
                   className="w-full pl-8 pr-3 py-1.5 text-xs rounded-xl bg-white dark:bg-neutral-800 border border-black/6 dark:border-white/8 text-slate-800 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-amber-500"
                 />
               </div>
@@ -745,7 +751,7 @@ export default function AppUninstaller() {
                 className="flex items-center gap-1.5 shrink-0"
               >
                 <Trash2 size={13} />
-                <span>Bereskan Sisa ({formatSize(orphanedStats.selectedSize)})</span>
+                <span>{t('apps.orphanedCleanBtn', 'Clean Leftovers ({size})', { size: formatSize(orphanedStats.selectedSize) })}</span>
               </Button>
             </div>
           </div>
@@ -761,10 +767,10 @@ export default function AppUninstaller() {
             <div className="p-12 text-center rounded-2xl glass-panel">
               <Sparkles size={36} className="mx-auto text-emerald-500 mb-2" />
               <h3 className="text-sm font-bold text-slate-700 dark:text-neutral-300">
-                Sistem Bersih dan Tertata
+                {t('apps.orphanedEmptyTitle', 'System is Clean and Tidy')}
               </h3>
               <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
-                Tidak ditemukan sisa berkas dari aplikasi yang telah dihapus. Library macOS Anda dalam kondisi prima.
+                {t('apps.orphanedEmptyDesc', 'No leftover files from uninstalled applications found. Your macOS Library is in prime condition.')}
               </p>
             </div>
           ) : (
@@ -878,12 +884,15 @@ export default function AppUninstaller() {
         onConfirm={handleExecuteCleanOrphaned}
         isLoading={isCleaningOrphaned}
         actionType="clean"
-        title="Bersihkan Sisa Aplikasi Terhapus"
+        title={t('apps.orphanedTab', 'Orphaned App Leftovers')}
         itemsCount={orphanedStats.selectedCount}
         totalBytes={orphanedStats.selectedSize}
         paths={orphanedStats.selectedItems.map((i) => i.path)}
         useTrash={false}
-        confirmText={`Hapus Permanen ${orphanedStats.selectedCount} Berkas (${formatSize(orphanedStats.selectedSize)})`}
+        confirmText={t('apps.orphanedConfirmTitle', 'Permanently Delete {count} Leftover Files ({size})', {
+          count: orphanedStats.selectedCount,
+          size: formatSize(orphanedStats.selectedSize),
+        })}
       />
 
       {/* Orphaned Leftovers Cleaning Flow Modal */}
@@ -896,7 +905,7 @@ export default function AppUninstaller() {
         totalBytes={orphanedStats.selectedSize}
         totalItems={orphanedStats.selectedCount}
         paths={orphanedStats.selectedItems.map((i) => i.path)}
-        title="Membersihkan Berkas Sisa Aplikasi..."
+        title={t('apps.orphanedCleaningFlowTitle', 'Cleaning Leftover Application Files...')}
       />
     </div>
   );
