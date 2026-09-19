@@ -37,13 +37,38 @@ use commands::similar_media::{delete_similar_photos, scan_similar_photos};
 use commands::plugins::{remove_plugin_or_extension, scan_browser_and_system_plugins};
 use commands::report::export_report_markdown;
 
+use std::sync::atomic::{AtomicBool, Ordering};
+
+static IS_QUITTING: AtomicBool = AtomicBool::new(false);
+
 #[tauri::command]
-fn exit_app(app: tauri::AppHandle) {
-    app.exit(0);
+fn exit_app() {
+    IS_QUITTING.store(true, Ordering::SeqCst);
+    std::process::exit(0);
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    std::panic::set_hook(Box::new(|info| {
+        let payload = if let Some(s) = info.payload().downcast_ref::<&str>() {
+            *s
+        } else if let Some(s) = info.payload().downcast_ref::<String>() {
+            s.as_str()
+        } else {
+            "unknown panic payload"
+        };
+        let location = info
+            .location()
+            .map(|l| format!("{}:{}:{}", l.file(), l.line(), l.column()))
+            .unwrap_or_else(|| "unknown location".to_string());
+        let log_msg = format!("PANIC at [{}]: {}\n", location, payload);
+        eprintln!("{}", log_msg);
+        if let Some(home) = dirs::home_dir() {
+            let panic_file = home.join("Library/Logs/beberes-panic.log");
+            let _ = std::fs::write(panic_file, log_msg);
+        }
+    }));
+
     let app = tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
@@ -53,6 +78,9 @@ pub fn run() {
                     let _ = window.hide();
                 }
             } else if let tauri::WindowEvent::CloseRequested { api, .. } = event {
+                if IS_QUITTING.load(Ordering::SeqCst) {
+                    return;
+                }
                 #[cfg(target_os = "macos")]
                 {
                     api.prevent_close();
@@ -256,7 +284,8 @@ pub fn run() {
                         }
                     }
                     "quit" => {
-                        app.exit(0);
+                        IS_QUITTING.store(true, Ordering::SeqCst);
+                        std::process::exit(0);
                     }
                     _ => {}
                 })
