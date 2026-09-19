@@ -82,12 +82,12 @@ graph TD
     end
 
     subgraph OS["macOS Native Subsystems"]
-        Service_Scan --> FS[FileManager / URLResourceValues]
-        Service_Trash --> TrashAPI[FileManager.trashItem]
-        Service_Memory --> MachKernel[mach/host_statistics64 & /usr/bin/purge]
-        Service_Safety --> SIP[System Integrity Protection & App Bundles]
-        Service_Dev --> BrewCLI[/opt/homebrew & Package Stores]
-        Service_Shred --> CSPRNG[SecRandomCopyBytes & fcntl F_FULLFSYNC]
+        Service_Scan --> FS["FileManager / URLResourceValues"]
+        Service_Trash --> TrashAPI["FileManager.trashItem"]
+        Service_Memory --> MachKernel["mach/host_statistics64 & /usr/bin/purge"]
+        Service_Safety --> SIP["System Integrity Protection & App Bundles"]
+        Service_Dev --> BrewCLI["/opt/homebrew & Package Stores"]
+        Service_Shred --> CSPRNG["SecRandomCopyBytes & fcntl F_FULLFSYNC"]
     end
 
     State --> Core

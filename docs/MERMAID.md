@@ -63,16 +63,16 @@ graph TD
     end
 
     subgraph OS["macOS Operating System Layer"]
-        Mod_Scanner --> OS_FS[APFS File System / POSIX statvfs]
-        Mod_Cleaner --> OS_Trash[Native ~/.Trash Subsystem]
-        Mod_Orphaned --> OS_Lib[~/Library/Application Support & Caches]
-        Mod_SmartRules --> OS_UserDirs[~/Downloads, ~/Desktop, ~/Pictures]
-        Mod_Memory --> OS_Kernel[macOS Kernel Memory Manager: vm_stat / purge]
-        Mod_Snapshots --> OS_TM[Apple APFS Snapshots: tmutil]
-        Mod_Shredder --> OS_IO[CSPRNG Overwrite & Direct sync_all I/O]
-        Mod_Git --> OS_CLI[Git Subprocess Engine]
-        Mod_Maintenance --> OS_Brew[Homebrew: /opt/homebrew & /usr/local]
-        Mod_Startup --> OS_Launchd[LaunchAgents & LaunchDaemons]
+        Mod_Scanner --> OS_FS["APFS File System / POSIX statvfs"]
+        Mod_Cleaner --> OS_Trash["Native ~/.Trash Subsystem"]
+        Mod_Orphaned --> OS_Lib["~/Library/Application Support & Caches"]
+        Mod_SmartRules --> OS_UserDirs["~/Downloads, ~/Desktop, ~/Pictures"]
+        Mod_Memory --> OS_Kernel["macOS Kernel Memory Manager: vm_stat / purge"]
+        Mod_Snapshots --> OS_TM["Apple APFS Snapshots: tmutil"]
+        Mod_Shredder --> OS_IO["CSPRNG Overwrite & Direct sync_all I/O"]
+        Mod_Git --> OS_CLI["Git Subprocess Engine"]
+        Mod_Maintenance --> OS_Brew["Homebrew: /opt/homebrew & /usr/local"]
+        Mod_Startup --> OS_Launchd["LaunchAgents & LaunchDaemons"]
     end
 ```
 

@@ -35,10 +35,10 @@ graph TD
     end
 
     subgraph OS["macOS Operating System Layer"]
-        Mod_Scanner --> OS_FS[APFS File System]
-        Mod_Kernel --> OS_VM[vm_stat / purge & tmutil Snapshots]
-        Mod_CLI --> OS_Brew[/opt/homebrew & Global Package Stores]
-        Mod_Trash --> OS_Trash[~/.Trash & Storage Volumes]
+        Mod_Scanner --> OS_FS["APFS File System"]
+        Mod_Kernel --> OS_VM["vm_stat / purge & tmutil Snapshots"]
+        Mod_CLI --> OS_Brew["/opt/homebrew & Global Package Stores"]
+        Mod_Trash --> OS_Trash["~/.Trash & Storage Volumes"]
     end
 ```
 

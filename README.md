@@ -196,33 +196,33 @@ Beberes is built with a decoupled client-core architecture:
 ```mermaid
 graph TD
     subgraph UI["Frontend Layer (React 19 + TypeScript + Tailwind CSS)"]
-        A[Dashboard & Mac Hygiene Score] --> B[Zustand Central State Store]
-        C[System Clean & Browsers] --> B
-        D[App Uninstaller & Orphaned Leftovers] --> B
-        E[Developer Workspace & Homebrew Pruner] --> B
-        F[Tidy Up & Smart Automation Rules] --> B
-        G[APFS Snapshot & Inactive RAM Purger] --> B
-        H[Disk Visualizer & Quick Review] --> B
+        A["Dashboard & Mac Hygiene Score"] --> B["Zustand Central State Store"]
+        C["System Clean & Browsers"] --> B
+        D["App Uninstaller & Orphaned Leftovers"] --> B
+        E["Developer Workspace & Homebrew Pruner"] --> B
+        F["Tidy Up & Smart Automation Rules"] --> B
+        G["APFS Snapshot & Inactive RAM Purger"] --> B
+        H["Disk Visualizer & Quick Review"] --> B
     end
 
     subgraph IPC["Tauri v2 IPC Bridge"]
-        B <==>|Asynchronous Message Passing| I[Tauri Invoke Handlers]
+        B <==>|Asynchronous Message Passing| I["Tauri Invoke Handlers"]
     end
 
     subgraph Rust["Backend Core (Rust Native System Engine)"]
-        I --> J[Parallel Filesystem Scanner / Rayon]
-        I --> K[Apple System Whitelist Validator]
-        I --> L[macOS Memory & APFS Kernel Interface]
-        I --> M[Homebrew & Package CLI Orchestrator]
-        I --> N[POSIX statvfs Disk & Volume Metrics]
-        I --> O[Native macOS Trash & File Shredder]
+        I --> J["Parallel Filesystem Scanner / Rayon"]
+        I --> K["Apple System Whitelist Validator"]
+        I --> L["macOS Memory & APFS Kernel Interface"]
+        I --> M["Homebrew & Package CLI Orchestrator"]
+        I --> N["POSIX statvfs Disk & Volume Metrics"]
+        I --> O["Native macOS Trash & File Shredder"]
     end
 
     subgraph OS["macOS System Layer"]
-        J --> P[APFS Filesystem / User Library]
-        L --> Q[vm_stat / purge & tmutil Snapshots]
-        M --> R[/opt/homebrew & Global Package Stores]
-        O --> S[~/.Trash & Multi-drive Volumes]
+        J --> P["APFS Filesystem / User Library"]
+        L --> Q["vm_stat / purge & tmutil Snapshots"]
+        M --> R["/opt/homebrew & Global Package Stores"]
+        O --> S["~/.Trash & Multi-drive Volumes"]
     end
 ```
 
