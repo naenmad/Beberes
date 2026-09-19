@@ -10,7 +10,7 @@
     "confirm": "Confirmar",
     "save": "Guardar",
     "delete": "Eliminar",
-    "remove": "Quitar",
+    "remove": "Eliminar",
     "browse": "Examinar",
     "search": "Buscar",
     "filter": "Filtrar",
@@ -55,7 +55,8 @@
       "cleaning": "Limpieza",
       "organization": "Organización",
       "developer": "Desarrollador y Sistema"
-    }
+    },
+    "resizeSidebar": "Arrastrar para redimensionar (doble clic para alternar)"
   },
   "dashboard": {
     "title": "Resumen de Almacenamiento y Sistema",
@@ -478,7 +479,11 @@
     "noFilesFoundDesc": "Este directorio no contiene archivos que coincidan con el filtro actual.",
     "chooseFolder": "Elegir Otra Carpeta",
     "openInApp": "Abrir en la aplicación",
-    "openWithDefaultApp": "Abrir con la aplicación predeterminada"
+    "openWithDefaultApp": "Abrir con la aplicación predeterminada",
+    "expandFullscreen": "Pantalla completa (Espacio)",
+    "expandVideo": "Ampliar video (Espacio)",
+    "prevFile": "Archivo anterior (Flecha izquierda)",
+    "nextFile": "Archivo siguiente (Flecha derecha)"
   },
   "topBar": {
     "diskTooltip": "Haz clic para ver detalles de almacenamiento en el Panel",
@@ -611,7 +616,9 @@
     "warningDesc": "A diferencia de enviar a la papelera, triturar sobreescribe físicamente los bloques del disco. Los archivos destruidos no pueden recuperarse con ninguna herramienta comercial ni de laboratorio.",
     "confirmTitle": "¿Triturar permanentemente los archivos seleccionados?",
     "confirmDesc": "Estás a punto de destruir definitivamente los elementos seleccionados mediante sobreescritura múltiple. Esta acción es TOTALMENTE IRREVERSIBLE.",
-    "confirmBtn": "Triturar Archivos Ahora"
+    "confirmBtn": "Triturar Archivos Ahora",
+    "passBadge": "{count} Pasada",
+    "passesBadge": "{count} Pasadas"
   },
   "gitSweeper": {
     "title": "Limpiador de Repositorios Git",
@@ -631,7 +638,9 @@
     "optimize": "Optimizar",
     "optimizeAllTitle": "¿Optimizar todos los repositorios?",
     "optimizeAllDesc": "Esto ejecutará \"git gc --prune=now\" en todos los repositorios detectados y purgará ramas fusionadas. Tus cambios de trabajo permanecerán a salvo.",
-    "startOptimization": "Iniciar Optimización"
+    "startOptimization": "Iniciar Optimización",
+    "gitSize": "Tamaño de .git: {size}",
+    "lastCommitDate": "Último commit: {date}"
   },
   "welcome": {
     "title": "Bienvenido a Beberes",

@@ -10,7 +10,7 @@
     "confirm": "確認",
     "save": "保存",
     "delete": "削除",
-    "remove": "消去",
+    "remove": "削除",
     "browse": "参照",
     "search": "検索",
     "filter": "フィルター",
@@ -55,7 +55,8 @@
       "cleaning": "クリーンアップ",
       "organization": "ファイル整理",
       "developer": "開発＆システム"
-    }
+    },
+    "resizeSidebar": "ドラッグしてリサイズ（ダブルクリックで切り替え）"
   },
   "dashboard": {
     "title": "ストレージとシステムの概要",
@@ -478,7 +479,11 @@
     "noFilesFoundDesc": "現在の条件に一致するファイルはこのディレクトリにありません。",
     "chooseFolder": "別のフォルダを選択",
     "openInApp": "アプリで開く",
-    "openWithDefaultApp": "デフォルトアプリで開く"
+    "openWithDefaultApp": "デフォルトアプリで開く",
+    "expandFullscreen": "フルスクリーン表示（スペース）",
+    "expandVideo": "動画を拡大（スペース）",
+    "prevFile": "前のファイル（左矢印）",
+    "nextFile": "次のファイル（右矢印）"
   },
   "topBar": {
     "diskTooltip": "クリックしてダッシュボードで詳細を確認",
@@ -611,7 +616,9 @@
     "warningDesc": "通常のゴミ箱削除と異なり、セクタ自体を上書きします。消去されたファイルは市販ツールやフォレンジック機器でも一切復元できません。",
     "confirmTitle": "選択したファイルを完全に抹消しますか？",
     "confirmDesc": "選択したファイルを複数回の上書きによって完全に破壊します。この操作は絶対に取り消せません。",
-    "confirmBtn": "今すぐ完全抹消する"
+    "confirmBtn": "今すぐ完全抹消する",
+    "passBadge": "{count} パス",
+    "passesBadge": "{count} パス"
   },
   "gitSweeper": {
     "title": "Gitリポジトリスイーパー",
@@ -631,7 +638,9 @@
     "optimize": "最適化",
     "optimizeAllTitle": "全リポジトリを最適化しますか？",
     "optimizeAllDesc": "検出された全リポジトリで \"git gc --prune=now\" を実行し、マージ済みブランチを整理します。作業中のファイルは保護されます。",
-    "startOptimization": "最適化を開始"
+    "startOptimization": "最適化を開始",
+    "gitSize": ".gitのサイズ: {size}",
+    "lastCommitDate": "最終コミット: {date}"
   },
   "welcome": {
     "title": "Beberesへようこそ",

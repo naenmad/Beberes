@@ -157,7 +157,7 @@ export default function CleaningFlowModal({
         {!isCleaning && (
           <button
             onClick={onClose}
-            title="Close dialog"
+            title={t('common.close', 'Close')}
             className="absolute top-4 right-4 p-1.5 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-black/4 dark:hover:bg-white/6 transition-colors cursor-pointer z-20"
           >
             <X size={16} />

@@ -209,7 +209,7 @@ export default function FloatingSidebar() {
         {!isCollapsed && (
           <button
             onClick={handleToggleCollapse}
-            title="Collapse to icons"
+            title={t('nav.collapse', 'Collapse sidebar')}
             className="p-1.5 rounded-lg text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-black/4 dark:hover:bg-white/6 transition-colors cursor-pointer shrink-0"
           >
             <PanelLeftClose size={14} />
@@ -338,7 +338,7 @@ export default function FloatingSidebar() {
       <div
         onMouseDown={handleMouseDown}
         onDoubleClick={handleToggleCollapse}
-        title="Drag to resize (double click to toggle)"
+        title={t('nav.resizeSidebar', 'Drag to resize (double click to toggle)')}
         className={`
           absolute top-0 right-0 w-2.5 h-full cursor-col-resize group rounded-r-3xl transition-colors z-40
           ${isDragging ? 'bg-blue-500/30' : 'hover:bg-blue-500/20'}

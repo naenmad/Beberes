@@ -55,7 +55,8 @@
     "used": "Used",
     "free": "Free",
     "collapse": "Collapse sidebar",
-    "expand": "Expand sidebar"
+    "expand": "Expand sidebar",
+    "resizeSidebar": "Drag to resize (double click to toggle)"
   },
   "dashboard": {
     "title": "Storage & System Overview",
@@ -478,7 +479,11 @@
     "noFilesFoundDesc": "This directory has no individual files matching the current filter.",
     "chooseFolder": "Choose Another Folder",
     "openInApp": "Open in App",
-    "openWithDefaultApp": "Open with Default App"
+    "openWithDefaultApp": "Open with Default App",
+    "expandFullscreen": "Expand to Fullscreen (Space)",
+    "expandVideo": "Expand Video (Space)",
+    "prevFile": "Previous file (Left Arrow)",
+    "nextFile": "Next file (Right Arrow)"
   },
   "topBar": {
     "diskTooltip": "Click to view storage details in Dashboard",
@@ -611,7 +616,9 @@
     "warningDesc": "Unlike standard trash deletion, shredding overwrites sector clusters before unlinking inodes. Files destroyed with this utility cannot be recovered by any commercial or hardware forensic tools.",
     "confirmTitle": "Permanently Shred Selected Files?",
     "confirmDesc": "You are about to permanently destroy selected item(s) using multi-pass overwriting. This action is COMPLETELY IRREVERSIBLE.",
-    "confirmBtn": "Shred Items Now"
+    "confirmBtn": "Shred Items Now",
+    "passBadge": "{count} Pass",
+    "passesBadge": "{count} Passes"
   },
   "gitSweeper": {
     "title": "Git Repository Sweeper",
@@ -631,7 +638,9 @@
     "optimize": "Optimize",
     "optimizeAllTitle": "Optimize All Repositories?",
     "optimizeAllDesc": "This will run \"git gc --prune=now\" on all detected repositories and prune merged local branches. Working trees remain safe.",
-    "startOptimization": "Start Optimization"
+    "startOptimization": "Start Optimization",
+    "gitSize": ".git size: {size}",
+    "lastCommitDate": "Last commit: {date}"
   },
   "welcome": {
     "step1Title": "Welcome to Beberes",

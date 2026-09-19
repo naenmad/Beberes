@@ -793,7 +793,7 @@ export default function QuickReview() {
             <button
               type="button"
               onClick={() => openFileWithDefaultApp(currentItem.path)}
-              title="Open in Default macOS Application"
+              title={t('quickReview.openWithDefaultApp', 'Open with Default App')}
               className="absolute top-3 right-3 flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-black/60 hover:bg-black/80 text-white text-[11px] font-medium opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-xs cursor-pointer shadow-md z-20"
             >
               <ExternalLink size={11} />
@@ -815,7 +815,7 @@ export default function QuickReview() {
                 />
                 <button
                   onClick={() => setShowFullscreen(true)}
-                  title="Expand to Fullscreen (Space)"
+                  title={t('quickReview.expandFullscreen', 'Expand to Fullscreen (Space)')}
                   className="absolute bottom-4 right-4 p-2 rounded-xl bg-black/60 hover:bg-black/80 text-white opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-xs cursor-pointer shadow-lg z-10"
                 >
                   <Maximize2 size={14} />
@@ -836,7 +836,7 @@ export default function QuickReview() {
                 />
                 <button
                   onClick={() => setShowFullscreen(true)}
-                  title="Expand Video (Space)"
+                  title={t('quickReview.expandVideo', 'Expand Video (Space)')}
                   className="absolute bottom-4 right-4 p-2 rounded-xl bg-black/60 hover:bg-black/80 text-white opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-xs cursor-pointer shadow-lg z-10"
                 >
                   <Maximize2 size={14} />
@@ -871,7 +871,7 @@ export default function QuickReview() {
                 />
                 <button
                   onClick={() => setShowFullscreen(true)}
-                  title="Expand to Fullscreen (Space)"
+                  title={t('quickReview.expandFullscreen', 'Expand to Fullscreen (Space)')}
                   className="absolute bottom-3 right-3 p-2 rounded-xl bg-black/50 hover:bg-black/70 text-white opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-xs cursor-pointer"
                 >
                   <Maximize2 size={14} />
@@ -932,7 +932,7 @@ export default function QuickReview() {
               <p
                 onClick={handleReveal}
                 className="text-[11px] font-mono text-slate-400 dark:text-neutral-500 truncate mt-0.5 hover:text-blue-500 cursor-pointer flex items-center gap-1"
-                title="Click to reveal in Finder"
+                title={t('common.revealInFinder', 'Reveal in Finder')}
               >
                 <span>{currentItem.path}</span>
                 <ExternalLink size={10} />
@@ -944,14 +944,14 @@ export default function QuickReview() {
               <button
                 onClick={() => setCurrentIndex((prev) => Math.max(0, prev - 1))}
                 disabled={currentIndex === 0}
-                title="Previous file (Left Arrow)"
+                title={t('quickReview.prevFile', 'Previous file (Left Arrow)')}
                 className="p-2 rounded-xl bg-black/3 dark:bg-white/5 hover:bg-black/6 dark:hover:bg-white/10 text-slate-600 dark:text-neutral-300 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer transition-colors"
               >
                 <ChevronLeft size={16} />
               </button>
               <button
                 onClick={() => setCurrentIndex((prev) => Math.min(items.length, prev + 1))}
-                title="Next file (Right Arrow)"
+                title={t('quickReview.nextFile', 'Next file (Right Arrow)')}
                 className="p-2 rounded-xl bg-black/3 dark:bg-white/5 hover:bg-black/6 dark:hover:bg-white/10 text-slate-600 dark:text-neutral-300 cursor-pointer transition-colors"
               >
                 <ChevronRight size={16} />

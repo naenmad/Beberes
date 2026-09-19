@@ -309,8 +309,10 @@ export default function GitSweeper() {
                     </div>
 
                     <div className="text-[11px] text-slate-400 flex items-center gap-3">
-                      <span>.git size: <strong className="text-slate-700 dark:text-slate-300 font-mono">{formatSize(repo.gitFolderSize)}</strong></span>
-                      {repo.lastCommitDate && <span>Last commit: {repo.lastCommitDate}</span>}
+                      <span>{t('gitSweeper.gitSize', '.git size: {size}', { size: formatSize(repo.gitFolderSize) })}</span>
+                      {repo.lastCommitDate && (
+                        <span>{t('gitSweeper.lastCommitDate', 'Last commit: {date}', { date: repo.lastCommitDate })}</span>
+                      )}
                     </div>
                   </div>
                 </div>

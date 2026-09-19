@@ -135,7 +135,9 @@ export default function FileShredder() {
               <span className="text-xs font-bold text-slate-900 dark:text-white">
                 {t('fileShredder.quickZero', 'Quick Zero')}
               </span>
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-500/10 font-mono">1 Pass</span>
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-500/10 font-mono">
+                {t('fileShredder.passBadge', '{count} Pass', { count: 1 })}
+              </span>
             </div>
             <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
               {t('fileShredder.quickZeroDesc', 'Single pass 0x00 overwrite. Fast for non-confidential large items.')}
@@ -155,7 +157,9 @@ export default function FileShredder() {
               <span className="text-xs font-bold text-slate-900 dark:text-white">
                 DoD 5220.22-M
               </span>
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-rose-500/10 font-mono">3 Passes</span>
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-rose-500/10 font-mono">
+                {t('fileShredder.passesBadge', '{count} Passes', { count: 3 })}
+              </span>
             </div>
             <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
               {t('fileShredder.dodDesc', 'CSPRNG random + bitwise inverse + random. Defeats laboratory data recovery.')}
@@ -175,7 +179,9 @@ export default function FileShredder() {
               <span className="text-xs font-bold text-slate-900 dark:text-white">
                 Gutmann Lite
               </span>
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-purple-500/10 font-mono">7 Passes</span>
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-purple-500/10 font-mono">
+                {t('fileShredder.passesBadge', '{count} Passes', { count: 7 })}
+              </span>
             </div>
             <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
               {t('fileShredder.gutmannDesc', 'Extreme security multi-cycle pseudo-random wiping for classified files.')}

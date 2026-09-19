@@ -932,7 +932,7 @@ export default function Settings() {
                         <button
                           onClick={() => removeWhitelistPath(path)}
                           className="opacity-0 group-hover:opacity-100 p-1 rounded-lg hover:bg-slate-200 dark:hover:bg-neutral-600 text-slate-400 hover:text-rose-500 transition-all cursor-pointer"
-                          title="Remove"
+                          title={t('common.remove', 'Remove')}
                         >
                           <X size={14} />
                         </button>
@@ -1001,7 +1001,7 @@ export default function Settings() {
                       <button
                         onClick={() => removeCustomScanPath(path)}
                         className="opacity-0 group-hover:opacity-100 p-1 rounded-lg hover:bg-slate-200 dark:hover:bg-neutral-600 text-slate-400 hover:text-rose-500 transition-all cursor-pointer"
-                        title="Remove"
+                        title={t('common.remove', 'Remove')}
                       >
                         <X size={14} />
                       </button>

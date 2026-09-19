@@ -55,7 +55,8 @@
     "used": "Terpakai",
     "free": "Tersedia",
     "collapse": "Kecilkan bilah sisi",
-    "expand": "Perluas bilah sisi"
+    "expand": "Perluas bilah sisi",
+    "resizeSidebar": "Tarik untuk mengubah ukuran (klik ganda untuk beralih)"
   },
   "dashboard": {
     "title": "Ringkasan Penyimpanan & Sistem",
@@ -478,7 +479,11 @@
     "noFilesFoundDesc": "Folder ini tidak memiliki berkas lepasan yang sesuai dengan filter saat ini.",
     "chooseFolder": "Pilih Folder Lain",
     "openInApp": "Buka di Aplikasi",
-    "openWithDefaultApp": "Buka dengan Aplikasi Default"
+    "openWithDefaultApp": "Buka dengan Aplikasi Default",
+    "expandFullscreen": "Perbesar Layar Penuh (Spasi)",
+    "expandVideo": "Perbesar Video (Spasi)",
+    "prevFile": "Berkas sebelumnya (Panah Kiri)",
+    "nextFile": "Berkas berikutnya (Panah Kanan)"
   },
   "topBar": {
     "diskTooltip": "Klik untuk melihat rincian penyimpanan di Dasbor",
@@ -611,7 +616,9 @@
     "warningDesc": "Berbeda dengan memindahkan ke Tong Sampah, proses ini menimpa sektor fisik cakram. Berkas yang dimusnahkan tidak dapat dipulihkan oleh aplikasi recovery apa pun.",
     "confirmTitle": "Hancurkan Berkas Terpilih Secara Permanen?",
     "confirmDesc": "Anda akan memusnahkan berkas terpilih dengan metode multi-pass. Tindakan ini TIDAK DAPAT DIBATALKAN SAMA SEKALI.",
-    "confirmBtn": "Hancurkan Berkas Sekarang"
+    "confirmBtn": "Hancurkan Berkas Sekarang",
+    "passBadge": "{count} Putaran",
+    "passesBadge": "{count} Putaran"
   },
   "gitSweeper": {
     "title": "Pembersih Repositori Git",
@@ -631,7 +638,9 @@
     "optimize": "Optimalkan",
     "optimizeAllTitle": "Optimalkan Seluruh Repositori?",
     "optimizeAllDesc": "Ini akan menjalankan \"git gc --prune=now\" pada seluruh repositori yang ditemukan dan memangkas cabang lokal yang sudah dimerge.",
-    "startOptimization": "Mulai Optimasi"
+    "startOptimization": "Mulai Optimasi",
+    "gitSize": "Ukuran .git: {size}",
+    "lastCommitDate": "Komit terakhir: {date}"
   },
   "welcome": {
     "step1Title": "Selamat Datang di Beberes",

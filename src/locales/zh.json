@@ -55,7 +55,8 @@
       "cleaning": "系统清理",
       "organization": "文件整理",
       "developer": "开发者与系统"
-    }
+    },
+    "resizeSidebar": "拖动调整大小（双击切换）"
   },
   "dashboard": {
     "title": "存储与系统概览",
@@ -478,7 +479,11 @@
     "noFilesFoundDesc": "该文件夹中没有符合当前筛选条件的散乱文件。",
     "chooseFolder": "选择其他文件夹",
     "openInApp": "在应用中打开",
-    "openWithDefaultApp": "使用默认应用打开"
+    "openWithDefaultApp": "使用默认应用打开",
+    "expandFullscreen": "展开全屏（空格键）",
+    "expandVideo": "放大视频（空格键）",
+    "prevFile": "上一个文件（左箭头）",
+    "nextFile": "下一个文件（右箭头）"
   },
   "topBar": {
     "diskTooltip": "点击在仪表盘中查看存储详情",
@@ -611,7 +616,9 @@
     "warningDesc": "与普通移入废纸篓不同，文件粉碎会物理覆写磁盘存储扇区。已粉碎的数据无法通过任何商业软件或硬件实验室工具还原。",
     "confirmTitle": "彻底粉碎所选文件？",
     "confirmDesc": "您即将通过多轮复写彻底抹除选中的文件。此操作绝对不可逆！",
-    "confirmBtn": "立即彻底粉碎"
+    "confirmBtn": "立即彻底粉碎",
+    "passBadge": "{count} 次覆写",
+    "passesBadge": "{count} 次覆写"
   },
   "gitSweeper": {
     "title": "Git 仓库深度清理",
@@ -631,7 +638,9 @@
     "optimize": "优化",
     "optimizeAllTitle": "优化全部 Git 仓库？",
     "optimizeAllDesc": "将对检测到的全部仓库执行 \"git gc --prune=now\" 并修剪已合并本地分支。未提交的工作区文件将得到完好保留。",
-    "startOptimization": "开始优化"
+    "startOptimization": "开始优化",
+    "gitSize": ".git 大小: {size}",
+    "lastCommitDate": "最后提交: {date}"
   },
   "welcome": {
     "title": "欢迎使用 Beberes",
