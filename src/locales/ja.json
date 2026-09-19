@@ -29,7 +29,8 @@
     "permanent": "完全消去",
     "trashMode": "ゴミ箱へ移動",
     "directDelete": "直接完全消去",
-    "mode": "モード"
+    "mode": "モード",
+    "processing": "処理中"
   },
   "nav": {
     "dashboard": "ダッシュボード",
@@ -80,7 +81,8 @@
     "historyModalSubtitle": "過去のストレージ最適化記録",
     "noHistory": "クリーンアップの履歴はまだありません。",
     "freed": "解放容量",
-    "items": "項目"
+    "items": "項目",
+    "systemCachesClean": "システムキャッシュはクリーンです。"
   },
   "systemClean": {
     "title": "システムクリーン",
@@ -300,7 +302,14 @@
     "orphanedEmptyTitle": "システムはクリーンで整頓されています",
     "orphanedEmptyDesc": "アンインストールされたアプリの残存ファイルは見つかりませんでした。macOSライブラリは良好な状態です。",
     "orphanedCleaning": "残存ファイルをクリーンアップ中...",
-    "orphanedCleaningFlowTitle": "残存アプリファイルを削除中..."
+    "orphanedCleaningFlowTitle": "残存アプリファイルを削除中...",
+    "orphanedKpiTotal": "残存ファイル総数",
+    "orphanedKpiTotalDesc": "Macにインストールされていないアプリの残骸",
+    "orphanedKpiReclaimable": "回収可能な容量",
+    "orphanedKpiReclaimableDesc": "Application Support、キャッシュ、保存された状態",
+    "orphanedKpiSafety": "macOSシステム保護",
+    "orphanedKpiSafetyStatus": "100% 安全",
+    "orphanedKpiSafetyDesc": "com.apple.* およびシステム識別子は厳格に保護されています"
   },
   "settings": {
     "title": "設定と環境設定",
@@ -467,7 +476,9 @@
     "pickAnotherFolder": "別のフォルダを選択",
     "noFilesFoundTitle": "対象ファイルが見つかりません",
     "noFilesFoundDesc": "現在の条件に一致するファイルはこのディレクトリにありません。",
-    "chooseFolder": "別のフォルダを選択"
+    "chooseFolder": "別のフォルダを選択",
+    "openInApp": "アプリで開く",
+    "openWithDefaultApp": "デフォルトアプリで開く"
   },
   "topBar": {
     "diskTooltip": "クリックしてダッシュボードで詳細を確認",
@@ -549,7 +560,8 @@
     "back": "上の階層へ",
     "openDir": "フォルダを開く",
     "exploreSubfolder": "フォルダタイルをクリックして、その中身を展開・確認できます。",
-    "noSubItems": "このディレクトリにはサブフォルダやファイルがありません。"
+    "noSubItems": "このディレクトリにはサブフォルダやファイルがありません。",
+    "quickJump": "クイック移動:"
   },
   "startupManager": {
     "title": "スタートアップ＆バックグラウンド管理",

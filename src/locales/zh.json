@@ -29,7 +29,8 @@
     "permanent": "永久",
     "trashMode": "移至废纸篓",
     "directDelete": "直接永久删除",
-    "mode": "模式"
+    "mode": "模式",
+    "processing": "处理中"
   },
   "nav": {
     "dashboard": "仪表盘",
@@ -80,7 +81,8 @@
     "historyModalSubtitle": "过往的存储优化会话记录",
     "noHistory": "暂无清理记录。",
     "freed": "已释放",
-    "items": "项"
+    "items": "项",
+    "systemCachesClean": "系统缓存已完全清理。"
   },
   "systemClean": {
     "title": "系统清理",
@@ -300,7 +302,14 @@
     "orphanedEmptyTitle": "系统干净整洁",
     "orphanedEmptyDesc": "未发现已卸载应用程序的残留文件。您的 macOS 资源库处于良好状态。",
     "orphanedCleaning": "正在清理残留文件...",
-    "orphanedCleaningFlowTitle": "正在清理残留应用文件..."
+    "orphanedCleaningFlowTitle": "正在清理残留应用文件...",
+    "orphanedKpiTotal": "残留文件总数",
+    "orphanedKpiTotalDesc": "来自不再安装在 Mac 上的应用程序",
+    "orphanedKpiReclaimable": "可回收存储空间",
+    "orphanedKpiReclaimableDesc": "Application Support、缓存与已保存状态",
+    "orphanedKpiSafety": "macOS 系统保护",
+    "orphanedKpiSafetyStatus": "100% 安全",
+    "orphanedKpiSafetyDesc": "com.apple.* 和核心系统标识符受到严格的白名单保护"
   },
   "settings": {
     "title": "设置与偏好",
@@ -467,7 +476,9 @@
     "pickAnotherFolder": "选择其他文件夹",
     "noFilesFoundTitle": "未找到符合条件的文件",
     "noFilesFoundDesc": "该文件夹中没有符合当前筛选条件的散乱文件。",
-    "chooseFolder": "选择其他文件夹"
+    "chooseFolder": "选择其他文件夹",
+    "openInApp": "在应用中打开",
+    "openWithDefaultApp": "使用默认应用打开"
   },
   "topBar": {
     "diskTooltip": "点击在仪表盘中查看存储详情",
@@ -549,7 +560,8 @@
     "back": "返回上一层",
     "openDir": "打开文件夹",
     "exploreSubfolder": "点击文件夹卡片可逐层下钻查看内部详情。",
-    "noSubItems": "当前目录下无子文件夹或文件。"
+    "noSubItems": "当前目录下无子文件夹或文件。",
+    "quickJump": "快捷跳转："
   },
   "startupManager": {
     "title": "自启项与后台服务管理",

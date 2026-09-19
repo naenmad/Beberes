@@ -208,7 +208,9 @@ export default function CleaningFlowModal({
                 <span className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
                   {progress}%
                 </span>
-                <span className="text-[10px] text-slate-400 font-medium">Processing</span>
+                <span className="text-[10px] text-slate-400 font-medium">
+                  {t('common.processing', 'Processing')}
+                </span>
               </div>
             </div>
 

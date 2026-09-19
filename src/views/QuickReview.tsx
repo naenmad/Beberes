@@ -797,7 +797,7 @@ export default function QuickReview() {
               className="absolute top-3 right-3 flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-black/60 hover:bg-black/80 text-white text-[11px] font-medium opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-xs cursor-pointer shadow-md z-20"
             >
               <ExternalLink size={11} />
-              <span>Open in App</span>
+              <span>{t('quickReview.openInApp', 'Open in App')}</span>
             </button>
 
             {isLoadingPreview ? (
@@ -900,7 +900,7 @@ export default function QuickReview() {
                   className="mt-2 flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-black/5 hover:bg-black/10 dark:bg-white/6 dark:hover:bg-white/12 text-slate-700 dark:text-neutral-200 border border-black/8 dark:border-white/10 text-xs font-semibold cursor-pointer transition-all active:scale-[0.98]"
                 >
                   <ExternalLink size={12} />
-                  <span>Open with Default App</span>
+                  <span>{t('quickReview.openWithDefaultApp', 'Open with Default App')}</span>
                 </button>
               </div>
             )}
@@ -1043,7 +1043,7 @@ export default function QuickReview() {
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-medium transition-colors cursor-pointer"
             >
               <ExternalLink size={13} />
-              <span>Open in App</span>
+              <span>{t('quickReview.openInApp', 'Open in App')}</span>
             </button>
             <button
               onClick={() => setShowFullscreen(false)}

@@ -29,7 +29,8 @@
     "permanent": "Permanen",
     "trashMode": "Pindahkan ke Tong Sampah",
     "directDelete": "Langsung Hapus",
-    "mode": "Mode"
+    "mode": "Mode",
+    "processing": "Memproses"
   },
   "nav": {
     "categories": {
@@ -80,7 +81,8 @@
     "noHistory": "Belum ada sesi pembersihan yang tercatat.",
     "freed": "Dibebaskan",
     "items": "item",
-    "tidyUpDesc": "Rapikan berkas yang berantakan dan bersihkan installer berlebih secara cerdas"
+    "tidyUpDesc": "Rapikan berkas yang berantakan dan bersihkan installer berlebih secara cerdas",
+    "systemCachesClean": "Cache sistem bersih."
   },
   "systemClean": {
     "title": "Pembersihan Sistem",
@@ -300,7 +302,14 @@
     "orphanedEmptyTitle": "Sistem Bersih dan Tertata",
     "orphanedEmptyDesc": "Tidak ditemukan sisa berkas dari aplikasi yang telah dihapus. Library macOS Anda dalam kondisi prima.",
     "orphanedCleaning": "Membersihkan Berkas Sisa...",
-    "orphanedCleaningFlowTitle": "Membersihkan Berkas Sisa Aplikasi..."
+    "orphanedCleaningFlowTitle": "Membersihkan Berkas Sisa Aplikasi...",
+    "orphanedKpiTotal": "Total Berkas Ditinggalkan",
+    "orphanedKpiTotalDesc": "Dari aplikasi yang sudah tidak terpasang di Mac",
+    "orphanedKpiReclaimable": "Ruang Dapat Dipulihkan",
+    "orphanedKpiReclaimableDesc": "Application Support, Caches, & Saved State",
+    "orphanedKpiSafety": "Perlindungan Sistem macOS",
+    "orphanedKpiSafetyStatus": "100% Aman",
+    "orphanedKpiSafetyDesc": "Identitas com.apple.* dan sistem dilindungi secara ketat"
   },
   "settings": {
     "title": "Pengaturan & Preferensi",
@@ -467,7 +476,9 @@
     "pickAnotherFolder": "Pilih Folder Lain",
     "noFilesFoundTitle": "Tidak ada berkas yang ditemukan",
     "noFilesFoundDesc": "Folder ini tidak memiliki berkas lepasan yang sesuai dengan filter saat ini.",
-    "chooseFolder": "Pilih Folder Lain"
+    "chooseFolder": "Pilih Folder Lain",
+    "openInApp": "Buka di Aplikasi",
+    "openWithDefaultApp": "Buka dengan Aplikasi Default"
   },
   "topBar": {
     "diskTooltip": "Klik untuk melihat rincian penyimpanan di Dasbor",
@@ -549,7 +560,8 @@
     "back": "Naik Satu Level",
     "openDir": "Buka Folder",
     "exploreSubfolder": "Klik kotak folder untuk menelusuri isi di dalamnya.",
-    "noSubItems": "Direktori ini kosong atau tidak memiliki sub-folder."
+    "noSubItems": "Direktori ini kosong atau tidak memiliki sub-folder.",
+    "quickJump": "Lompat cepat:"
   },
   "startupManager": {
     "title": "Layanan Startup & Latar Belakang",

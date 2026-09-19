@@ -29,7 +29,8 @@
     "permanent": "Permanent",
     "trashMode": "Move to Trash",
     "directDelete": "Direct Delete",
-    "mode": "Mode"
+    "mode": "Mode",
+    "processing": "Processing"
   },
   "nav": {
     "categories": {
@@ -80,7 +81,8 @@
     "historyModalSubtitle": "Past storage optimization sessions",
     "noHistory": "No clean sessions recorded yet.",
     "freed": "Freed",
-    "items": "items"
+    "items": "items",
+    "systemCachesClean": "System caches are clean."
   },
   "systemClean": {
     "title": "System Clean",
@@ -300,7 +302,14 @@
     "orphanedEmptyTitle": "System is Clean and Tidy",
     "orphanedEmptyDesc": "No leftover files from uninstalled applications found. Your macOS Library is in prime condition.",
     "orphanedCleaning": "Cleaning Leftovers...",
-    "orphanedCleaningFlowTitle": "Cleaning Leftover Application Files..."
+    "orphanedCleaningFlowTitle": "Cleaning Leftover Application Files...",
+    "orphanedKpiTotal": "Total Leftovers",
+    "orphanedKpiTotalDesc": "From apps no longer installed on your Mac",
+    "orphanedKpiReclaimable": "Reclaimable Storage",
+    "orphanedKpiReclaimableDesc": "Application Support, Caches, & Saved State",
+    "orphanedKpiSafety": "macOS System Protection",
+    "orphanedKpiSafetyStatus": "100% Safe",
+    "orphanedKpiSafetyDesc": "com.apple.* and core system identifiers strictly whitelisted"
   },
   "settings": {
     "title": "Settings & Preferences",
@@ -467,7 +476,9 @@
     "pickAnotherFolder": "Pick Another Folder",
     "noFilesFoundTitle": "No loose files found",
     "noFilesFoundDesc": "This directory has no individual files matching the current filter.",
-    "chooseFolder": "Choose Another Folder"
+    "chooseFolder": "Choose Another Folder",
+    "openInApp": "Open in App",
+    "openWithDefaultApp": "Open with Default App"
   },
   "topBar": {
     "diskTooltip": "Click to view storage details in Dashboard",
@@ -549,7 +560,8 @@
     "back": "Go Up",
     "openDir": "Open Folder",
     "exploreSubfolder": "Click a folder tile to drill down and inspect its contents.",
-    "noSubItems": "This directory contains no subdirectories or files."
+    "noSubItems": "This directory contains no subdirectories or files.",
+    "quickJump": "Quick jump:"
   },
   "startupManager": {
     "title": "Startup & Background Services",

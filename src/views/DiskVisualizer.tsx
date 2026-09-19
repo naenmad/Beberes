@@ -103,7 +103,9 @@ export default function DiskVisualizer() {
 
       {/* Quick Location Shortcuts */}
       <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs">
-        <span className="font-medium text-slate-400 shrink-0">Quick jump:</span>
+        <span className="font-medium text-slate-400 shrink-0">
+          {t('diskVisualizer.quickJump', 'Quick jump:')}
+        </span>
         <button
           type="button"
           onClick={() => { setHistory((prev) => [...prev, currentPath]); loadTree('~'); }}

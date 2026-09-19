@@ -29,7 +29,8 @@
     "permanent": "Permanente",
     "trashMode": "Mover a la Papelera",
     "directDelete": "Eliminación directa",
-    "mode": "Modo"
+    "mode": "Modo",
+    "processing": "Procesando"
   },
   "nav": {
     "dashboard": "Panel",
@@ -80,7 +81,8 @@
     "historyModalSubtitle": "Sesiones pasadas de optimización de almacenamiento",
     "noHistory": "No hay sesiones de limpieza registradas aún.",
     "freed": "Liberado",
-    "items": "elementos"
+    "items": "elementos",
+    "systemCachesClean": "Las cachés del sistema están limpias."
   },
   "systemClean": {
     "title": "Limpieza del Sistema",
@@ -300,7 +302,14 @@
     "orphanedEmptyTitle": "El sistema está limpio y ordenado",
     "orphanedEmptyDesc": "No se encontraron archivos residuales de aplicaciones desinstaladas. Su biblioteca de macOS está en óptimas condiciones.",
     "orphanedCleaning": "Limpiando restos de aplicaciones...",
-    "orphanedCleaningFlowTitle": "Limpiando archivos residuales de aplicaciones..."
+    "orphanedCleaningFlowTitle": "Limpiando archivos residuales de aplicaciones...",
+    "orphanedKpiTotal": "Total de archivos residuales",
+    "orphanedKpiTotalDesc": "De aplicaciones que ya no están instaladas en su Mac",
+    "orphanedKpiReclaimable": "Espacio recuperable",
+    "orphanedKpiReclaimableDesc": "Application Support, cachés y estados guardados",
+    "orphanedKpiSafety": "Protección del sistema macOS",
+    "orphanedKpiSafetyStatus": "100% Seguro",
+    "orphanedKpiSafetyDesc": "com.apple.* e identificadores de sistema estrictamente protegidos"
   },
   "settings": {
     "title": "Ajustes y Preferencias",
@@ -467,7 +476,9 @@
     "pickAnotherFolder": "Elegir Otra Carpeta",
     "noFilesFoundTitle": "No se encontraron archivos sueltos",
     "noFilesFoundDesc": "Este directorio no contiene archivos que coincidan con el filtro actual.",
-    "chooseFolder": "Elegir Otra Carpeta"
+    "chooseFolder": "Elegir Otra Carpeta",
+    "openInApp": "Abrir en la aplicación",
+    "openWithDefaultApp": "Abrir con la aplicación predeterminada"
   },
   "topBar": {
     "diskTooltip": "Haz clic para ver detalles de almacenamiento en el Panel",
@@ -549,7 +560,8 @@
     "back": "Subir un Nivel",
     "openDir": "Abrir Carpeta",
     "exploreSubfolder": "Haz clic en una carpeta para profundizar y explorar su contenido.",
-    "noSubItems": "Este directorio no contiene subcarpetas ni archivos."
+    "noSubItems": "Este directorio no contiene subcarpetas ni archivos.",
+    "quickJump": "Salto rápido:"
   },
   "startupManager": {
     "title": "Servicios de Inicio y Segundo Plano",

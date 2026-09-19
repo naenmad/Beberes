@@ -659,39 +659,39 @@ export default function AppUninstaller() {
             <Card className="p-4!">
               <div className="flex items-center gap-2 text-slate-400 dark:text-neutral-500 text-xs font-medium">
                 <Ghost size={14} className="text-amber-500" />
-                <span>Total Berkas Ditinggalkan</span>
+                <span>{t('apps.orphanedKpiTotal', 'Total Leftovers')}</span>
               </div>
               <p className="text-2xl font-bold text-slate-900 dark:text-white mt-1">
                 {orphanedStats.totalCount}
               </p>
               <span className="text-[10px] text-slate-400">
-                Dari aplikasi yang sudah tidak terpasang di Mac
+                {t('apps.orphanedKpiTotalDesc', 'From apps no longer installed on your Mac')}
               </span>
             </Card>
 
             <Card className="p-4!">
               <div className="flex items-center gap-2 text-slate-400 dark:text-neutral-500 text-xs font-medium">
                 <HardDrive size={14} className="text-indigo-500" />
-                <span>Ruang Dapat Dipulihkan</span>
+                <span>{t('apps.orphanedKpiReclaimable', 'Reclaimable Storage')}</span>
               </div>
               <p className="text-2xl font-bold text-slate-900 dark:text-white mt-1">
                 {formatSize(orphanedStats.totalSize)}
               </p>
               <span className="text-[10px] text-slate-400">
-                Application Support, Caches, & Saved State
+                {t('apps.orphanedKpiReclaimableDesc', 'Application Support, Caches, & Saved State')}
               </span>
             </Card>
 
             <Card className="p-4!">
               <div className="flex items-center gap-2 text-slate-400 dark:text-neutral-500 text-xs font-medium">
                 <ShieldCheck size={14} className="text-emerald-500" />
-                <span>Perlindungan Sistem macOS</span>
+                <span>{t('apps.orphanedKpiSafety', 'macOS System Protection')}</span>
               </div>
               <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-1">
-                100% Aman
+                {t('apps.orphanedKpiSafetyStatus', '100% Safe')}
               </p>
               <span className="text-[10px] text-slate-400">
-                Identitas com.apple.* dan sistem dilindungi secara ketat
+                {t('apps.orphanedKpiSafetyDesc', 'com.apple.* and core system identifiers strictly whitelisted')}
               </span>
             </Card>
           </div>

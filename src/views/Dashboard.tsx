@@ -614,7 +614,9 @@ export default function Dashboard() {
                   </span>
                 </div>
               ) : (
-                <p className="mt-4 text-xs text-slate-400">System caches are clean.</p>
+                <p className="mt-4 text-xs text-slate-400">
+                  {t('dashboard.systemCachesClean', 'System caches are clean.')}
+                </p>
               )}
             </CardBody>
           </Card>
