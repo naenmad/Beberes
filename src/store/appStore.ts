@@ -49,6 +49,8 @@ export interface CleanRecord {
   categories: string[];
 }
 
+export const APP_VERSION = '1.1.0';
+
 export interface UpdateInfo {
   available: boolean;
   latestVersion: string;
@@ -640,11 +642,18 @@ export const useAppStore = create<AppState>((set, get) => ({
       const data = await res.json();
       const rawTag = data.tag_name || '';
       const cleanTag = rawTag.replace(/^v/, '');
-      const available = compareSemver(cleanTag, '1.0.0') > 0;
+      let currentVersion = APP_VERSION;
+      try {
+        const { getVersion } = await import('@tauri-apps/api/app');
+        currentVersion = await getVersion();
+      } catch {
+        currentVersion = APP_VERSION;
+      }
+      const available = compareSemver(cleanTag, currentVersion) > 0;
       set({
         updateInfo: {
           available,
-          latestVersion: cleanTag || '1.0.0',
+          latestVersion: cleanTag || currentVersion,
           releaseUrl: data.html_url || 'https://github.com/naenmad/Beberes/releases',
           releaseNotes: data.body || '',
           publishedAt: data.published_at,
