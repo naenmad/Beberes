@@ -805,5 +805,26 @@
     "cleaningAll": "Cleaning Staged Items...",
     "removeFromQueue": "Remove from queue",
     "itemsCount": "{count} items ({size})"
+  },
+  "pluginsManager": {
+    "title": "Browser Extensions & macOS Plugin Manager",
+    "subtitle": "Audit and uninstall forgotten web extensions, QuickLook preview generators, Spotlight importers, and Audio plugins.",
+    "rescan": "Rescan Plugins",
+    "allPlugins": "All Plugins",
+    "browserExtensions": "Browser Extensions",
+    "systemPlugins": "macOS System Plugins",
+    "searchPlaceholder": "Search extensions or plugins...",
+    "scanning": "Scanning browser manifest stores and system bundles...",
+    "noPlugins": "No Extensions or Plugins Found",
+    "noPluginsDesc": "No installed plugins found in inspected directories.",
+    "noSearchMatch": "No items match your search query.",
+    "revealInFinder": "Reveal in Finder",
+    "uninstall": "Uninstall",
+    "uninstalling": "Removing...",
+    "fdaTitle": "Full Disk Access Required to Scan Browser Extensions",
+    "fdaDesc": "macOS protects browser user profiles (Chrome, Edge, Brave, etc.) from direct access. Grant Full Disk Access to Beberes in macOS System Settings so it can inspect and list your extensions.",
+    "fdaButton": "Open Privacy Settings",
+    "fdaEmptyTitle": "Browser Profiles Protected by macOS",
+    "fdaEmptyDesc": "Beberes cannot inspect Google Chrome or Microsoft Edge extensions without Full Disk Access. Click below to grant access in System Settings."
   }
 }

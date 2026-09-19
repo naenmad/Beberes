@@ -805,5 +805,26 @@
     "cleaningAll": "Membersihkan Antrean Item...",
     "removeFromQueue": "Hapus dari antrean",
     "itemsCount": "{count} item ({size})"
+  },
+  "pluginsManager": {
+    "title": "Ekstensi Browser & Plugin macOS",
+    "subtitle": "Audit dan hapus ekstensi web, generator pratinjau QuickLook, pengimpor Spotlight, dan plugin audio.",
+    "rescan": "Pindai Ulang Plugin",
+    "allPlugins": "Semua Plugin",
+    "browserExtensions": "Ekstensi Browser",
+    "systemPlugins": "Plugin Sistem macOS",
+    "searchPlaceholder": "Cari ekstensi atau plugin...",
+    "scanning": "Memindai direktori ekstensi peramban dan bundle sistem...",
+    "noPlugins": "Tidak Ada Ekstensi atau Plugin",
+    "noPluginsDesc": "Tidak ditemukan plugin terpasang pada direktori yang diperiksa.",
+    "noSearchMatch": "Tidak ada item yang cocok dengan pencarian Anda.",
+    "revealInFinder": "Tampilkan di Finder",
+    "uninstall": "Hapus",
+    "uninstalling": "Menghapus...",
+    "fdaTitle": "Izin Full Disk Access Diperlukan untuk Ekstensi Browser",
+    "fdaDesc": "macOS membatasi akses langsung ke data profil peramban (Chrome, Edge, Brave, dll.). Berikan Full Disk Access ke Beberes di Pengaturan Sistem macOS agar ekstensi dapat dipindai.",
+    "fdaButton": "Buka Pengaturan Privasi & Keamanan",
+    "fdaEmptyTitle": "Data Peramban Dilindungi macOS",
+    "fdaEmptyDesc": "Beberes memerlukan izin Full Disk Access untuk memindai ekstensi Google Chrome atau Microsoft Edge. Klik tombol di bawah untuk membukanya di Pengaturan Sistem."
   }
 }

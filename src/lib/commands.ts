@@ -931,6 +931,7 @@ export interface PluginScanReport {
   items: ExtensionItem[];
   total_count: number;
   total_size_bytes: number;
+  permission_denied: boolean;
 }
 
 export async function scanBrowserAndSystemPlugins(): Promise<PluginScanReport> {
