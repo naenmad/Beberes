@@ -306,7 +306,7 @@ export default function DiskVisualizer() {
                           e.stopPropagation();
                           revealInFinder(child.path);
                         }}
-                        title="Reveal in Finder"
+                        title={t('common.revealInFinder', 'Reveal in Finder')}
                         className="p-1 rounded-lg hover:bg-black/5 dark:hover:bg-white/8 text-slate-400 hover:text-slate-700 dark:hover:text-neutral-200 cursor-pointer"
                       >
                         <ExternalLink size={13} />

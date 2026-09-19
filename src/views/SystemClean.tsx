@@ -340,7 +340,7 @@ export default function SystemClean() {
                             </span>
                             <button
                               onClick={(e) => handleReveal(e, item.path)}
-                              title="Reveal in Finder"
+                              title={t('common.revealInFinder', 'Reveal in Finder')}
                               className="p-1.5 rounded-lg text-slate-400 hover:text-blue-500 hover:bg-black/4 dark:hover:bg-white/6 opacity-60 group-hover:opacity-100 transition-all"
                             >
                               <ExternalLink size={14} />

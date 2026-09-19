@@ -46,7 +46,7 @@ export default function AboutModal() {
             {t('common.appName', 'Beberes')}
           </h2>
           <div className="flex items-center justify-center gap-1.5 mt-1">
-            <span className="text-xs font-semibold text-blue-600 dark:text-blue-400 font-mono">v1.1.0</span>
+            <span className="text-xs font-semibold text-blue-600 dark:text-blue-400 font-mono">v1.1.1</span>
             <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
               Bayu
             </span>

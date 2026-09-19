@@ -5,6 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.1] - 2026-09-19 (Codename: Bayu Patch 1)
+
+### Fixed
+- **Comprehensive Multilingual Localization Overhaul**:
+  - Replaced all remaining hardcoded UI strings with reactive `useTranslation()` calls across every screen, dialog, and component.
+  - Resolved untranslated text in Health Gauge (*Action Recommended*, *Good Condition*, *Optimal Health*, dynamic descriptions, hygiene metric, and master cleanup button *Bereskan Sekaligus* / *Clean Everything* / *一括クリーンアップ*).
+  - Localized Global Homebrew & Bottle Cache maintenance banner, console output viewer, and log controls.
+  - Localized Port Hunter table headers (*Port*, *Process & PID*, *Binding Address*, *User*, *Action*), search input, and SIGKILL confirmation modal.
+  - Localized Xcode & Simulators Purger target status indicators, safe-cleaning badges, and obsolete simulator purge buttons.
+  - Localized Project Hibernate scan triggers, day threshold selectors, and dormant project cards.
+  - Localized Orphaned App Leftovers tab headers, KPI cards (*Total Leftovers*, *Reclaimable Storage*, *macOS System Protection*), item selection badges, and cleanup modals.
+  - Localized Tidy Up Smart Automation Rules (download archiver, screenshot consolidator), badges, and status toasts.
+  - Localized Quick Review media controls (*Open in App*, *Open with Default App*, full screen expander, navigation tooltips).
+  - Localized File Shredder overwrite pass badges (*1 Pass*, *3 Passes*, *7 Passes*).
+  - Localized Git Sweeper repository sizes, last commit dates, and path shortcuts.
+  - Localized Floating Sidebar collapse buttons and draggable resize border handles.
+  - Localized Settings whitelist path removal buttons and custom scan directory actions.
+
+### Changed
+- **100% Locale Parity Across 5 Supported Languages**:
+  - Full key parity across English (`en`), Indonesian (`id`), Japanese (`ja`), Chinese (`zh`), and Spanish (`es`) with exactly 683 translation keys per language.
+  - Zero missing keys and zero untranslated fallbacks.
+
 ## [1.1.0] - 2026-09-19 (Codename: Bayu)
 
 ### Added
