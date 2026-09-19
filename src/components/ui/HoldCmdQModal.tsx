@@ -118,7 +118,7 @@ export default function HoldCmdQModal() {
               strokeDasharray={CIRCUMFERENCE}
               strokeDashoffset={strokeDashoffset}
               strokeLinecap="round"
-              className="text-blue-500 transition-all duration-75 ease-linear"
+              className="text-accent transition-all duration-75 ease-linear"
             />
           </svg>
 
@@ -140,7 +140,7 @@ export default function HoldCmdQModal() {
         </div>
 
         {/* Mini progress percentage */}
-        <div className="mt-2 text-[10px] font-mono text-blue-400 font-semibold">
+        <div className="mt-2 text-[10px] font-mono text-accent font-semibold">
           {Math.round(progress)}%
         </div>
       </div>

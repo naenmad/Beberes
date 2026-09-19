@@ -86,14 +86,14 @@ export default function DriveSelector({ isCollapsed }: DriveSelectorProps) {
             w-full flex items-center justify-between gap-2 p-2 rounded-2xl
             text-left cursor-pointer transition-all duration-150
             border border-black/4 dark:border-white/6
-            ${isOpen ? 'bg-blue-500/10 border-blue-500/30' : 'bg-black/2 dark:bg-white/3 hover:bg-black/5 dark:hover:bg-white/6'}
+            ${isOpen ? 'bg-accent-subtle border-accent/30' : 'bg-black/2 dark:bg-white/3 hover:bg-black/5 dark:hover:bg-white/6'}
           `}
         >
           <div className="flex items-center gap-2.5 min-w-0 flex-1">
             <div
               className={`
                 w-8 h-8 rounded-xl flex items-center justify-center shrink-0
-                ${activeDisk.isRemovable ? 'bg-amber-500/15 text-amber-500' : 'bg-blue-500/15 text-blue-500'}
+                ${activeDisk.isRemovable ? 'bg-amber-500/15 text-amber-500' : 'bg-accent-subtle text-accent'}
               `}
             >
               {activeDisk.isRemovable ? <Usb size={16} /> : <HardDrive size={16} />}
@@ -115,7 +115,7 @@ export default function DriveSelector({ isCollapsed }: DriveSelectorProps) {
                 <div className="w-12 h-1 bg-black/8 dark:bg-white/10 rounded-full overflow-hidden shrink-0">
                   <div
                     className={`h-full rounded-full transition-all duration-500 ${
-                      usedPercent > 90 ? 'bg-rose-500' : usedPercent > 75 ? 'bg-amber-500' : 'bg-blue-500'
+                      usedPercent > 90 ? 'bg-rose-500' : usedPercent > 75 ? 'bg-amber-500' : 'bg-accent'
                     }`}
                     style={{ width: `${usedPercent}%` }}
                   />
@@ -129,7 +129,7 @@ export default function DriveSelector({ isCollapsed }: DriveSelectorProps) {
 
           <ChevronDown
             size={13}
-            className={`text-slate-400 transition-transform duration-200 shrink-0 ${isOpen ? 'rotate-180 text-blue-500' : ''}`}
+            className={`text-slate-400 transition-transform duration-200 shrink-0 ${isOpen ? 'rotate-180 text-accent' : ''}`}
           />
         </button>
       ) : (
@@ -150,7 +150,7 @@ export default function DriveSelector({ isCollapsed }: DriveSelectorProps) {
             className={`
               w-full flex items-center justify-center p-2.5 rounded-xl cursor-pointer
               transition-all duration-150 relative
-              ${isOpen ? 'bg-blue-500/15 text-blue-500' : 'text-slate-600 dark:text-neutral-400 hover:bg-black/4 dark:hover:bg-white/6'}
+              ${isOpen ? 'bg-accent-subtle text-accent' : 'text-slate-600 dark:text-neutral-400 hover:bg-black/4 dark:hover:bg-white/6'}
             `}
           >
             {activeDisk.isRemovable ? (
@@ -224,7 +224,7 @@ export default function DriveSelector({ isCollapsed }: DriveSelectorProps) {
                     transition-all duration-150
                     ${
                       isSelected
-                        ? 'bg-blue-500 text-white shadow-xs'
+                        ? 'bg-accent text-white shadow-xs'
                         : 'text-slate-700 dark:text-neutral-300 hover:bg-black/4 dark:hover:bg-white/6'
                     }
                   `}
@@ -238,7 +238,7 @@ export default function DriveSelector({ isCollapsed }: DriveSelectorProps) {
                             ? 'bg-white/20 text-white'
                             : disk.isRemovable
                             ? 'bg-amber-500/15 text-amber-500'
-                            : 'bg-blue-500/15 text-blue-500'
+                            : 'bg-accent-subtle text-accent'
                         }
                       `}
                     >

@@ -82,11 +82,11 @@ export default function TopBar() {
   return (
     <header
       data-tauri-drag-region
-      className="h-12 shrink-0 border-b border-black/4 dark:border-white/6 bg-white/40 dark:bg-black/40 backdrop-blur-xl px-4 sm:px-6 flex items-center justify-between gap-3 select-none z-20"
+      className="h-12 w-full shrink-0 rounded-2xl glass-panel shadow-md border border-black/8 dark:border-white/10 px-4 sm:px-5 flex items-center justify-between gap-3 select-none z-20 backdrop-blur-2xl"
     >
       {/* Left side: Page Title & Disk Info */}
       <div data-tauri-drag-region className="flex items-center gap-2.5 shrink-0 min-w-0">
-        <h2 className="text-xs sm:text-sm font-semibold text-slate-800 dark:text-neutral-200 tracking-tight truncate">
+        <h2 className="text-xs sm:text-sm font-bold text-slate-800 dark:text-neutral-100 tracking-tight truncate">
           {getPageTitle()}
         </h2>
 
@@ -95,9 +95,9 @@ export default function TopBar() {
             type="button"
             onClick={() => setCurrentPage('dashboard')}
             title={t('topBar.diskTooltip', 'Click to view storage details in Dashboard')}
-            className="hidden md:flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-medium bg-black/4 dark:bg-white/6 text-slate-600 dark:text-neutral-400 hover:text-blue-500 dark:hover:text-blue-400 transition-colors cursor-pointer"
+            className="hidden md:flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-medium bg-black/4 dark:bg-white/6 text-slate-600 dark:text-neutral-400 hover:text-accent transition-colors cursor-pointer"
           >
-            <HardDrive size={11} className="text-blue-500 shrink-0" />
+            <HardDrive size={11} className="text-accent shrink-0" />
             <span>
               {freeSpaceFormatted} {t('nav.free')}
             </span>
@@ -110,12 +110,12 @@ export default function TopBar() {
         <button
           type="button"
           onClick={openSpotlight}
-          className="w-full flex items-center justify-between gap-2 px-3 py-1.5 rounded-xl bg-black/3 dark:bg-white/5 border border-black/6 dark:border-white/8 hover:bg-white/80 dark:hover:bg-neutral-800/80 hover:border-blue-500/40 dark:hover:border-blue-500/40 text-slate-400 dark:text-neutral-500 hover:text-slate-700 dark:hover:text-neutral-200 transition-all cursor-pointer shadow-2xs group"
+          className="w-full flex items-center justify-between gap-2 px-3 py-1.5 rounded-xl bg-black/3 dark:bg-white/5 border border-black/6 dark:border-white/8 hover:bg-white/80 dark:hover:bg-neutral-800/80 hover:border-accent/40 dark:hover:border-accent/40 text-slate-400 dark:text-neutral-500 hover:text-slate-700 dark:hover:text-neutral-200 transition-all cursor-pointer shadow-2xs group"
         >
           <div className="flex items-center gap-2 truncate">
             <Search
               size={13}
-              className="text-slate-400 group-hover:text-blue-500 transition-colors shrink-0"
+              className="text-slate-400 group-hover:text-accent transition-colors shrink-0"
             />
             <span className="text-xs truncate font-normal">
               {t('topBar.searchPlaceholder', 'Search apps, files, actions...')}
@@ -172,7 +172,7 @@ export default function TopBar() {
           title={t('common.refresh', 'Scan / Refresh Page')}
           className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-black/3 dark:bg-white/5 hover:bg-black/6 dark:hover:bg-white/10 text-slate-700 dark:text-neutral-300 transition-colors cursor-pointer disabled:opacity-50"
         >
-          <RefreshCw size={12} className={`text-blue-500 shrink-0 ${isScanning ? 'animate-spin' : ''}`} />
+          <RefreshCw size={12} className={`text-accent shrink-0 ${isScanning ? 'animate-spin' : ''}`} />
           <span className="hidden sm:inline text-[11px] font-medium">
             {isScanning ? t('common.scanning', 'Scanning...') : t('common.refresh', 'Refresh')}
           </span>
@@ -189,7 +189,7 @@ export default function TopBar() {
           }
           className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-black/3 dark:bg-white/5 hover:bg-black/6 dark:hover:bg-white/10 text-slate-700 dark:text-neutral-300 transition-colors cursor-pointer"
         >
-          <Trash2 size={12} className={deleteToTrash ? 'text-blue-500' : 'text-rose-500'} />
+          <Trash2 size={12} className={deleteToTrash ? 'text-accent' : 'text-rose-500'} />
           <span className="hidden lg:inline text-[11px]">
             {deleteToTrash ? t('common.trashMode') : t('common.directDelete')}
           </span>
@@ -200,7 +200,7 @@ export default function TopBar() {
           type="button"
           onClick={() => setCurrentPage('system-clean')}
           title={t('dashboard.smartClean')}
-          className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium bg-blue-500/10 text-blue-600 dark:text-blue-400 hover:bg-blue-500/20 transition-colors cursor-pointer"
+          className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium bg-accent-subtle text-accent hover:bg-accent/20 transition-colors cursor-pointer"
         >
           <Sparkles size={12} />
           <span className="hidden xl:inline text-[11px] font-semibold">
@@ -222,7 +222,7 @@ export default function TopBar() {
           </button>
 
           {showLangMenu && (
-            <div className="absolute right-0 mt-1 w-36 rounded-xl glass-panel py-1 shadow-xl z-50 border border-black/10 dark:border-white/10 animate-fade-in">
+            <div className="absolute right-0 mt-2 w-36 rounded-2xl glass-panel py-1.5 shadow-2xl z-50 border border-black/10 dark:border-white/10 backdrop-blur-2xl animate-fade-in">
               {supportedLanguages.map((lang) => (
                 <button
                   key={lang.code}
@@ -233,7 +233,7 @@ export default function TopBar() {
                   }}
                   className={`w-full flex items-center justify-between px-3 py-1.5 text-xs text-left cursor-pointer transition-colors ${
                     language === lang.code
-                      ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400 font-semibold'
+                      ? 'bg-accent-subtle text-accent font-semibold'
                       : 'text-slate-700 dark:text-neutral-200 hover:bg-black/4 dark:hover:bg-white/6'
                   }`}
                 >

@@ -30,7 +30,8 @@
     "trashMode": "ゴミ箱へ移動",
     "directDelete": "直接完全消去",
     "mode": "モード",
-    "processing": "処理中"
+    "processing": "処理中",
+    "scrollToTop": "トップへ戻る"
   },
   "nav": {
     "dashboard": "ダッシュボード",
@@ -310,7 +311,8 @@
     "orphanedKpiReclaimableDesc": "Application Support、キャッシュ、保存された状態",
     "orphanedKpiSafety": "macOSシステム保護",
     "orphanedKpiSafetyStatus": "100% 安全",
-    "orphanedKpiSafetyDesc": "com.apple.* およびシステム識別子は厳格に保護されています"
+    "orphanedKpiSafetyDesc": "com.apple.* およびシステム識別子は厳格に保護されています",
+    "uninstallBtn": "アンインストール"
   },
   "settings": {
     "title": "設定と環境設定",
@@ -358,7 +360,36 @@
       "darkTitle": "ダークモード",
       "darkDesc": "Appleスタイルのフロストガラスモフィズム",
       "lightTitle": "ライトモード",
-      "lightDesc": "クリアで明るいミニマルレイアウト"
+      "lightDesc": "クリアで明るいミニマルレイアウト",
+      "accentColorsTitle": "アクセントカラー",
+      "accentColorsDesc": "アイコン、ボタン、バッジ全体で使用されるプライマリおよびセカンダリのテーマカラーをカスタマイズします。",
+      "presetsTitle": "厳選されたカラー組み合わせ",
+      "primaryAccentTitle": "プライマリアクセント",
+      "primaryAccentDesc": "ボタン、アクティブなナビゲーション、チェックボックス、主要アイコンのメインカラー。",
+      "secondaryAccentTitle": "セカンダリアクセント",
+      "secondaryAccentDesc": "セカンダリバッジ、補助タグ、ツートン要素のコンパニオンカラー。",
+      "livePreview": "テーマのリアルタイムプレビュー",
+      "primaryPreviewBtn": "プライマリアクション",
+      "primaryBadge": "アクティブバッジ",
+      "secondaryBadge": "セカンダリタグ",
+      "activeIconSample": "アクティブテーマアクセント"
+    },
+    "colors": {
+      "blue": "アップルブルー",
+      "indigo": "インディゴ",
+      "purple": "エレクトリックパープル",
+      "cyan": "シアン",
+      "emerald": "エメラルド",
+      "amber": "アンバー",
+      "rose": "ローズピンク",
+      "slate": "スレートグレー",
+      "presets": {
+        "appleClassic": "アップルクラシック",
+        "cyberPurple": "サイバーパープル",
+        "emeraldGarden": "エメラルドガーデン",
+        "sunsetGlow": "サンセットグロー",
+        "cleanSlate": "クリーンスレート"
+      }
     },
     "textScale": {
       "title": "文字サイズとUIスケーリング",
@@ -759,5 +790,17 @@
     "hygiene": "健全度",
     "cleanAll": "一括クリーンアップ",
     "cleaning": "クリーンアップ中..."
+  },
+  "queue": {
+    "title": "クリーンアップ待機キュー",
+    "subtitle": "異なるページから選択されたクリーンアップ対象の項目",
+    "reviewBtn": "キューを確認",
+    "clearAll": "キューをクリア",
+    "emptyTitle": "キューに対象項目がありません",
+    "emptyDesc": "任意のページで項目を選択して、まとめてクリーンアップできます。",
+    "cleanAll": "すべての待機項目を削除 ({size})",
+    "cleaningAll": "待機項目をクリーンアップ中...",
+    "removeFromQueue": "キューから除外",
+    "itemsCount": "{count} 項目 ({size})"
   }
 }

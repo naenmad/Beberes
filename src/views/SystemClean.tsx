@@ -11,7 +11,6 @@ import { formatSize } from '../lib/utils';
 import Card, { CardHeader, CardBody } from '../components/ui/Card';
 import Checkbox from '../components/ui/Checkbox';
 import Button from '../components/ui/Button';
-import FloatingActionBar from '../components/ui/FloatingActionBar';
 import PageHeader from '../components/layout/PageHeader';
 import ConfirmModal from '../components/ui/ConfirmModal';
 import CleaningFlowModal from '../components/ui/CleaningFlowModal';
@@ -37,16 +36,16 @@ import {
 import { useState, useMemo, useEffect, useRef } from 'react';
 
 const categoryIcons: Record<string, React.ReactNode> = {
-  system_cache: <FolderOpen size={18} className="text-blue-500" />,
-  user_logs: <FileText size={18} className="text-amber-500" />,
-  browser_cache: <Globe size={18} className="text-emerald-500" />,
-  browser_safari: <Compass size={18} className="text-sky-500" />,
-  browser_chrome: <Globe size={18} className="text-amber-500" />,
-  browser_arc: <Globe size={18} className="text-rose-500" />,
-  browser_brave: <Shield size={18} className="text-orange-500" />,
-  browser_firefox: <Flame size={18} className="text-orange-600" />,
-  browser_edge: <Globe size={18} className="text-blue-600" />,
-  trash: <Trash2 size={18} className="text-rose-500" />,
+  system_cache: <FolderOpen size={18} className="text-accent" />,
+  user_logs: <FileText size={18} className="text-accent" />,
+  browser_cache: <Globe size={18} className="text-accent" />,
+  browser_safari: <Compass size={18} className="text-accent" />,
+  browser_chrome: <Globe size={18} className="text-accent" />,
+  browser_arc: <Globe size={18} className="text-accent" />,
+  browser_brave: <Shield size={18} className="text-accent" />,
+  browser_firefox: <Flame size={18} className="text-accent" />,
+  browser_edge: <Globe size={18} className="text-accent" />,
+  trash: <Trash2 size={18} className="text-accent" />,
 };
 
 const categorySafetyInfo: Record<string, string> = {
@@ -131,10 +130,6 @@ export default function SystemClean() {
     }
   }, [globalRefreshTrigger, systemCategories.length]);
 
-  const handleCleanClick = () => {
-    if (selectedItems.length === 0) return;
-    setShowConfirmModal(true);
-  };
 
   const executeClean = async () => {
     if (selectedItems.length === 0) return;
@@ -192,12 +187,12 @@ export default function SystemClean() {
       {/* Header */}
       <PageHeader
         icon={<Sparkles size={20} />}
-        iconColor="text-blue-500"
+        iconColor="text-accent"
         title={t('systemClean.title')}
         subtitle={t('systemClean.subtitle')}
         badge={
           totalItemsCount > 0 ? (
-            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400">
+            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-accent-subtle text-accent">
               {t('systemClean.itemsCount', '{count} items', { count: totalItemsCount })}
             </span>
           ) : undefined
@@ -213,7 +208,7 @@ export default function SystemClean() {
             placeholder={t('systemClean.searchPlaceholder')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 text-xs bg-white dark:bg-neutral-800 border border-black/6 dark:border-white/8 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 dark:text-neutral-200"
+            className="w-full pl-9 pr-4 py-2 text-xs bg-white dark:bg-neutral-800 border border-black/6 dark:border-white/8 rounded-xl focus:outline-none focus:ring-2 focus:ring-accent text-slate-800 dark:text-neutral-200"
           />
         </div>
         <div className="flex items-center gap-2">
@@ -242,7 +237,7 @@ export default function SystemClean() {
               onClick={() => setSizeFilter(f)}
               className={`px-3 py-1 rounded-full font-semibold transition-colors cursor-pointer ${
                 sizeFilter === f
-                  ? 'bg-blue-600 text-white shadow-xs'
+                  ? 'bg-accent text-white shadow-xs'
                   : 'bg-black/4 dark:bg-white/6 text-slate-600 dark:text-neutral-400 hover:bg-black/7 dark:hover:bg-white/10'
               }`}
             >
@@ -309,8 +304,8 @@ export default function SystemClean() {
                 {isExpanded && (
                   <CardBody className="py-2!">
                     {categorySafetyInfo[category.id] && (
-                      <div className="flex items-center gap-2 p-2.5 mb-2 rounded-xl bg-blue-500/5 dark:bg-blue-500/10 border border-blue-500/15 text-[11px] text-blue-800 dark:text-blue-300">
-                        <ShieldCheck size={14} className="text-blue-500 shrink-0" />
+                      <div className="flex items-center gap-2 p-2.5 mb-2 rounded-xl bg-accent-subtle border border-accent/20 text-[11px] text-slate-800 dark:text-neutral-200">
+                        <ShieldCheck size={14} className="text-accent shrink-0" />
                         <span>{categorySafetyInfo[category.id]}</span>
                       </div>
                     )}
@@ -341,7 +336,7 @@ export default function SystemClean() {
                             <button
                               onClick={(e) => handleReveal(e, item.path)}
                               title={t('common.revealInFinder', 'Reveal in Finder')}
-                              className="p-1.5 rounded-lg text-slate-400 hover:text-blue-500 hover:bg-black/4 dark:hover:bg-white/6 opacity-60 group-hover:opacity-100 transition-all"
+                              className="p-1.5 rounded-lg text-slate-400 hover:text-accent hover:bg-black/4 dark:hover:bg-white/6 opacity-60 group-hover:opacity-100 transition-all"
                             >
                               <ExternalLink size={14} />
                             </button>
@@ -367,15 +362,6 @@ export default function SystemClean() {
           )}
         </div>
       )}
-
-      {/* Floating Action Bar */}
-      <FloatingActionBar
-        selectedCount={selectedItems.length}
-        selectedSize={selectedSize}
-        onClean={handleCleanClick}
-        isCleaning={isCleaning}
-        onDeselect={() => selectAll('system', false)}
-      />
 
       {/* Confirmation Modal */}
       <ConfirmModal

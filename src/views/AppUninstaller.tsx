@@ -3,12 +3,10 @@ import { useAppStore } from '../store/appStore';
 import { useTranslation } from '../lib/i18n';
 import {
   scanInstalledApps,
-  uninstallApp,
   revealInFinder,
   scanOrphanedLeftovers,
   cleanOrphanedLeftovers,
   type AppItem,
-  type UninstallResult,
   type OrphanedLeftoverItem,
 } from '../lib/commands';
 import { formatSize } from '../lib/utils';
@@ -35,6 +33,9 @@ import {
   RefreshCw,
   Sparkles,
   CheckCheck,
+  Lock,
+  Square,
+  CheckSquare,
 } from 'lucide-react';
 
 type AppFilter = 'all' | 'user' | 'large' | 'system';
@@ -43,7 +44,15 @@ type ViewMode = 'installed' | 'orphaned';
 
 export default function AppUninstaller() {
   const { t } = useTranslation();
-  const { deleteToTrash, recordCleanResult, globalRefreshTrigger } = useAppStore();
+  const {
+    recordCleanResult,
+    globalRefreshTrigger,
+    stagedItems,
+    stageItem,
+    unstageItem,
+    stageMultipleItems,
+    unstageMultipleItems,
+  } = useAppStore();
 
   const [viewMode, setViewMode] = useState<ViewMode>('installed');
 
@@ -59,17 +68,6 @@ export default function AppUninstaller() {
   // Selected leftover paths per app (default: all selected)
   const [selectedLeftoversMap, setSelectedLeftoversMap] = useState<Record<string, Set<string>>>({});
 
-  // Active target app for uninstallation
-  const [targetApp, setTargetApp] = useState<AppItem | null>(null);
-  const [isUninstalling, setIsUninstalling] = useState(false);
-  const [showConfirmModal, setShowConfirmModal] = useState(false);
-  const [showCleaningFlow, setShowCleaningFlow] = useState(false);
-  const [activeUninstallStats, setActiveUninstallStats] = useState({
-    totalBytes: 0,
-    totalItems: 0,
-    paths: [] as string[],
-    appName: '',
-  });
 
   // Orphaned Leftovers State
   const [orphanedItems, setOrphanedItems] = useState<OrphanedLeftoverItem[]>([]);
@@ -122,15 +120,6 @@ export default function AppUninstaller() {
       if (next.has(appId)) next.delete(appId);
       else next.add(appId);
       return next;
-    });
-  };
-
-  const toggleLeftoverSelection = (appId: string, path: string) => {
-    setSelectedLeftoversMap((prev) => {
-      const currentSet = new Set(prev[appId] || []);
-      if (currentSet.has(path)) currentSet.delete(path);
-      else currentSet.add(path);
-      return { ...prev, [appId]: currentSet };
     });
   };
 
@@ -205,74 +194,157 @@ export default function AppUninstaller() {
     return { totalCount, totalSize, selectedCount, selectedSize, selectedItems };
   }, [orphanedItems, selectedOrphanedIds]);
 
+  const handleToggleApp = (app: AppItem) => {
+    if (app.isSystemApp) return;
+
+    const stagedKey = `app_${app.id}`;
+    if (stagedItems[stagedKey]) {
+      unstageItem(stagedKey);
+    } else {
+      const selectedLeftoverPaths = Array.from(selectedLeftoversMap[app.id] || []);
+      const selectedLeftoversSize = app.leftovers
+        .filter((l) => selectedLeftoverPaths.includes(l.path))
+        .reduce((sum, l) => sum + l.size, 0);
+      const totalToFree = app.appSize + selectedLeftoversSize;
+
+      stageItem({
+        id: stagedKey,
+        name: app.name,
+        path: app.path,
+        size: totalToFree,
+        originPage: 'apps',
+        categoryName: t('apps.installedTab'),
+        itemType: 'app',
+        extraData: {
+          appId: app.id,
+          leftoverPaths: selectedLeftoverPaths,
+          icon: app.icon,
+        },
+      });
+    }
+  };
+
+  const uninstallableApps = useMemo(() => {
+    return filteredApps.filter((a) => !a.isSystemApp);
+  }, [filteredApps]);
+
+  const allUninstallableStaged = useMemo(() => {
+    return (
+      uninstallableApps.length > 0 &&
+      uninstallableApps.every((a) => Boolean(stagedItems[`app_${a.id}`]))
+    );
+  }, [uninstallableApps, stagedItems]);
+
+  const toggleSelectAllApps = () => {
+    if (allUninstallableStaged) {
+      unstageMultipleItems(uninstallableApps.map((a) => `app_${a.id}`));
+    } else {
+      stageMultipleItems(
+        uninstallableApps.map((app) => {
+          const selectedLeftovers = Array.from(selectedLeftoversMap[app.id] || []);
+          const leftoversSize = app.leftovers
+            .filter((l) => selectedLeftovers.includes(l.path))
+            .reduce((sum, l) => sum + l.size, 0);
+          return {
+            id: `app_${app.id}`,
+            name: app.name,
+            path: app.path,
+            size: app.appSize + leftoversSize,
+            originPage: 'apps' as const,
+            categoryName: t('apps.installedTab'),
+            itemType: 'app' as const,
+            extraData: { appId: app.id, leftoverPaths: selectedLeftovers, icon: app.icon },
+          };
+        })
+      );
+    }
+  };
+
+  const toggleLeftoverSelection = (appId: string, path: string) => {
+    setSelectedLeftoversMap((prev) => {
+      const currentSet = new Set(prev[appId] || []);
+      if (currentSet.has(path)) currentSet.delete(path);
+      else currentSet.add(path);
+      const nextMap = { ...prev, [appId]: currentSet };
+
+      // If app is currently staged, update its staged item
+      const stagedKey = `app_${appId}`;
+      if (stagedItems[stagedKey]) {
+        const target = apps.find((a) => a.id === appId);
+        if (target) {
+          const leftoverPaths = Array.from(currentSet);
+          const leftoverSize = target.leftovers
+            .filter((l) => leftoverPaths.includes(l.path))
+            .reduce((sum, l) => sum + l.size, 0);
+          stageItem({
+            id: stagedKey,
+            name: target.name,
+            path: target.path,
+            size: target.appSize + leftoverSize,
+            originPage: 'apps',
+            categoryName: t('apps.installedTab'),
+            itemType: 'app',
+            extraData: { appId: target.id, leftoverPaths, icon: target.icon },
+          });
+        }
+      }
+
+      return nextMap;
+    });
+  };
+
+  const toggleOrphanedItem = (item: OrphanedLeftoverItem) => {
+    const stagedKey = `orphaned_${item.id}`;
+    if (stagedItems[stagedKey]) {
+      unstageItem(stagedKey);
+      setSelectedOrphanedIds((prev) => {
+        const next = new Set(prev);
+        next.delete(item.id);
+        return next;
+      });
+    } else {
+      stageItem({
+        id: stagedKey,
+        name: item.name,
+        path: item.path,
+        size: item.size,
+        originPage: 'apps',
+        categoryName: t('apps.orphanedTab'),
+        itemType: 'orphaned',
+      });
+      setSelectedOrphanedIds((prev) => {
+        const next = new Set(prev);
+        next.add(item.id);
+        return next;
+      });
+    }
+  };
+
   const toggleSelectAllOrphaned = () => {
-    if (selectedOrphanedIds.size === filteredOrphaned.length) {
+    const allStaged =
+      filteredOrphaned.length > 0 &&
+      filteredOrphaned.every((i) => Boolean(stagedItems[`orphaned_${i.id}`]));
+
+    if (allStaged) {
+      unstageMultipleItems(filteredOrphaned.map((i) => `orphaned_${i.id}`));
       setSelectedOrphanedIds(new Set());
     } else {
+      stageMultipleItems(
+        filteredOrphaned.map((item) => ({
+          id: `orphaned_${item.id}`,
+          name: item.name,
+          path: item.path,
+          size: item.size,
+          originPage: 'apps' as const,
+          categoryName: t('apps.orphanedTab'),
+          itemType: 'orphaned' as const,
+        }))
+      );
       setSelectedOrphanedIds(new Set(filteredOrphaned.map((i) => i.id)));
     }
   };
 
-  const toggleOrphanedItem = (id: string) => {
-    setSelectedOrphanedIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  };
 
-  // Trigger Uninstall Flow for Installed App
-  const handleInitiateUninstall = (app: AppItem) => {
-    if (app.isSystemApp) return;
-
-    const selectedLeftoverPaths = Array.from(selectedLeftoversMap[app.id] || []);
-    const selectedLeftoversSize = app.leftovers
-      .filter((l) => selectedLeftoverPaths.includes(l.path))
-      .reduce((sum, l) => sum + l.size, 0);
-
-    const totalToFree = app.appSize + selectedLeftoversSize;
-    const allPaths = [app.path, ...selectedLeftoverPaths];
-
-    setTargetApp(app);
-    setActiveUninstallStats({
-      totalBytes: totalToFree,
-      totalItems: allPaths.length,
-      paths: allPaths,
-      appName: app.name,
-    });
-    setShowConfirmModal(true);
-  };
-
-  const handleExecuteUninstall = async () => {
-    if (!targetApp) return;
-    setShowConfirmModal(false);
-    setShowCleaningFlow(true);
-    setIsUninstalling(true);
-
-    try {
-      const selectedLeftovers = Array.from(selectedLeftoversMap[targetApp.id] || []);
-      const result: UninstallResult = await uninstallApp(
-        targetApp.path,
-        selectedLeftovers,
-        false,
-        deleteToTrash
-      );
-
-      recordCleanResult(
-        result.freedBytes,
-        result.deletedCount,
-        false,
-        [`App: ${targetApp.name}`]
-      );
-      await runScan();
-      await runOrphanedScan();
-    } catch (err) {
-      console.error('Failed to uninstall app:', err);
-    } finally {
-      setIsUninstalling(false);
-    }
-  };
 
   // Trigger Clean Flow for Orphaned Leftovers
   const handleInitiateCleanOrphaned = () => {
@@ -308,7 +380,7 @@ export default function AppUninstaller() {
       {/* Top Banner & Title */}
       <PageHeader
         icon={viewMode === 'installed' ? <AppWindow size={20} /> : <Ghost size={20} />}
-        iconColor={viewMode === 'installed' ? 'text-blue-500' : 'text-amber-500'}
+        iconColor={viewMode === 'installed' ? 'text-accent' : 'text-amber-500'}
         title={viewMode === 'installed' ? t('apps.title') : t('apps.orphanedTitle', 'Orphaned App Leftovers')}
         subtitle={
           viewMode === 'installed'
@@ -319,7 +391,7 @@ export default function AppUninstaller() {
           <span
             className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
               viewMode === 'installed'
-                ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400'
+                ? 'bg-accent-subtle text-accent'
                 : 'bg-amber-500/10 text-amber-600 dark:text-amber-400'
             }`}
           >
@@ -339,7 +411,7 @@ export default function AppUninstaller() {
           onClick={() => setViewMode('installed')}
           className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
             viewMode === 'installed'
-              ? 'bg-blue-600 text-white shadow-sm'
+              ? 'bg-accent text-white shadow-sm'
               : 'text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white'
           }`}
         >
@@ -390,7 +462,7 @@ export default function AppUninstaller() {
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <Card className="p-3.5!">
               <div className="flex items-center gap-2 text-slate-400 dark:text-neutral-500 text-xs font-medium">
-                <AppWindow size={14} className="text-blue-500" />
+                <AppWindow size={14} className="text-accent" />
                 <span>{t('apps.statTotalApps')}</span>
               </div>
               <p className="text-xl font-bold text-slate-900 dark:text-white mt-1">
@@ -403,7 +475,7 @@ export default function AppUninstaller() {
 
             <Card className="p-3.5!">
               <div className="flex items-center gap-2 text-slate-400 dark:text-neutral-500 text-xs font-medium">
-                <HardDrive size={14} className="text-indigo-500" />
+                <HardDrive size={14} className="text-accent" />
                 <span>{t('apps.statFootprint')}</span>
               </div>
               <p className="text-xl font-bold text-slate-900 dark:text-white mt-1">
@@ -451,7 +523,7 @@ export default function AppUninstaller() {
                   onClick={() => setFilter(tab)}
                   className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer capitalize ${
                     filter === tab
-                      ? 'bg-white dark:bg-neutral-700 text-blue-600 dark:text-blue-400 shadow-xs'
+                      ? 'bg-white dark:bg-neutral-700 text-accent font-bold shadow-xs'
                       : 'text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white'
                   }`}
                 >
@@ -478,7 +550,7 @@ export default function AppUninstaller() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder={t('apps.searchPlaceholder')}
-                  className="w-full pl-8 pr-3 py-1.5 text-xs rounded-xl bg-white dark:bg-neutral-800 border border-black/6 dark:border-white/8 text-slate-800 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="w-full pl-8 pr-3 py-1.5 text-xs rounded-xl bg-white dark:bg-neutral-800 border border-black/6 dark:border-white/8 text-slate-800 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-accent"
                 />
               </div>
 
@@ -490,6 +562,17 @@ export default function AppUninstaller() {
                 <SlidersHorizontal size={12} />
                 <span>{sortBy === 'size' ? t('apps.sortSize') : t('apps.sortName')}</span>
               </button>
+
+              {uninstallableApps.length > 0 && (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={toggleSelectAllApps}
+                  icon={allUninstallableStaged ? <Square size={13} /> : <CheckSquare size={13} />}
+                >
+                  {allUninstallableStaged ? t('common.deselectAll') : t('common.selectAll')}
+                </Button>
+              )}
             </div>
           </div>
 
@@ -519,15 +602,54 @@ export default function AppUninstaller() {
                   .filter((l) => selectedLeftovers.has(l.path))
                   .reduce((sum, l) => sum + l.size, 0);
                 const currentTotalToFree = app.appSize + totalLeftoversSize;
+                const isStaged = Boolean(stagedItems[`app_${app.id}`]);
 
                 return (
-                  <Card key={app.id} className="overflow-hidden transition-all">
+                  <Card
+                    key={app.id}
+                    className={`overflow-hidden transition-all ${
+                      isStaged
+                        ? 'border-accent/50 bg-accent-subtle'
+                        : ''
+                    }`}
+                  >
                     <CardBody className="p-4">
                       <div className="flex items-center justify-between gap-4">
-                        {/* App Icon + Info */}
+                        {/* Checkbox + App Icon + Info */}
                         <div className="flex items-center gap-3.5 min-w-0">
-                          <div className="w-11 h-11 rounded-2xl bg-blue-500/10 dark:bg-blue-400/10 border border-blue-500/20 flex items-center justify-center shrink-0">
-                            <AppWindow size={22} className="text-blue-600 dark:text-blue-400" />
+                          {app.isSystemApp ? (
+                            <div
+                              title={t('apps.systemAppLockTooltip')}
+                              className="w-4.5 h-4.5 rounded-md border-2 border-slate-300 dark:border-neutral-700 bg-slate-100 dark:bg-neutral-800 flex items-center justify-center shrink-0 opacity-50 cursor-not-allowed"
+                            >
+                              <Lock size={11} className="text-slate-400" />
+                            </div>
+                          ) : (
+                            <Checkbox
+                              checked={isStaged}
+                              onChange={() => handleToggleApp(app)}
+                              aria-label={`Select ${app.name}`}
+                            />
+                          )}
+
+                          {app.icon ? (
+                            <img
+                              src={app.icon}
+                              alt={app.name}
+                              className="w-11 h-11 rounded-2xl object-contain drop-shadow-xs shrink-0"
+                              onError={(e) => {
+                                (e.currentTarget as HTMLElement).style.display = 'none';
+                                const fallback = e.currentTarget.nextElementSibling as HTMLElement;
+                                if (fallback) fallback.style.display = 'flex';
+                              }}
+                            />
+                          ) : null}
+                          <div
+                            className={`w-11 h-11 rounded-2xl bg-accent-subtle border border-accent/20 flex items-center justify-center shrink-0 ${
+                              app.icon ? 'hidden' : 'flex'
+                            }`}
+                          >
+                            <AppWindow size={22} className="text-accent" />
                           </div>
 
                           <div className="min-w-0">
@@ -562,9 +684,9 @@ export default function AppUninstaller() {
                               <button
                                 type="button"
                                 onClick={() => toggleExpand(app.id)}
-                                className="flex items-center gap-1 text-[11px] text-blue-600 dark:text-blue-400 hover:underline cursor-pointer ml-auto mt-0.5"
+                                className="flex items-center gap-1 text-[11px] text-accent hover:underline cursor-pointer ml-auto mt-0.5"
                               >
-                                <span>{app.leftovers.length} data pendukung</span>
+                                <span>{t('apps.dataFilesCount', '{count} data files', { count: app.leftovers.length })}</span>
                                 {isExpanded ? <ChevronDown size={11} /> : <ChevronRight size={11} />}
                               </button>
                             )}
@@ -578,17 +700,6 @@ export default function AppUninstaller() {
                           >
                             <ExternalLink size={14} />
                           </button>
-
-                          <Button
-                            variant={app.isSystemApp ? 'ghost' : 'danger'}
-                            size="sm"
-                            disabled={app.isSystemApp}
-                            onClick={() => handleInitiateUninstall(app)}
-                            className="flex items-center gap-1.5"
-                          >
-                            <Trash2 size={13} />
-                            <span>{app.isSystemApp ? t('apps.protectedBtn') : t('apps.uninstallBtn')}</span>
-                          </Button>
                         </div>
                       </div>
 
@@ -671,7 +782,7 @@ export default function AppUninstaller() {
 
             <Card className="p-4!">
               <div className="flex items-center gap-2 text-slate-400 dark:text-neutral-500 text-xs font-medium">
-                <HardDrive size={14} className="text-indigo-500" />
+                <HardDrive size={14} className="text-accent" />
                 <span>{t('apps.orphanedKpiReclaimable', 'Reclaimable Storage')}</span>
               </div>
               <p className="text-2xl font-bold text-slate-900 dark:text-white mt-1">
@@ -776,7 +887,7 @@ export default function AppUninstaller() {
           ) : (
             <div className="space-y-2">
               {filteredOrphaned.map((item) => {
-                const isSelected = selectedOrphanedIds.has(item.id);
+                const isSelected = Boolean(stagedItems[`orphaned_${item.id}`]);
                 return (
                   <Card
                     key={item.id}
@@ -790,8 +901,9 @@ export default function AppUninstaller() {
                       <div className="flex items-center gap-3 min-w-0">
                         <Checkbox
                           checked={isSelected}
-                          onChange={() => toggleOrphanedItem(item.id)}
+                          onChange={() => toggleOrphanedItem(item)}
                         />
+
 
                         <div className="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center shrink-0">
                           <Ghost size={18} className="text-amber-600 dark:text-amber-400" />
@@ -844,38 +956,6 @@ export default function AppUninstaller() {
       )}
 
       {/* Installed App Uninstall Confirmation Modal */}
-      {targetApp && (
-        <ConfirmModal
-          isOpen={showConfirmModal}
-          onClose={() => setShowConfirmModal(false)}
-          onConfirm={handleExecuteUninstall}
-          isLoading={isUninstalling}
-          actionType="clean"
-          title={t('apps.confirmUninstallTitle', 'Uninstall {name}', { name: targetApp.name })}
-          itemsCount={activeUninstallStats.totalItems}
-          totalBytes={activeUninstallStats.totalBytes}
-          paths={activeUninstallStats.paths}
-          useTrash={deleteToTrash}
-          confirmText={
-            deleteToTrash
-              ? t('apps.confirmTrashBtn', 'Move to Trash ({size})', { size: formatSize(activeUninstallStats.totalBytes) })
-              : t('apps.confirmDirectBtn', 'Uninstall Permanently ({size})', { size: formatSize(activeUninstallStats.totalBytes) })
-          }
-        />
-      )}
-
-      {/* Installed App Cleaning Flow Modal */}
-      <CleaningFlowModal
-        isOpen={showCleaningFlow}
-        onClose={() => setShowCleaningFlow(false)}
-        isCleaning={isUninstalling}
-        isDryRun={false}
-        mode="clean"
-        totalBytes={activeUninstallStats.totalBytes}
-        totalItems={activeUninstallStats.totalItems}
-        paths={activeUninstallStats.paths}
-        title={t('apps.uninstallingFlowTitle', 'Uninstalling {name}', { name: activeUninstallStats.appName })}
-      />
 
       {/* Orphaned Leftovers Confirm Modal */}
       <ConfirmModal

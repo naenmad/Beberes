@@ -117,7 +117,7 @@ export default function HealthGauge({
             <button
               onClick={onMasterClean}
               disabled={isCleaning}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-xs transition-colors cursor-pointer disabled:opacity-50"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-accent hover:opacity-90 text-white text-xs font-semibold shadow-xs transition-colors cursor-pointer disabled:opacity-50"
             >
               <Zap size={13} />
               <span>{isCleaning ? t('healthGauge.cleaning', 'Cleaning...') : t('healthGauge.cleanAll', 'Clean Everything')}</span>

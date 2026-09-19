@@ -199,7 +199,7 @@ export default function Dashboard() {
       {/* Top Action & Overview Bar */}
       <PageHeader
         icon={<LayoutDashboard size={20} />}
-        iconBgColor="bg-blue-500/10 text-blue-600 dark:text-blue-400"
+        iconBgColor="bg-accent-subtle text-accent"
         title={t('dashboard.title')}
         subtitle={
           isScanning
@@ -242,7 +242,7 @@ export default function Dashboard() {
           <div className="flex items-center gap-3 min-w-0">
             <div
               className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
-                activeDisk?.isRemovable ? 'bg-amber-500/15 text-amber-500' : 'bg-blue-500/15 text-blue-500'
+                activeDisk?.isRemovable ? 'bg-amber-500/15 text-amber-500' : 'bg-accent-subtle text-accent'
               }`}
             >
               {activeDisk?.isRemovable ? <Usb size={18} /> : <HardDrive size={18} />}
@@ -306,7 +306,7 @@ export default function Dashboard() {
           <div className="p-5 rounded-2xl glass-panel">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div className="flex items-center gap-3.5">
-                <div className="p-2.5 rounded-2xl bg-blue-500/10 text-blue-500 dark:bg-blue-500/20 dark:text-blue-400 shadow-xs">
+                <div className="p-2.5 rounded-2xl bg-accent-subtle text-accent shadow-xs">
                   <Award size={22} />
                 </div>
                 <div>
@@ -336,7 +336,7 @@ export default function Dashboard() {
                 <span className="text-[10px] font-medium uppercase tracking-wider text-slate-400 dark:text-neutral-500">
                   {t('impact.storageFreed', 'Total Storage Rescued')}
                 </span>
-                <p className="text-lg font-bold text-blue-600 dark:text-blue-400 mt-0.5">
+                <p className="text-lg font-bold text-accent mt-0.5">
                   {formatSize(lifetimeBytesFreed)}
                 </p>
               </div>
@@ -354,7 +354,7 @@ export default function Dashboard() {
                 <span className="text-[10px] font-medium uppercase tracking-wider text-slate-400 dark:text-neutral-500">
                   {t('impact.recycledItems', 'Files Processed')}
                 </span>
-                <p className="text-lg font-bold text-purple-600 dark:text-purple-400 mt-0.5">
+                <p className="text-lg font-bold text-accent mt-0.5">
                   {totalRecycledItems.toLocaleString()}
                 </p>
               </div>
@@ -369,7 +369,7 @@ export default function Dashboard() {
         <div className="p-5 rounded-2xl glass-panel relative overflow-hidden">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-2xl bg-indigo-500/10 text-indigo-500 dark:bg-indigo-500/20 dark:text-indigo-400">
+              <div className="p-2.5 rounded-2xl bg-accent-subtle text-accent">
                 <Cpu size={20} />
               </div>
               <div>
@@ -403,7 +403,7 @@ export default function Dashboard() {
                   ? 'bg-rose-500'
                   : (memoryStatus?.used_percentage || 0) > 70
                   ? 'bg-amber-500'
-                  : 'bg-indigo-500'
+                  : 'bg-accent'
               }`}
               style={{ width: `${Math.min(100, memoryStatus?.used_percentage || 0)}%` }}
             />
@@ -428,7 +428,7 @@ export default function Dashboard() {
         <div className="p-5 rounded-2xl glass-panel relative overflow-hidden">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-2xl bg-sky-500/10 text-sky-500 dark:bg-sky-500/20 dark:text-sky-400">
+              <div className="p-2.5 rounded-2xl bg-accent-subtle text-accent">
                 <Clock size={20} />
               </div>
               <div>
@@ -485,7 +485,7 @@ export default function Dashboard() {
             <CardBody>
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="p-2.5 rounded-xl bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400">
+                  <div className="p-2.5 rounded-xl bg-accent-subtle text-accent">
                     <Eye size={20} />
                   </div>
                   <div>
@@ -510,7 +510,7 @@ export default function Dashboard() {
             <CardBody>
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="p-2.5 rounded-xl bg-violet-50 dark:bg-violet-500/10 text-violet-600 dark:text-violet-400">
+                  <div className="p-2.5 rounded-xl bg-accent-subtle text-accent">
                     <Layers size={20} />
                   </div>
                   <div>
@@ -560,7 +560,7 @@ export default function Dashboard() {
             <CardBody>
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="p-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+                  <div className="p-2.5 rounded-xl bg-accent-subtle text-accent">
                     <FolderTree size={20} />
                   </div>
                   <div>
@@ -585,7 +585,7 @@ export default function Dashboard() {
             <CardBody>
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="p-2.5 rounded-xl bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400">
+                  <div className="p-2.5 rounded-xl bg-accent-subtle text-accent">
                     <Sparkles size={20} />
                   </div>
                   <div>
@@ -603,7 +603,7 @@ export default function Dashboard() {
                 <div className="mt-4 flex items-center gap-2">
                   <div className="flex-1 h-1.5 bg-slate-100 dark:bg-neutral-800 rounded-full overflow-hidden">
                     <div
-                      className="h-full bg-blue-500 rounded-full"
+                      className="h-full bg-accent rounded-full"
                       style={{
                         width: `${Math.min((totalSystemJunk / (totalCleanable || 1)) * 100, 100)}%`,
                       }}
@@ -626,7 +626,7 @@ export default function Dashboard() {
             <CardBody>
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="p-2.5 rounded-xl bg-violet-50 dark:bg-violet-500/10 text-violet-600 dark:text-violet-400">
+                  <div className="p-2.5 rounded-xl bg-accent-subtle text-accent">
                     <Code2 size={20} />
                   </div>
                   <div>
@@ -644,7 +644,7 @@ export default function Dashboard() {
                 <div className="mt-4 flex items-center gap-2">
                   <div className="flex-1 h-1.5 bg-slate-100 dark:bg-neutral-800 rounded-full overflow-hidden">
                     <div
-                      className="h-full bg-violet-500 rounded-full"
+                      className="h-full bg-accent rounded-full"
                       style={{
                         width: `${Math.min((totalDevJunk / (totalCleanable || 1)) * 100, 100)}%`,
                       }}
@@ -698,7 +698,7 @@ export default function Dashboard() {
             <div className="relative w-full max-w-lg rounded-3xl bg-white dark:bg-neutral-800 p-6 shadow-2xl border border-slate-200 dark:border-neutral-700 overflow-hidden animate-scale-in z-10">
               <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-neutral-700/60">
                 <div className="flex items-center gap-2.5">
-                  <div className="p-2 rounded-xl bg-blue-500/10 text-blue-500">
+                  <div className="p-2 rounded-xl bg-accent-subtle text-accent">
                     <History size={18} />
                   </div>
                   <div>

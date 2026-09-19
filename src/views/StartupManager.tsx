@@ -142,7 +142,7 @@ export default function StartupManager() {
       {/* Header */}
       <PageHeader
         icon={<Zap size={20} />}
-        iconColor="text-amber-500"
+        iconColor="text-accent"
         title={t('startupManager.title', 'Startup & Background Services')}
         subtitle={t('startupManager.subtitle', 'Inspect and control macOS LaunchAgents and LaunchDaemons to speed up boot times and reduce background overhead.')}
       />
@@ -150,7 +150,7 @@ export default function StartupManager() {
       {/* Quick Stats Grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5">
         <div className="glass-panel p-4 rounded-2xl flex items-center gap-3.5">
-          <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center shrink-0">
+          <div className="w-10 h-10 rounded-xl bg-accent-subtle text-accent flex items-center justify-center shrink-0">
             <Zap size={18} />
           </div>
           <div>
@@ -180,11 +180,11 @@ export default function StartupManager() {
         </div>
 
         <div className="glass-panel p-4 rounded-2xl flex items-center gap-3.5">
-          <div className="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center shrink-0">
+          <div className="w-10 h-10 rounded-xl bg-accent-subtle text-accent flex items-center justify-center shrink-0">
             <User size={18} />
           </div>
           <div>
-            <div className="text-xl font-bold text-blue-600 dark:text-blue-400">{userCount}</div>
+            <div className="text-xl font-bold text-accent">{userCount}</div>
             <div className="text-xs text-slate-500 dark:text-slate-400">{t('startupManager.userAgents', 'User Agents')}</div>
           </div>
         </div>
@@ -199,7 +199,7 @@ export default function StartupManager() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder={t('startupManager.searchPlaceholder', 'Filter by name, identifier, or program...')}
-            className="w-full pl-9 pr-3.5 py-2 text-xs rounded-xl bg-slate-100/60 dark:bg-slate-800/60 border border-black/4 dark:border-white/4 focus:outline-hidden focus:ring-2 focus:ring-blue-500/30 text-slate-900 dark:text-white placeholder-slate-400"
+            className="w-full pl-9 pr-3.5 py-2 text-xs rounded-xl bg-slate-100/60 dark:bg-slate-800/60 border border-black/4 dark:border-white/4 focus:outline-hidden focus:ring-2 focus:ring-accent text-slate-900 dark:text-white placeholder-slate-400"
           />
         </div>
 
@@ -209,9 +209,9 @@ export default function StartupManager() {
             <button
               key={scope}
               onClick={() => setFilterScope(scope)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-all shrink-0 ${
+              className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-all shrink-0 cursor-pointer ${
                 filterScope === scope
-                  ? 'bg-blue-500 text-white shadow-xs'
+                  ? 'bg-accent text-white shadow-xs'
                   : 'bg-slate-100/70 dark:bg-slate-800/60 text-slate-600 dark:text-slate-400 hover:bg-slate-200/60 dark:hover:bg-slate-700/60'
               }`}
             >
@@ -276,8 +276,8 @@ export default function StartupManager() {
                       <span
                         className={`text-[10px] font-medium px-2 py-0.5 rounded-full inline-flex items-center gap-1 ${
                           item.isUser
-                            ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20'
-                            : 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20'
+                            ? 'bg-accent-subtle text-accent border border-accent/20'
+                            : 'bg-black/5 dark:bg-white/6 text-slate-600 dark:text-neutral-400 border border-black/8 dark:border-white/8'
                         }`}
                       >
                         {item.isUser ? <User size={10} /> : <Shield size={10} />}
@@ -326,7 +326,7 @@ export default function StartupManager() {
                     onClick={() => handleToggle(item)}
                     disabled={isProcessing}
                     className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-hidden ${
-                      item.isEnabled ? 'bg-blue-600' : 'bg-slate-300 dark:bg-slate-700'
+                      item.isEnabled ? 'bg-accent' : 'bg-slate-300 dark:bg-slate-700'
                     }`}
                     title={item.isEnabled ? t('startupManager.disable', 'Disable') : t('startupManager.enable', 'Enable')}
                   >

@@ -168,7 +168,7 @@ export default function CleaningFlowModal({
           <div className="space-y-6 py-2">
             {/* Header */}
             <div>
-              <span className="text-[11px] font-bold tracking-wider uppercase text-blue-600 dark:text-blue-400">
+              <span className="text-[11px] font-bold tracking-wider uppercase text-accent">
                 {isDryRun
                   ? 'Simulation Flow'
                   : isOrganize
@@ -195,13 +195,13 @@ export default function CleaningFlowModal({
                   cx="60"
                   cy="60"
                   r="50"
-                  stroke="#0071e3"
+                  stroke="currentColor"
                   strokeWidth="8"
                   strokeDasharray={2 * Math.PI * 50}
                   strokeDashoffset={2 * Math.PI * 50 * (1 - progress / 100)}
                   strokeLinecap="round"
                   fill="none"
-                  className="transition-all duration-200 ease-out"
+                  className="text-accent transition-all duration-200 ease-out"
                 />
               </svg>
               <div className="absolute flex flex-col items-center justify-center">
@@ -217,7 +217,7 @@ export default function CleaningFlowModal({
             {/* Stage Checklist */}
             <div className="space-y-2 text-left bg-black/2 dark:bg-white/4 p-3.5 rounded-2xl border border-black/4 dark:border-white/6">
               <div className="flex items-center gap-2.5 text-xs font-semibold text-slate-800 dark:text-neutral-200">
-                <div className="p-1 rounded-lg bg-blue-500/10 text-blue-500 shrink-0">
+                <div className="p-1 rounded-lg bg-accent-subtle text-accent shrink-0">
                   <CurrentStageIcon size={14} className="animate-spin-slow" />
                 </div>
                 <span className="truncate">{stages[currentStageIdx]?.label}</span>

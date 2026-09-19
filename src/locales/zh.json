@@ -30,7 +30,8 @@
     "trashMode": "移至废纸篓",
     "directDelete": "直接永久删除",
     "mode": "模式",
-    "processing": "处理中"
+    "processing": "处理中",
+    "scrollToTop": "回到顶部"
   },
   "nav": {
     "dashboard": "仪表盘",
@@ -310,7 +311,8 @@
     "orphanedKpiReclaimableDesc": "Application Support、缓存与已保存状态",
     "orphanedKpiSafety": "macOS 系统保护",
     "orphanedKpiSafetyStatus": "100% 安全",
-    "orphanedKpiSafetyDesc": "com.apple.* 和核心系统标识符受到严格的白名单保护"
+    "orphanedKpiSafetyDesc": "com.apple.* 和核心系统标识符受到严格的白名单保护",
+    "uninstallBtn": "卸载"
   },
   "settings": {
     "title": "设置与偏好",
@@ -358,7 +360,36 @@
       "darkTitle": "深色模式",
       "darkDesc": "Apple 风格暗色毛玻璃质感",
       "lightTitle": "浅色模式",
-      "lightDesc": "清爽极简明亮布局"
+      "lightDesc": "清爽极简明亮布局",
+      "accentColorsTitle": "强调色彩",
+      "accentColorsDesc": "自定义图标、按钮和徽章上使用的主色与辅助主题色。",
+      "presetsTitle": "精选配色方案",
+      "primaryAccentTitle": "主强调色",
+      "primaryAccentDesc": "用于按钮、当前导航指示、复选框和主要图标的核心颜色。",
+      "secondaryAccentTitle": "辅助强调色",
+      "secondaryAccentDesc": "用于辅助徽章、附属标签和双色搭配元素的伴随颜色。",
+      "livePreview": "主题实时预览",
+      "primaryPreviewBtn": "主要操作",
+      "primaryBadge": "活动徽章",
+      "secondaryBadge": "辅助标签",
+      "activeIconSample": "活动主题强调"
+    },
+    "colors": {
+      "blue": "苹果蓝",
+      "indigo": "靛青",
+      "purple": "电光紫",
+      "cyan": "青空天蓝",
+      "emerald": "翡翠绿",
+      "amber": "落日琥珀",
+      "rose": "玫瑰粉红",
+      "slate": "板岩灰",
+      "presets": {
+        "appleClassic": "经典苹果",
+        "cyberPurple": "赛博紫色",
+        "emeraldGarden": "翡翠花园",
+        "sunsetGlow": "日落余晖",
+        "cleanSlate": "简约石板"
+      }
     },
     "textScale": {
       "title": "文字大小与界面缩放",
@@ -759,5 +790,17 @@
     "hygiene": "健康度",
     "cleanAll": "一键全面清理",
     "cleaning": "正在清理..."
+  },
+  "queue": {
+    "title": "待清理项目队列",
+    "subtitle": "跨页面所选中的待清理项目合集",
+    "reviewBtn": "查看队列",
+    "clearAll": "清空队列",
+    "emptyTitle": "清理队列中没有项目",
+    "emptyDesc": "在任意页面选择项目即可汇聚于此一并清理。",
+    "cleanAll": "清理全部待删项目 ({size})",
+    "cleaningAll": "正在清理队列项目...",
+    "removeFromQueue": "从队列中移除",
+    "itemsCount": "{count} 个项目 ({size})"
   }
 }

@@ -30,7 +30,8 @@
     "trashMode": "Pindahkan ke Tong Sampah",
     "directDelete": "Langsung Hapus",
     "mode": "Mode",
-    "processing": "Memproses"
+    "processing": "Memproses",
+    "scrollToTop": "Gulir ke atas"
   },
   "nav": {
     "categories": {
@@ -310,7 +311,8 @@
     "orphanedKpiReclaimableDesc": "Application Support, Caches, & Saved State",
     "orphanedKpiSafety": "Perlindungan Sistem macOS",
     "orphanedKpiSafetyStatus": "100% Aman",
-    "orphanedKpiSafetyDesc": "Identitas com.apple.* dan sistem dilindungi secara ketat"
+    "orphanedKpiSafetyDesc": "Identitas com.apple.* dan sistem dilindungi secara ketat",
+    "uninstallBtn": "Copot Pemasangan"
   },
   "settings": {
     "title": "Pengaturan & Preferensi",
@@ -358,7 +360,36 @@
       "darkTitle": "Mode Gelap",
       "darkDesc": "Tampilan kaca gelap khas Apple",
       "lightTitle": "Mode Terang",
-      "lightDesc": "Tampilan terang yang bersih dan jelas"
+      "lightDesc": "Tampilan terang yang bersih dan jelas",
+      "accentColorsTitle": "Warna Aksen",
+      "accentColorsDesc": "Sesuaikan warna tema primer dan sekunder yang digunakan pada ikon, tombol, dan lencana.",
+      "presetsTitle": "Kombinasi Warna Terkurasi",
+      "primaryAccentTitle": "Aksen Primer",
+      "primaryAccentDesc": "Warna utama untuk tombol, status navigasi aktif, kotak centang, dan ikon primer.",
+      "secondaryAccentTitle": "Aksen Sekunder",
+      "secondaryAccentDesc": "Warna pendamping untuk lencana sekunder, label tambahan, dan elemen dwi-warna.",
+      "livePreview": "Pratinjau Langsung Tema",
+      "primaryPreviewBtn": "Aksi Utama",
+      "primaryBadge": "Lencana Aktif",
+      "secondaryBadge": "Label Sekunder",
+      "activeIconSample": "Aksen Tema Aktif"
+    },
+    "colors": {
+      "blue": "Biru Apple",
+      "indigo": "Nila Indigo",
+      "purple": "Ungu Elektrik",
+      "cyan": "Sian Langit",
+      "emerald": "Hijau Zamrud",
+      "amber": "Kuning Sunset",
+      "rose": "Merah Mawar",
+      "slate": "Abu-abu Sabak",
+      "presets": {
+        "appleClassic": "Apple Klasik",
+        "cyberPurple": "Cyber Purple",
+        "emeraldGarden": "Taman Zamrud",
+        "sunsetGlow": "Cahaya Senja",
+        "cleanSlate": "Clean Slate"
+      }
     },
     "textScale": {
       "title": "Ukuran Teks & Skala UI",
@@ -759,5 +790,17 @@
     "hygiene": "Higienitas",
     "cleanAll": "Bereskan Sekaligus",
     "cleaning": "Membersihkan..."
+  },
+  "queue": {
+    "title": "Antrean Pembersihan Terpadu",
+    "subtitle": "Item yang dipilih dari berbagai halaman siap untuk dibersihkan",
+    "reviewBtn": "Lihat Antrean",
+    "clearAll": "Kosongkan Antrean",
+    "emptyTitle": "Tidak ada item dalam antrean pembersihan",
+    "emptyDesc": "Pilih item di halaman mana saja untuk mengumpulkannya di sini.",
+    "cleanAll": "Bereskan Semua ({size})",
+    "cleaningAll": "Membersihkan Antrean Item...",
+    "removeFromQueue": "Hapus dari antrean",
+    "itemsCount": "{count} item ({size})"
   }
 }

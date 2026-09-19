@@ -109,7 +109,7 @@ export default function SpotlightModal() {
         title: t('nav.dashboard'),
         subtitle: t('dashboard.scanningDesc'),
         category: 'page',
-        icon: <LayoutDashboard size={15} className="text-blue-500" />,
+        icon: <LayoutDashboard size={15} className="text-accent" />,
         action: () => navigateTo('dashboard'),
         badge: 'Page',
       },
@@ -118,7 +118,7 @@ export default function SpotlightModal() {
         title: t('nav.quickReview'),
         subtitle: t('quickReview.subtitle'),
         category: 'page',
-        icon: <Eye size={15} className="text-indigo-500" />,
+        icon: <Eye size={15} className="text-accent" />,
         action: () => navigateTo('quick-review'),
         badge: 'Page',
       },
@@ -127,7 +127,7 @@ export default function SpotlightModal() {
         title: t('nav.largeDuplicates', 'Large & Duplicate Files'),
         subtitle: t('largeDuplicates.subtitle', 'Find huge files and duplicate copies'),
         category: 'page',
-        icon: <Copy size={15} className="text-violet-500" />,
+        icon: <Copy size={15} className="text-accent" />,
         action: () => navigateTo('large-duplicates'),
         badge: 'Page',
       },
@@ -145,7 +145,7 @@ export default function SpotlightModal() {
         title: t('nav.tidyUp'),
         subtitle: t('tidyUp.desc'),
         category: 'page',
-        icon: <FolderSync size={15} className="text-emerald-500" />,
+        icon: <FolderSync size={15} className="text-accent" />,
         action: () => navigateTo('tidy-up'),
         badge: 'Page',
       },
@@ -154,7 +154,7 @@ export default function SpotlightModal() {
         title: t('nav.apps'),
         subtitle: t('apps.desc'),
         category: 'page',
-        icon: <AppWindow size={15} className="text-cyan-500" />,
+        icon: <AppWindow size={15} className="text-accent" />,
         action: () => navigateTo('apps'),
         badge: 'Page',
       },
@@ -163,7 +163,7 @@ export default function SpotlightModal() {
         title: t('nav.systemClean'),
         subtitle: t('systemClean.desc'),
         category: 'page',
-        icon: <Flame size={15} className="text-amber-500" />,
+        icon: <Flame size={15} className="text-accent" />,
         action: () => navigateTo('system-clean'),
         badge: 'Page',
       },
@@ -172,7 +172,7 @@ export default function SpotlightModal() {
         title: t('nav.devWorkspace'),
         subtitle: t('devWorkspace.desc'),
         category: 'page',
-        icon: <Terminal size={15} className="text-purple-500" />,
+        icon: <Terminal size={15} className="text-accent" />,
         action: () => navigateTo('dev-workspace'),
         badge: 'Page',
       },
@@ -181,7 +181,7 @@ export default function SpotlightModal() {
         title: t('nav.diskVisualizer', 'Disk Space Visualizer'),
         subtitle: t('diskVisualizer.subtitle', 'Interactive hierarchical storage usage visualizer map'),
         category: 'page',
-        icon: <PieChart size={15} className="text-cyan-500" />,
+        icon: <PieChart size={15} className="text-accent" />,
         action: () => navigateTo('disk-visualizer'),
         badge: 'Page',
       },
@@ -190,7 +190,7 @@ export default function SpotlightModal() {
         title: t('nav.startupManager', 'Startup Services'),
         subtitle: t('startupManager.subtitle', 'Manage macOS LaunchAgents and background daemons'),
         category: 'page',
-        icon: <Zap size={15} className="text-amber-500" />,
+        icon: <Zap size={15} className="text-accent" />,
         action: () => navigateTo('startup-manager'),
         badge: 'Page',
       },
@@ -208,7 +208,7 @@ export default function SpotlightModal() {
         title: t('nav.gitSweeper', 'Git Sweeper'),
         subtitle: t('gitSweeper.subtitle', 'Clean dangling objects and merged git branches'),
         category: 'page',
-        icon: <GitBranch size={15} className="text-purple-500" />,
+        icon: <GitBranch size={15} className="text-accent" />,
         action: () => navigateTo('git-sweeper'),
         badge: 'Page',
       },
@@ -217,7 +217,7 @@ export default function SpotlightModal() {
         title: t('nav.settings'),
         subtitle: t('settings.title'),
         category: 'page',
-        icon: <Settings size={15} className="text-slate-500" />,
+        icon: <Settings size={15} className="text-accent" />,
         action: () => navigateTo('settings'),
         badge: 'Page',
       },
@@ -228,7 +228,7 @@ export default function SpotlightModal() {
         title: t('dashboard.smartClean'),
         subtitle: t('dashboard.scanningDesc'),
         category: 'action',
-        icon: <Sparkles size={15} className="text-blue-500" />,
+        icon: <Sparkles size={15} className="text-accent" />,
         action: () => navigateTo('system-clean'),
         badge: 'Action',
       },
@@ -253,7 +253,7 @@ export default function SpotlightModal() {
         title: isDarkMode ? t('settings.lightMode') : t('settings.darkMode'),
         subtitle: isDarkMode ? 'Switch to light theme' : 'Switch to dark theme',
         category: 'action',
-        icon: isDarkMode ? <Sun size={15} className="text-amber-500" /> : <Moon size={15} className="text-indigo-400" />,
+        icon: isDarkMode ? <Sun size={15} className="text-amber-500" /> : <Moon size={15} className="text-accent" />,
         action: () => {
           toggleDarkMode();
           closeSpotlight();
@@ -265,7 +265,7 @@ export default function SpotlightModal() {
         title: t('settings.clearIconCache'),
         subtitle: t('settings.clearIconCacheDesc'),
         category: 'action',
-        icon: <RefreshCw size={15} className="text-emerald-500" />,
+        icon: <RefreshCw size={15} className="text-accent" />,
         action: () => {
           clearIconCache().catch(() => {});
           closeSpotlight();
@@ -277,7 +277,7 @@ export default function SpotlightModal() {
         title: t('about.title', 'About Beberes'),
         subtitle: t('about.subtitle', 'App specifications, version, and architecture'),
         category: 'action',
-        icon: <Info size={15} className="text-blue-500" />,
+        icon: <Info size={15} className="text-accent" />,
         action: () => {
           closeSpotlight();
           openAboutModal();
@@ -293,7 +293,11 @@ export default function SpotlightModal() {
         title: app.name,
         subtitle: `${formatSize(app.totalSize)} • ${app.path}`,
         category: 'app',
-        icon: <AppWindow size={15} className="text-cyan-500" />,
+        icon: app.icon ? (
+          <img src={app.icon} alt={app.name} className="w-4 h-4 rounded-xs object-contain shrink-0" />
+        ) : (
+          <AppWindow size={15} className="text-accent" />
+        ),
         action: () => navigateTo('apps'),
         badge: 'App',
       });
@@ -306,7 +310,7 @@ export default function SpotlightModal() {
         title: cat.name,
         subtitle: `${cat.items.length} items • ${formatSize(cat.size)}`,
         category: 'workspace',
-        icon: <Terminal size={15} className="text-purple-500" />,
+        icon: <Terminal size={15} className="text-accent" />,
         action: () => navigateTo('dev-workspace'),
         badge: 'Workspace',
       });
@@ -369,7 +373,7 @@ export default function SpotlightModal() {
       >
         {/* Search input header */}
         <div className="flex items-center gap-3 px-4 py-3.5 border-b border-black/6 dark:border-white/8">
-          <Search size={18} className="text-blue-500 shrink-0" />
+          <Search size={18} className="text-accent shrink-0" />
           <input
             ref={inputRef}
             type="text"
@@ -415,7 +419,7 @@ export default function SpotlightModal() {
                   onMouseEnter={() => setSelectedIndex(idx)}
                   className={`flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition-colors ${
                     isSelected
-                      ? 'bg-blue-500/10 dark:bg-blue-500/20 text-blue-600 dark:text-blue-300'
+                      ? 'bg-accent-subtle text-accent'
                       : 'text-slate-700 dark:text-neutral-300 hover:bg-black/3 dark:hover:bg-white/4'
                   }`}
                 >
@@ -423,7 +427,7 @@ export default function SpotlightModal() {
                     <div
                       className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
                         isSelected
-                          ? 'bg-blue-500/20 text-blue-600 dark:text-blue-300'
+                          ? 'bg-accent/20 text-accent'
                           : 'bg-black/4 dark:bg-white/6 text-slate-500'
                       }`}
                     >
@@ -449,7 +453,7 @@ export default function SpotlightModal() {
                       </span>
                     )}
                     {isSelected && (
-                      <CornerDownLeft size={13} className="text-blue-500 shrink-0" />
+                      <CornerDownLeft size={13} className="text-accent shrink-0" />
                     )}
                   </div>
                 </div>

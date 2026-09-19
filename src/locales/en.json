@@ -30,7 +30,8 @@
     "trashMode": "Move to Trash",
     "directDelete": "Direct Delete",
     "mode": "Mode",
-    "processing": "Processing"
+    "processing": "Processing",
+    "scrollToTop": "Scroll to top"
   },
   "nav": {
     "categories": {
@@ -310,7 +311,8 @@
     "orphanedKpiReclaimableDesc": "Application Support, Caches, & Saved State",
     "orphanedKpiSafety": "macOS System Protection",
     "orphanedKpiSafetyStatus": "100% Safe",
-    "orphanedKpiSafetyDesc": "com.apple.* and core system identifiers strictly whitelisted"
+    "orphanedKpiSafetyDesc": "com.apple.* and core system identifiers strictly whitelisted",
+    "uninstallBtn": "Uninstall"
   },
   "settings": {
     "title": "Settings & Preferences",
@@ -358,7 +360,36 @@
       "darkTitle": "Dark Mode",
       "darkDesc": "Apple dark frosted glassmorphism",
       "lightTitle": "Light Mode",
-      "lightDesc": "Crisp clean minimalist daylight layout"
+      "lightDesc": "Crisp clean minimalist daylight layout",
+      "accentColorsTitle": "Accent Colors",
+      "accentColorsDesc": "Customize the primary and secondary theme colors used across icons, buttons, and badges.",
+      "presetsTitle": "Curated Color Combinations",
+      "primaryAccentTitle": "Primary Accent",
+      "primaryAccentDesc": "Main color for buttons, navigation active pills, checkboxes, and primary icons.",
+      "secondaryAccentTitle": "Secondary Accent",
+      "secondaryAccentDesc": "Companion color for secondary badges, auxiliary tags, and dual-tone elements.",
+      "livePreview": "Theme Live Preview",
+      "primaryPreviewBtn": "Primary Action",
+      "primaryBadge": "Active Badge",
+      "secondaryBadge": "Secondary Tag",
+      "activeIconSample": "Active Theme Accent"
+    },
+    "colors": {
+      "blue": "Apple Blue",
+      "indigo": "Indigo",
+      "purple": "Electric Purple",
+      "cyan": "Cyan Sky",
+      "emerald": "Emerald Green",
+      "amber": "Sunset Amber",
+      "rose": "Rose Pink",
+      "slate": "Slate Gray",
+      "presets": {
+        "appleClassic": "Apple Classic",
+        "cyberPurple": "Cyber Purple",
+        "emeraldGarden": "Emerald Garden",
+        "sunsetGlow": "Sunset Glow",
+        "cleanSlate": "Clean Slate"
+      }
     },
     "textScale": {
       "title": "Text Size & UI Scaling",
@@ -759,5 +790,17 @@
     "hygiene": "Hygiene",
     "cleanAll": "Clean Everything",
     "cleaning": "Cleaning..."
+  },
+  "queue": {
+    "title": "Staged Cleanup Queue",
+    "subtitle": "Items selected across different pages ready for cleanup",
+    "reviewBtn": "Review Queue",
+    "clearAll": "Clear Queue",
+    "emptyTitle": "No items in cleanup queue",
+    "emptyDesc": "Select items across any page to stage them for a unified cleanup.",
+    "cleanAll": "Clean All Staged ({size})",
+    "cleaningAll": "Cleaning Staged Items...",
+    "removeFromQueue": "Remove from queue",
+    "itemsCount": "{count} items ({size})"
   }
 }

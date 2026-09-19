@@ -90,11 +90,11 @@ export default function ConfirmModal({
             <div
               className={`p-2 rounded-xl ${
                 isOrganize
-                  ? 'bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400'
+                  ? 'bg-accent-subtle text-accent'
                   : isDryRun
                   ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
                   : useTrash
-                  ? 'bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400'
+                  ? 'bg-accent-subtle text-accent'
                   : 'bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400'
               }`}
             >
@@ -152,11 +152,11 @@ export default function ConfirmModal({
               <p
                 className={`text-lg font-bold ${
                   isOrganize
-                    ? 'text-blue-600 dark:text-blue-400'
+                    ? 'text-accent'
                     : isDryRun
                     ? 'text-emerald-600 dark:text-emerald-400'
                     : useTrash
-                    ? 'text-blue-600 dark:text-blue-400'
+                    ? 'text-accent'
                     : 'text-rose-600 dark:text-rose-400'
                 }`}
               >
@@ -167,8 +167,8 @@ export default function ConfirmModal({
 
           {/* Mode Notice / Warning */}
           {isOrganize ? (
-            <div className="flex items-start gap-2.5 p-3 rounded-xl bg-blue-50 dark:bg-blue-950/30 text-blue-700 dark:text-blue-300 text-xs">
-              <FolderTree size={16} className="shrink-0 mt-0.5 text-blue-600 dark:text-blue-400" />
+            <div className="flex items-start gap-2.5 p-3 rounded-xl bg-accent-subtle border border-accent/20 text-accent text-xs">
+              <FolderTree size={16} className="shrink-0 mt-0.5" />
               <span>
                 {t('modals.organizeNotice')}
               </span>
@@ -181,8 +181,8 @@ export default function ConfirmModal({
               </span>
             </div>
           ) : useTrash ? (
-            <div className="flex items-start gap-2.5 p-3 rounded-xl bg-blue-50 dark:bg-blue-950/30 text-blue-700 dark:text-blue-300 text-xs">
-              <Trash2 size={16} className="shrink-0 mt-0.5 text-blue-600 dark:text-blue-400" />
+            <div className="flex items-start gap-2.5 p-3 rounded-xl bg-accent-subtle border border-accent/20 text-accent text-xs">
+              <Trash2 size={16} className="shrink-0 mt-0.5" />
               <span>
                 {t('modals.trashNotice')}
               </span>

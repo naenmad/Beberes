@@ -28,16 +28,16 @@ export default function StorageBreakdownBar({
       id: 'system',
       label: 'System & Applications',
       size: otherUsed,
-      color: 'bg-blue-500',
-      textColor: 'text-blue-500',
+      color: 'bg-accent',
+      textColor: 'text-accent',
       icon: <FolderOpen size={13} />,
     },
     {
       id: 'dev',
       label: 'Developer Caches',
       size: devJunkSize,
-      color: 'bg-violet-500',
-      textColor: 'text-violet-500',
+      color: 'bg-secondary-accent',
+      textColor: 'text-secondary-accent',
       icon: <Code2 size={13} />,
     },
     {
@@ -62,7 +62,7 @@ export default function StorageBreakdownBar({
     <div className="p-5 rounded-2xl glass-panel space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-          <HardDrive size={18} className="text-blue-500" />
+          <HardDrive size={18} className="text-accent" />
           <h3 className="text-sm font-bold text-slate-900 dark:text-white tracking-tight">
             Macintosh HD Storage Breakdown
           </h3>

@@ -76,7 +76,7 @@ export default function MoveToApplicationsModal() {
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header with Visual Migration Graphic */}
-        <div className="relative p-6 text-center border-b border-black/4 dark:border-white/6 bg-linear-to-b from-blue-500/5 to-transparent">
+        <div className="relative p-6 text-center border-b border-black/4 dark:border-white/6 bg-linear-to-b from-accent/10 to-transparent">
           <button
             type="button"
             onClick={handleDismiss}
@@ -92,21 +92,21 @@ export default function MoveToApplicationsModal() {
               <img
                 src="/icon-beberes.webp"
                 alt="Beberes"
-                className="w-16 h-16 rounded-2xl object-cover shadow-lg shadow-blue-500/20 ring-2 ring-blue-500/30"
+                className="w-16 h-16 rounded-2xl object-cover shadow-lg shadow-accent/20 ring-2 ring-accent/30"
               />
               <span className="absolute -bottom-2 -right-1 px-1.5 py-0.5 rounded-md text-[9px] font-bold uppercase bg-amber-500/90 text-white shadow">
                 Current
               </span>
             </div>
 
-            <div className="flex flex-col items-center justify-center text-blue-500 animate-pulse">
-              <div className="p-2 rounded-full bg-blue-500/10 border border-blue-500/20">
+            <div className="flex flex-col items-center justify-center text-accent animate-pulse">
+              <div className="p-2 rounded-full bg-accent-subtle border border-accent/20">
                 <ArrowRight size={20} />
               </div>
             </div>
 
             <div className="relative group">
-              <div className="w-16 h-16 rounded-2xl bg-linear-to-br from-blue-600 to-indigo-700 flex items-center justify-center shadow-lg shadow-indigo-500/20 ring-2 ring-indigo-500/30 text-white">
+              <div className="w-16 h-16 rounded-2xl bg-accent flex items-center justify-center shadow-lg shadow-accent/20 ring-2 ring-accent/30 text-white">
                 <FolderCheck size={32} />
               </div>
               <span className="absolute -bottom-2 -right-1 px-1.5 py-0.5 rounded-md text-[9px] font-bold uppercase bg-emerald-500/90 text-white shadow">
@@ -129,7 +129,7 @@ export default function MoveToApplicationsModal() {
         {/* Value Highlights */}
         <div className="p-6 space-y-3">
           <div className="flex items-start gap-3 p-3 rounded-2xl bg-black/2 dark:bg-white/2 border border-black/5 dark:border-white/5">
-            <div className="p-2 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 shrink-0">
+            <div className="p-2 rounded-xl bg-accent-subtle text-accent shrink-0">
               <RefreshCw size={16} />
             </div>
             <div>
@@ -163,7 +163,7 @@ export default function MoveToApplicationsModal() {
           </div>
 
           <div className="flex items-start gap-3 p-3 rounded-2xl bg-black/2 dark:bg-white/2 border border-black/5 dark:border-white/5">
-            <div className="p-2 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 shrink-0">
+            <div className="p-2 rounded-xl bg-accent-subtle text-accent shrink-0">
               <Sparkles size={16} />
             </div>
             <div>

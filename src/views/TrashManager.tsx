@@ -13,7 +13,6 @@ import { playTrashWhoosh } from '../lib/sound';
 import { formatSize } from '../lib/utils';
 import Button from '../components/ui/Button';
 import Checkbox from '../components/ui/Checkbox';
-import FloatingActionBar from '../components/ui/FloatingActionBar';
 import PageHeader from '../components/layout/PageHeader';
 import ConfirmModal from '../components/ui/ConfirmModal';
 import { CardSkeleton } from '../components/ui/SkeletonLoader';
@@ -34,7 +33,15 @@ import {
 
 export default function TrashManager() {
   const { t } = useTranslation();
-  const { recordCleanResult, globalRefreshTrigger } = useAppStore();
+  const {
+    recordCleanResult,
+    globalRefreshTrigger,
+    stagedItems,
+    stageItem,
+    unstageItem,
+    stageMultipleItems,
+    unstageMultipleItems,
+  } = useAppStore();
 
   const [isLoading, setIsLoading] = useState(true);
   const [data, setData] = useState<TrashScanResult | null>(null);
@@ -64,19 +71,52 @@ export default function TrashManager() {
 
   // Toggle path
   const togglePath = (path: string) => {
-    setSelectedPaths((prev) => {
-      const next = new Set(prev);
-      if (next.has(path)) next.delete(path);
-      else next.add(path);
-      return next;
-    });
+    const key = `trash_${path}`;
+    if (stagedItems[key]) {
+      unstageItem(key);
+      setSelectedPaths((prev) => {
+        const next = new Set(prev);
+        next.delete(path);
+        return next;
+      });
+    } else {
+      const item = data?.items.find((i) => i.path === path);
+      stageItem({
+        id: key,
+        name: item?.name || path.split('/').pop() || path,
+        path,
+        size: item?.size || 0,
+        originPage: 'trash-manager',
+        categoryName: t('trashManager.title'),
+        itemType: 'trash',
+      });
+      setSelectedPaths((prev) => {
+        const next = new Set(prev);
+        next.add(path);
+        return next;
+      });
+    }
   };
 
   const handleSelectAll = () => {
     if (!data) return;
-    if (selectedPaths.size === data.items.length) {
+    const allStaged = data.items.length > 0 && data.items.every((i) => Boolean(stagedItems[`trash_${i.path}`]));
+
+    if (allStaged) {
+      unstageMultipleItems(data.items.map((i) => `trash_${i.path}`));
       setSelectedPaths(new Set());
     } else {
+      stageMultipleItems(
+        data.items.map((i) => ({
+          id: `trash_${i.path}`,
+          name: i.name,
+          path: i.path,
+          size: i.size,
+          originPage: 'trash-manager' as const,
+          categoryName: t('trashManager.title'),
+          itemType: 'trash' as const,
+        }))
+      );
       setSelectedPaths(new Set(data.items.map((i) => i.path)));
     }
   };
@@ -137,17 +177,17 @@ export default function TrashManager() {
   const getItemIcon = (kind: string) => {
     switch (kind) {
       case 'app':
-        return <AppWindow size={15} className="text-cyan-500" />;
+        return <AppWindow size={15} className="text-accent" />;
       case 'image':
-        return <ImageIcon size={15} className="text-pink-500" />;
+        return <ImageIcon size={15} className="text-accent" />;
       case 'video':
-        return <Film size={15} className="text-purple-500" />;
+        return <Film size={15} className="text-accent" />;
       case 'archive':
-        return <Archive size={15} className="text-amber-500" />;
+        return <Archive size={15} className="text-accent" />;
       case 'installer':
-        return <Package size={15} className="text-emerald-500" />;
+        return <Package size={15} className="text-accent" />;
       default:
-        return <FileText size={15} className="text-slate-400" />;
+        return <FileText size={15} className="text-accent" />;
     }
   };
 
@@ -190,7 +230,7 @@ export default function TrashManager() {
           </div>
 
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-blue-500/10 text-blue-500 flex items-center justify-center shrink-0">
+            <div className="w-10 h-10 rounded-2xl bg-accent-subtle text-accent flex items-center justify-center shrink-0">
               <Package size={20} />
             </div>
             <div>
@@ -340,17 +380,6 @@ export default function TrashManager() {
           })}
         </div>
       )}
-
-      {/* Floating Action Bar */}
-      <FloatingActionBar
-        selectedCount={selectedPaths.size}
-        selectedSize={selectedTotalSize}
-        onClean={() => setShowDeleteSelectedModal(true)}
-        onDeselect={() => setSelectedPaths(new Set())}
-        cleanLabel={`${t('trashManager.deleteSelected', 'Delete Permanently')} (${formatSize(selectedTotalSize)})`}
-        actionVariant="danger"
-        showModeBadge={false}
-      />
 
       {/* Empty Entire Trash Modal */}
       <ConfirmModal

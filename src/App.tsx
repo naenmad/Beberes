@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useAppStore } from './store/appStore';
+import { applyThemeColors } from './lib/themeColors';
 import MainLayout from './components/layout/MainLayout';
 import Dashboard from './views/Dashboard';
 import SystemClean from './views/SystemClean';
@@ -22,6 +23,8 @@ export default function App() {
     setCurrentPage,
     triggerGlobalRefresh,
     isDarkMode,
+    primaryAccent,
+    secondaryAccent,
     uiScale,
     autoCheckUpdate,
     checkForUpdates,
@@ -164,6 +167,11 @@ export default function App() {
     document.documentElement.classList.remove('scale-compact', 'scale-normal', 'scale-large');
     document.documentElement.classList.add(`scale-${uiScale}`);
   }, [uiScale]);
+
+  // Apply primary and secondary accent colors to CSS variables
+  useEffect(() => {
+    applyThemeColors(primaryAccent, secondaryAccent);
+  }, [primaryAccent, secondaryAccent]);
 
   return (
     <MainLayout>

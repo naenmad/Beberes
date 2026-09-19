@@ -256,7 +256,7 @@ export default function FloatingSidebar() {
                       }
                       ${
                         isActive
-                          ? 'bg-blue-600 text-white shadow-xs shadow-blue-500/20'
+                          ? 'bg-accent text-white shadow-xs'
                           : 'text-slate-600 dark:text-neutral-400 hover:bg-black/3 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white'
                       }
                     `}
@@ -292,7 +292,7 @@ export default function FloatingSidebar() {
               ${isCollapsed ? 'justify-center p-2.5' : 'px-3 py-2 text-left'}
               ${
                 currentPage === 'settings'
-                  ? 'bg-blue-600 text-white shadow-xs shadow-blue-500/20'
+                  ? 'bg-accent text-white shadow-xs'
                   : 'text-slate-600 dark:text-neutral-400 hover:bg-black/3 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white'
               }
             `}
@@ -341,7 +341,7 @@ export default function FloatingSidebar() {
         title={t('nav.resizeSidebar', 'Drag to resize (double click to toggle)')}
         className={`
           absolute top-0 right-0 w-2.5 h-full cursor-col-resize group rounded-r-3xl transition-colors z-40
-          ${isDragging ? 'bg-blue-500/30' : 'hover:bg-blue-500/20'}
+          ${isDragging ? 'bg-accent/30' : 'hover:bg-accent/20'}
         `}
       >
         {/* Subtle center grip indicator on hover */}

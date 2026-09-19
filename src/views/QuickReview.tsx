@@ -496,19 +496,19 @@ export default function QuickReview() {
   const getFileKindIcon = (kind: string) => {
     switch (kind) {
       case 'image':
-        return <ImageIcon size={24} className="text-pink-500" />;
+        return <ImageIcon size={24} className="text-accent" />;
       case 'video':
-        return <Film size={24} className="text-purple-500" />;
+        return <Film size={24} className="text-accent" />;
       case 'audio':
-        return <Music size={24} className="text-emerald-500" />;
+        return <Music size={24} className="text-accent" />;
       case 'document':
-        return <FileText size={24} className="text-blue-500" />;
+        return <FileText size={24} className="text-accent" />;
       case 'archive':
-        return <Archive size={24} className="text-amber-500" />;
+        return <Archive size={24} className="text-accent" />;
       case 'installer':
-        return <Package size={24} className="text-rose-500" />;
+        return <Package size={24} className="text-accent" />;
       case 'code':
-        return <Code2 size={24} className="text-indigo-500" />;
+        return <Code2 size={24} className="text-accent" />;
       default:
         return <FileText size={24} className="text-slate-400" />;
     }
@@ -522,11 +522,11 @@ export default function QuickReview() {
       {/* Top Header */}
       <PageHeader
         icon={<Eye size={20} />}
-        iconColor="text-purple-500"
+        iconColor="text-accent"
         title={t('quickReview.title')}
         subtitle={t('quickReview.subtitle')}
         badge={
-          <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-600 dark:text-purple-400">
+          <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-accent-subtle text-accent">
             {items.length} {t('quickReview.filesInQueue')}
           </span>
         }
@@ -540,7 +540,7 @@ export default function QuickReview() {
             onClick={() => setTargetDir('downloads')}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
               targetDir === 'downloads'
-                ? 'bg-white dark:bg-neutral-700 text-blue-600 dark:text-blue-400 shadow-xs'
+                ? 'bg-white dark:bg-neutral-700 text-accent font-bold shadow-xs'
                 : 'text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
@@ -552,7 +552,7 @@ export default function QuickReview() {
             onClick={() => setTargetDir('desktop')}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
               targetDir === 'desktop'
-                ? 'bg-white dark:bg-neutral-700 text-blue-600 dark:text-blue-400 shadow-xs'
+                ? 'bg-white dark:bg-neutral-700 text-accent font-bold shadow-xs'
                 : 'text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
@@ -564,7 +564,7 @@ export default function QuickReview() {
             onClick={() => setTargetDir('screenshots')}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
               targetDir === 'screenshots'
-                ? 'bg-white dark:bg-neutral-700 text-blue-600 dark:text-blue-400 shadow-xs'
+                ? 'bg-white dark:bg-neutral-700 text-accent font-bold shadow-xs'
                 : 'text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
@@ -576,7 +576,7 @@ export default function QuickReview() {
             onClick={() => setTargetDir('pictures')}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
               targetDir === 'pictures'
-                ? 'bg-white dark:bg-neutral-700 text-blue-600 dark:text-blue-400 shadow-xs'
+                ? 'bg-white dark:bg-neutral-700 text-accent font-bold shadow-xs'
                 : 'text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
@@ -588,7 +588,7 @@ export default function QuickReview() {
             onClick={handlePickCustomFolder}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
               targetDir === 'custom'
-                ? 'bg-white dark:bg-neutral-700 text-blue-600 dark:text-blue-400 shadow-xs'
+                ? 'bg-white dark:bg-neutral-700 text-accent font-bold shadow-xs'
                 : 'text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
@@ -605,7 +605,7 @@ export default function QuickReview() {
               onClick={() => setFilter(f)}
               className={`px-2.5 py-1 rounded-full font-medium transition-colors cursor-pointer capitalize ${
                 filter === f
-                  ? 'bg-blue-600 text-white shadow-xs'
+                  ? 'bg-accent text-white shadow-xs'
                   : 'bg-black/4 dark:bg-white/6 text-slate-600 dark:text-neutral-400 hover:bg-black/8 dark:hover:bg-white/10'
               }`}
             >
@@ -641,7 +641,7 @@ export default function QuickReview() {
 
           <div className="w-36 h-2 bg-slate-200/80 dark:bg-neutral-700 rounded-full overflow-hidden">
             <div
-              className="h-full bg-blue-500 rounded-full transition-all duration-300"
+              className="h-full bg-accent rounded-full transition-all duration-300"
               style={{ width: `${progressPercent}%` }}
             />
           </div>
@@ -664,8 +664,8 @@ export default function QuickReview() {
             {t('quickReview.statKept')}
           </span>
           <span className="flex items-center gap-1">
-            <Sparkles size={12} className="text-blue-500" />
-            <strong className="text-blue-600 dark:text-blue-400">
+            <Sparkles size={12} className="text-accent" />
+            <strong className="text-accent">
               {formatSize(sessionFreedBytes)}
             </strong>{' '}
             {t('quickReview.statFreed')}
@@ -716,7 +716,7 @@ export default function QuickReview() {
             </div>
             <div className="p-3 rounded-2xl bg-black/2 dark:bg-white/4">
               <span className="text-[10px] text-slate-400">{t('quickReview.statFreed')}</span>
-              <p className="text-lg font-bold text-blue-600 dark:text-blue-400 mt-0.5">
+              <p className="text-lg font-bold text-accent mt-0.5">
                 {formatSize(sessionFreedBytes)}
               </p>
             </div>
@@ -772,7 +772,7 @@ export default function QuickReview() {
                     ? 'bg-rose-500 text-white'
                     : actionFeedback.type === 'keep'
                     ? 'bg-emerald-500 text-white'
-                    : 'bg-blue-600 text-white'
+                    : 'bg-accent text-white'
                 }`}
               >
                 {actionFeedback.type === 'trash' ? (
@@ -802,7 +802,7 @@ export default function QuickReview() {
 
             {isLoadingPreview ? (
               <div className="flex flex-col items-center gap-2 text-slate-400">
-                <RefreshCw size={24} className="animate-spin text-blue-500" />
+                <RefreshCw size={24} className="animate-spin text-accent" />
                 <span className="text-xs">{t('quickReview.loadingPreview', 'Loading preview...')}</span>
               </div>
             ) : currentItem.extension?.toLowerCase() === 'pdf' && assetUrl ? (
@@ -849,8 +849,8 @@ export default function QuickReview() {
               assetUrl ? (
               /* 3. Native Audio Player Card */
               <div className="flex flex-col items-center justify-center p-6 text-center w-full max-w-md">
-                <div className="w-20 h-20 rounded-full bg-linear-to-br from-indigo-500/20 to-purple-500/20 border border-indigo-500/30 flex items-center justify-center shadow-lg mb-3 animate-pulse">
-                  <Music size={32} className="text-indigo-500" />
+                <div className="w-20 h-20 rounded-full bg-accent-subtle border border-accent/30 flex items-center justify-center shadow-lg mb-3 animate-pulse">
+                  <Music size={32} className="text-accent" />
                 </div>
                 <h4 className="text-sm font-bold text-slate-800 dark:text-neutral-200 truncate max-w-xs">
                   {currentItem.name}
@@ -889,7 +889,7 @@ export default function QuickReview() {
                   {getFileKindIcon(currentItem.kind)}
                 </div>
                 <div>
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400 uppercase">
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-accent-subtle text-accent uppercase">
                     .{currentItem.extension || 'FILE'}
                   </span>
                   <p className="text-xs text-slate-400 mt-1 capitalize">{currentItem.kind} File</p>
@@ -924,14 +924,14 @@ export default function QuickReview() {
                 )}
                 {currentItem.last_modified &&
                   Date.now() - new Date(currentItem.last_modified).getTime() <= 24 * 60 * 60 * 1000 && (
-                    <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/25 shrink-0">
+                    <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-accent-subtle text-accent border border-accent/25 shrink-0">
                       <span>{t('safety.recentBadge', 'Recent (< 24h)')}</span>
                     </span>
                   )}
               </div>
               <p
                 onClick={handleReveal}
-                className="text-[11px] font-mono text-slate-400 dark:text-neutral-500 truncate mt-0.5 hover:text-blue-500 cursor-pointer flex items-center gap-1"
+                className="text-[11px] font-mono text-slate-400 dark:text-neutral-500 truncate mt-0.5 hover:text-accent cursor-pointer flex items-center gap-1"
                 title={t('common.revealInFinder', 'Reveal in Finder')}
               >
                 <span>{currentItem.path}</span>
@@ -964,7 +964,7 @@ export default function QuickReview() {
             {/* Keep Action (Left - F) */}
             <button
               onClick={handleKeep}
-              className="flex items-center justify-center gap-2 py-3 px-4 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-500/20 transition-all font-semibold text-xs cursor-pointer active:scale-[0.98]"
+              className="flex items-center justify-center gap-2 py-3 px-4 rounded-2xl bg-accent hover:bg-accent-hover text-white shadow-md shadow-accent/20 transition-all font-semibold text-xs cursor-pointer active:scale-[0.98]"
             >
               <Check size={16} strokeWidth={2.5} />
               <span>{t('quickReview.actionKeep')}</span>
@@ -1080,7 +1080,7 @@ export default function QuickReview() {
                 )) &&
               assetUrl ? (
               <div className="p-8 rounded-3xl glass-panel max-w-md w-full text-center text-white">
-                <Music size={48} className="mx-auto text-indigo-400 mb-4 animate-pulse" />
+                <Music size={48} className="mx-auto text-accent mb-4 animate-pulse" />
                 <h4 className="text-base font-bold truncate">{currentItem.name}</h4>
                 <p className="text-xs text-slate-400 mt-1">{formatSize(currentItem.size)}</p>
                 <audio src={assetUrl} controls autoPlay className="w-full mt-6" />
@@ -1115,7 +1115,7 @@ export default function QuickReview() {
             className="w-full max-w-md rounded-3xl glass-panel p-6 shadow-2xl border border-black/8 dark:border-white/10 space-y-4"
           >
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center">
+              <div className="w-8 h-8 rounded-xl bg-accent-subtle text-accent flex items-center justify-center">
                 <Edit3 size={16} />
               </div>
               <div>
@@ -1133,7 +1133,7 @@ export default function QuickReview() {
                   type="text"
                   value={newFileName}
                   onChange={(e) => setNewFileName(e.target.value)}
-                  className="w-full px-3.5 py-2 text-xs rounded-xl bg-white dark:bg-neutral-800 border border-black/8 dark:border-white/10 text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono"
+                  className="w-full px-3.5 py-2 text-xs rounded-xl bg-white dark:bg-neutral-800 border border-black/8 dark:border-white/10 text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-accent font-mono"
                 />
                 {renameError && (
                   <p className="text-xs text-rose-500 mt-1 flex items-center gap-1">

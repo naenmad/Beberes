@@ -11,13 +11,13 @@ interface PageHeaderProps {
 export default function PageHeader({
   icon,
   iconBgColor,
-  iconColor = 'text-blue-500',
+  iconColor = 'text-accent',
   title,
   subtitle,
   badge,
   actions,
 }: PageHeaderProps) {
-  const bgClass = iconBgColor || 'bg-black/4 dark:bg-white/6';
+  const bgClass = iconBgColor || 'bg-accent-subtle';
 
   return (
     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-0.5">

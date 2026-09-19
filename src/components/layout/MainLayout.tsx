@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import FloatingSidebar from './FloatingSidebar';
 import TopBar from './TopBar';
 import SpotlightModal from '../ui/SpotlightModal';
@@ -6,6 +6,9 @@ import AboutModal from '../ui/AboutModal';
 import WelcomeModal from '../ui/WelcomeModal';
 import HoldCmdQModal from '../ui/HoldCmdQModal';
 import MoveToApplicationsModal from '../ui/MoveToApplicationsModal';
+import StagedItemsModal from '../ui/StagedItemsModal';
+import ScrollToTopButton from '../ui/ScrollToTopButton';
+import FloatingActionBar from '../ui/FloatingActionBar';
 import { useAppStore } from '../../store/appStore';
 import { FolderDown } from 'lucide-react';
 
@@ -14,8 +17,20 @@ interface MainLayoutProps {
 }
 
 export default function MainLayout({ children }: MainLayoutProps) {
-  const { setCurrentPage } = useAppStore();
+  const {
+    setCurrentPage,
+    stagedItems,
+    openStagedModal,
+    clearStagingQueue,
+  } = useAppStore();
   const [isDraggingOver, setIsDraggingOver] = useState(false);
+  const mainRef = useRef<HTMLElement>(null);
+
+  const totalStagedCount = Object.keys(stagedItems).length;
+  const totalStagedSize = Object.values(stagedItems).reduce(
+    (sum, it) => sum + (it.size || 0),
+    0
+  );
 
   useEffect(() => {
     let unlisten: (() => void) | undefined;
@@ -53,26 +68,52 @@ export default function MainLayout({ children }: MainLayoutProps) {
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-bg-primary dark:bg-bg-primary-dark transition-colors">
       <FloatingSidebar />
-      <div className="flex-1 flex flex-col h-full min-w-0 overflow-hidden relative">
-        <TopBar />
-        <main className="flex-1 overflow-y-auto px-4 pb-24 sm:px-8 sm:pb-28 pt-4">
+      <div className="flex-1 flex flex-col h-[calc(100vh-1.5rem)] my-3 mr-3 ml-2.5 min-w-0 overflow-hidden relative">
+        {/* Floating Capsule TopBar */}
+        <div className="shrink-0 mb-3 px-1 sm:px-2">
+          <div className="max-w-6xl mx-auto w-full">
+            <TopBar />
+          </div>
+        </div>
+
+        {/* Main Content Area */}
+        <main ref={mainRef} className="flex-1 overflow-y-auto px-1 sm:px-2 pb-24 sm:pb-28">
           <div className="max-w-6xl mx-auto w-full">
             {children}
           </div>
         </main>
 
-        {/* Global Floating Action Bar Overlay Anchor */}
+        {/* Global Floating Action Bar: Centered horizontally at bottom */}
+        {totalStagedCount > 0 && (
+          <div className="pointer-events-none absolute inset-x-0 bottom-4 z-40 flex justify-center px-4">
+            <FloatingActionBar
+              selectedCount={totalStagedCount}
+              selectedSize={totalStagedSize}
+              onClean={openStagedModal}
+              onReview={openStagedModal}
+              onDeselect={clearStagingQueue}
+              disablePortal
+            />
+          </div>
+        )}
+
+        {/* Scroll To Top Button: Bottom Right Corner */}
+        <div className="pointer-events-none absolute bottom-4 right-4 sm:right-6 z-40">
+          <ScrollToTopButton scrollContainerRef={mainRef} />
+        </div>
+
+        {/* Global Floating Action Bar Overlay Anchor for backwards compatibility */}
         <div
           id="floating-action-bar-root"
-          className="pointer-events-none absolute inset-x-0 bottom-0 z-40 flex justify-center pb-6 px-4"
+          className="pointer-events-none absolute inset-x-0 bottom-0 z-30 flex justify-center pb-4 px-4"
         />
       </div>
 
       {/* Frosted Dropzone Overlay */}
       {isDraggingOver && (
-        <div className="fixed inset-0 z-50 pointer-events-none flex items-center justify-center bg-blue-500/10 dark:bg-blue-500/15 backdrop-blur-md border-3 border-dashed border-blue-500 rounded-3xl m-4 animate-scale-in">
+        <div className="fixed inset-0 z-50 pointer-events-none flex items-center justify-center bg-accent-subtle/40 backdrop-blur-md border-3 border-dashed border-accent rounded-3xl m-4 animate-scale-in">
           <div className="p-6 rounded-3xl glass-panel text-center max-w-sm shadow-2xl flex flex-col items-center gap-3">
-            <div className="p-4 rounded-2xl bg-blue-500 text-white shadow-lg">
+            <div className="p-4 rounded-2xl bg-accent text-white shadow-lg">
               <FolderDown size={32} />
             </div>
             <div>
@@ -93,8 +134,10 @@ export default function MainLayout({ children }: MainLayoutProps) {
       <WelcomeModal />
       <HoldCmdQModal />
       <MoveToApplicationsModal />
+      <StagedItemsModal />
     </div>
   );
 }
+
 
 

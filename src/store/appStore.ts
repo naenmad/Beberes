@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { getAllDisks, getDiskInfoByMount } from '../lib/commands';
 import { playSuccessChime } from '../lib/sound';
+import { applyThemeColors } from '../lib/themeColors';
 
 // Types
 export interface ScanCategory {
@@ -49,7 +50,33 @@ export interface CleanRecord {
   categories: string[];
 }
 
-export const APP_VERSION = '1.1.0';
+export const APP_VERSION = '1.2.0';
+
+export type ViewPage =
+  | 'dashboard'
+  | 'quick-review'
+  | 'large-duplicates'
+  | 'trash-manager'
+  | 'disk-visualizer'
+  | 'tidy-up'
+  | 'apps'
+  | 'system-clean'
+  | 'dev-workspace'
+  | 'startup-manager'
+  | 'file-shredder'
+  | 'git-sweeper'
+  | 'settings';
+
+export interface StagedCleanItem {
+  id: string;
+  name: string;
+  path: string;
+  size: number;
+  originPage: ViewPage;
+  categoryName: string;
+  itemType?: 'file' | 'app' | 'folder' | 'artifact' | 'trash' | 'orphaned';
+  extraData?: any;
+}
 
 export interface UpdateInfo {
   available: boolean;
@@ -81,21 +108,8 @@ export interface CleanHistoryEntry {
   categoryNames?: string[];
 }
 
-export type ViewPage =
-  | 'dashboard'
-  | 'quick-review'
-  | 'large-duplicates'
-  | 'trash-manager'
-  | 'disk-visualizer'
-  | 'tidy-up'
-  | 'apps'
-  | 'system-clean'
-  | 'dev-workspace'
-  | 'startup-manager'
-  | 'file-shredder'
-  | 'git-sweeper'
-  | 'settings';
 export type UiScale = 'compact' | 'normal' | 'large';
+
 
 const STORAGE_LIFETIME_KEY = 'beberes_lifetime_bytes_freed';
 const STORAGE_HISTORY_KEY = 'beberes_clean_history';
@@ -105,6 +119,24 @@ const STORAGE_SAFETY_KEY = 'beberes_safety_notice';
 const STORAGE_WHITELIST_KEY = 'beberes_whitelist_paths';
 const STORAGE_CUSTOM_PATHS_KEY = 'beberes_custom_scan_paths';
 const STORAGE_LANG_KEY = 'beberes_language';
+const STORAGE_PRIMARY_ACCENT_KEY = 'beberes_primary_accent';
+const STORAGE_SECONDARY_ACCENT_KEY = 'beberes_secondary_accent';
+
+function getStoredPrimaryAccent(): string {
+  try {
+    return localStorage.getItem(STORAGE_PRIMARY_ACCENT_KEY) || 'blue';
+  } catch {
+    return 'blue';
+  }
+}
+
+function getStoredSecondaryAccent(): string {
+  try {
+    return localStorage.getItem(STORAGE_SECONDARY_ACCENT_KEY) || 'indigo';
+  } catch {
+    return 'indigo';
+  }
+}
 
 const DEFAULT_WHITELIST = ['/System', '/Library/CoreServices', '/usr', '/bin', '/sbin'];
 const STORAGE_PAGE_KEY = 'beberes_current_page';
@@ -209,9 +241,14 @@ interface AppState {
   openAboutModal: () => void;
   closeAboutModal: () => void;
 
-  // Theme
+  // Theme & Accent Colors
   isDarkMode: boolean;
   toggleDarkMode: () => void;
+  primaryAccent: string;
+  secondaryAccent: string;
+  setPrimaryAccent: (colorId: string) => void;
+  setSecondaryAccent: (colorId: string) => void;
+  setAccentPair: (primaryId: string, secondaryId: string) => void;
 
   // UX & System Preferences
   holdCmdQToQuit: boolean;
@@ -298,6 +335,23 @@ interface AppState {
   addCustomScanPath: (path: string) => void;
   removeCustomScanPath: (path: string) => void;
   resetAllSettings: () => void;
+
+  // Universal Staging Queue ("Bereskan Keranjang")
+  stagedItems: Record<string, StagedCleanItem>;
+  isStagedModalOpen: boolean;
+  openStagedModal: () => void;
+  closeStagedModal: () => void;
+  stageItem: (item: StagedCleanItem) => void;
+  unstageItem: (id: string) => void;
+  toggleStageItem: (item: StagedCleanItem) => void;
+  stageMultipleItems: (items: StagedCleanItem[]) => void;
+  unstageMultipleItems: (ids: string[]) => void;
+  clearStagingQueue: () => void;
+  clearStagingQueueForPage: (originPage: ViewPage) => void;
+  getTotalStagedCount: () => number;
+  getTotalStagedSize: () => number;
+  getStagedItemsList: () => StagedCleanItem[];
+  getStagedItemsByPage: () => Record<string, StagedCleanItem[]>;
 }
 
 export const useAppStore = create<AppState>((set, get) => ({
@@ -340,6 +394,36 @@ export const useAppStore = create<AppState>((set, get) => ({
     return { isDarkMode: next };
   }),
 
+  // Accent Colors
+  primaryAccent: getStoredPrimaryAccent(),
+  secondaryAccent: getStoredSecondaryAccent(),
+  setPrimaryAccent: (primaryAccent: string) => {
+    try {
+      localStorage.setItem(STORAGE_PRIMARY_ACCENT_KEY, primaryAccent);
+    } catch {}
+    set((state) => {
+      applyThemeColors(primaryAccent, state.secondaryAccent);
+      return { primaryAccent };
+    });
+  },
+  setSecondaryAccent: (secondaryAccent: string) => {
+    try {
+      localStorage.setItem(STORAGE_SECONDARY_ACCENT_KEY, secondaryAccent);
+    } catch {}
+    set((state) => {
+      applyThemeColors(state.primaryAccent, secondaryAccent);
+      return { secondaryAccent };
+    });
+  },
+  setAccentPair: (primaryAccent: string, secondaryAccent: string) => {
+    try {
+      localStorage.setItem(STORAGE_PRIMARY_ACCENT_KEY, primaryAccent);
+      localStorage.setItem(STORAGE_SECONDARY_ACCENT_KEY, secondaryAccent);
+    } catch {}
+    applyThemeColors(primaryAccent, secondaryAccent);
+    set({ primaryAccent, secondaryAccent });
+  },
+
   // Scanning & Global Refresh
   isScanning: false,
   scanProgress: 0,
@@ -359,55 +443,140 @@ export const useAppStore = create<AppState>((set, get) => ({
   // Selection
   toggleCategorySelection: (type, categoryId) => set((state) => {
     const key = type === 'system' ? 'systemCategories' : 'devCategories';
+    const originPage: ViewPage = type === 'system' ? 'system-clean' : 'dev-workspace';
+    const nextStaged = { ...state.stagedItems };
+
+    const updatedCategories = state[key].map((cat) => {
+      if (cat.id !== categoryId) return cat;
+      const nextSelected = !cat.selected;
+      for (const it of cat.items) {
+        if (nextSelected) {
+          nextStaged[it.id] = {
+            id: it.id,
+            name: it.name,
+            path: it.path,
+            size: it.size,
+            originPage,
+            categoryName: cat.name,
+            itemType: type === 'system' ? 'file' : 'folder',
+          };
+        } else {
+          delete nextStaged[it.id];
+        }
+      }
+      return {
+        ...cat,
+        selected: nextSelected,
+        items: cat.items.map((item) => ({ ...item, selected: nextSelected })),
+      };
+    });
+
     return {
-      [key]: state[key].map((cat) =>
-        cat.id === categoryId
-          ? {
-              ...cat,
-              selected: !cat.selected,
-              items: cat.items.map((item) => ({ ...item, selected: !cat.selected })),
-            }
-          : cat
-      ),
+      [key]: updatedCategories,
+      stagedItems: nextStaged,
     };
   }),
 
   toggleItemSelection: (type, categoryId, itemId) => set((state) => {
     const key = type === 'system' ? 'systemCategories' : 'devCategories';
+    const originPage: ViewPage = type === 'system' ? 'system-clean' : 'dev-workspace';
+    const nextStaged = { ...state.stagedItems };
+
+    const updatedCategories = state[key].map((cat) => {
+      if (cat.id !== categoryId) return cat;
+      const updatedItems = cat.items.map((item) => {
+        if (item.id !== itemId) return item;
+        const nextSelected = !item.selected;
+        if (nextSelected) {
+          nextStaged[item.id] = {
+            id: item.id,
+            name: item.name,
+            path: item.path,
+            size: item.size,
+            originPage,
+            categoryName: cat.name,
+            itemType: type === 'system' ? 'file' : 'folder',
+          };
+        } else {
+          delete nextStaged[item.id];
+        }
+        return { ...item, selected: nextSelected };
+      });
+      return {
+        ...cat,
+        items: updatedItems,
+        selected: updatedItems.length > 0 && updatedItems.every((item) => item.selected),
+      };
+    });
+
     return {
-      [key]: state[key].map((cat) => {
-        if (cat.id !== categoryId) return cat;
-        const updatedItems = cat.items.map((item) =>
-          item.id === itemId ? { ...item, selected: !item.selected } : item
-        );
-        return {
-          ...cat,
-          items: updatedItems,
-          selected: updatedItems.length > 0 && updatedItems.every((item) => item.selected),
-        };
-      }),
+      [key]: updatedCategories,
+      stagedItems: nextStaged,
     };
   }),
 
   selectAllInCategory: (type, categoryId, selected) => set((state) => {
     const key = type === 'system' ? 'systemCategories' : 'devCategories';
+    const originPage: ViewPage = type === 'system' ? 'system-clean' : 'dev-workspace';
+    const nextStaged = { ...state.stagedItems };
+
+    const updatedCategories = state[key].map((cat) => {
+      if (cat.id !== categoryId) return cat;
+      for (const it of cat.items) {
+        if (selected) {
+          nextStaged[it.id] = {
+            id: it.id,
+            name: it.name,
+            path: it.path,
+            size: it.size,
+            originPage,
+            categoryName: cat.name,
+            itemType: type === 'system' ? 'file' : 'folder',
+          };
+        } else {
+          delete nextStaged[it.id];
+        }
+      }
+      return { ...cat, selected, items: cat.items.map((item) => ({ ...item, selected })) };
+    });
+
     return {
-      [key]: state[key].map((cat) =>
-        cat.id === categoryId
-          ? { ...cat, selected, items: cat.items.map((item) => ({ ...item, selected })) }
-          : cat
-      ),
+      [key]: updatedCategories,
+      stagedItems: nextStaged,
     };
   }),
 
   selectAll: (type, selected) => set((state) => {
     const key = type === 'system' ? 'systemCategories' : 'devCategories';
-    return {
-      [key]: state[key].map((cat) => ({
+    const originPage: ViewPage = type === 'system' ? 'system-clean' : 'dev-workspace';
+    const nextStaged = { ...state.stagedItems };
+
+    const updatedCategories = state[key].map((cat) => {
+      for (const it of cat.items) {
+        if (selected) {
+          nextStaged[it.id] = {
+            id: it.id,
+            name: it.name,
+            path: it.path,
+            size: it.size,
+            originPage,
+            categoryName: cat.name,
+            itemType: type === 'system' ? 'file' : 'folder',
+          };
+        } else {
+          delete nextStaged[it.id];
+        }
+      }
+      return {
         ...cat,
         selected,
         items: cat.items.map((item) => ({ ...item, selected })),
-      })),
+      };
+    });
+
+    return {
+      [key]: updatedCategories,
+      stagedItems: nextStaged,
     };
   }),
 
@@ -714,4 +883,130 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   lowDiskSpaceTriggered: false,
   setLowDiskSpaceTriggered: (triggered: boolean) => set({ lowDiskSpaceTriggered: triggered }),
+
+  // Universal Staging Queue ("Bereskan Keranjang")
+  stagedItems: {},
+  isStagedModalOpen: false,
+  openStagedModal: () => set({ isStagedModalOpen: true }),
+  closeStagedModal: () => set({ isStagedModalOpen: false }),
+
+  stageItem: (item: StagedCleanItem) =>
+    set((state) => ({
+      stagedItems: { ...state.stagedItems, [item.id]: item },
+    })),
+
+  unstageItem: (id: string) =>
+    set((state) => {
+      const next = { ...state.stagedItems };
+      delete next[id];
+
+      const deselectInCats = (cats: ScanCategory[]) =>
+        cats.map((cat) => {
+          const updatedItems = cat.items.map((it) => (it.id === id ? { ...it, selected: false } : it));
+          return {
+            ...cat,
+            items: updatedItems,
+            selected: updatedItems.length > 0 && updatedItems.every((it) => it.selected),
+          };
+        });
+
+      return {
+        stagedItems: next,
+        systemCategories: deselectInCats(state.systemCategories),
+        devCategories: deselectInCats(state.devCategories),
+      };
+    }),
+
+  toggleStageItem: (item: StagedCleanItem) =>
+    set((state) => {
+      const next = { ...state.stagedItems };
+      if (next[item.id]) {
+        delete next[item.id];
+      } else {
+        next[item.id] = item;
+      }
+      return { stagedItems: next };
+    }),
+
+  stageMultipleItems: (items: StagedCleanItem[]) =>
+    set((state) => {
+      const next = { ...state.stagedItems };
+      for (const it of items) {
+        next[it.id] = it;
+      }
+      return { stagedItems: next };
+    }),
+
+  unstageMultipleItems: (ids: string[]) =>
+    set((state) => {
+      const next = { ...state.stagedItems };
+      const idSet = new Set(ids);
+      for (const id of ids) {
+        delete next[id];
+      }
+
+      const deselectInCats = (cats: ScanCategory[]) =>
+        cats.map((cat) => {
+          const updatedItems = cat.items.map((it) => (idSet.has(it.id) ? { ...it, selected: false } : it));
+          return {
+            ...cat,
+            items: updatedItems,
+            selected: updatedItems.length > 0 && updatedItems.every((it) => it.selected),
+          };
+        });
+
+      return {
+        stagedItems: next,
+        systemCategories: deselectInCats(state.systemCategories),
+        devCategories: deselectInCats(state.devCategories),
+      };
+    }),
+
+  clearStagingQueue: () =>
+    set((state) => {
+      const resetCats = (cats: ScanCategory[]) =>
+        cats.map((cat) => ({
+          ...cat,
+          selected: false,
+          items: cat.items.map((it) => ({ ...it, selected: false })),
+        }));
+
+      return {
+        stagedItems: {},
+        systemCategories: resetCats(state.systemCategories),
+        devCategories: resetCats(state.devCategories),
+      };
+    }),
+
+  clearStagingQueueForPage: (originPage: ViewPage) =>
+    set((state) => {
+      const next: Record<string, StagedCleanItem> = {};
+      for (const [key, val] of Object.entries(state.stagedItems)) {
+        if (val.originPage !== originPage) {
+          next[key] = val;
+        }
+      }
+      return { stagedItems: next };
+    }),
+
+  getTotalStagedCount: () => Object.keys(get().stagedItems).length,
+
+  getTotalStagedSize: () =>
+    Object.values(get().stagedItems).reduce((sum, it) => sum + (it.size || 0), 0),
+
+  getStagedItemsList: () => Object.values(get().stagedItems),
+
+  getStagedItemsByPage: () => {
+    const list = Object.values(get().stagedItems);
+    const groups: Record<string, StagedCleanItem[]> = {};
+    for (const item of list) {
+      const page = item.originPage || 'system-clean';
+      if (!groups[page]) {
+        groups[page] = [];
+      }
+      groups[page].push(item);
+    }
+    return groups;
+  },
 }));
+

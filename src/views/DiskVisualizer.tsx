@@ -15,16 +15,6 @@ import {
   ArrowUp,
 } from 'lucide-react';
 
-const tileColors = [
-  'bg-blue-500/15 text-blue-600 dark:text-blue-400 border-blue-500/20 hover:border-blue-500/50',
-  'bg-purple-500/15 text-purple-600 dark:text-purple-400 border-purple-500/20 hover:border-purple-500/50',
-  'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 hover:border-emerald-500/50',
-  'bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/20 hover:border-amber-500/50',
-  'bg-rose-500/15 text-rose-600 dark:text-rose-400 border-rose-500/20 hover:border-rose-500/50',
-  'bg-cyan-500/15 text-cyan-600 dark:text-cyan-400 border-cyan-500/20 hover:border-cyan-500/50',
-  'bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 border-indigo-500/20 hover:border-indigo-500/50',
-  'bg-pink-500/15 text-pink-600 dark:text-pink-400 border-pink-500/20 hover:border-pink-500/50',
-];
 
 export default function DiskVisualizer() {
   const { t } = useTranslation();
@@ -89,12 +79,12 @@ export default function DiskVisualizer() {
       {/* Header */}
       <PageHeader
         icon={<PieChart size={20} />}
-        iconColor="text-indigo-500"
+        iconColor="text-accent"
         title={t('diskVisualizer.title', 'Interactive Disk Map')}
         subtitle={t('diskVisualizer.subtitle', 'Explore giant directories and navigate deep folder hierarchies visually.')}
         badge={
           rootNode ? (
-            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400">
+            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-accent-subtle text-accent">
               {formatSize(rootNode.size)} ({rootNode.fileCount} files)
             </span>
           ) : undefined
@@ -109,28 +99,28 @@ export default function DiskVisualizer() {
         <button
           type="button"
           onClick={() => { setHistory((prev) => [...prev, currentPath]); loadTree('~'); }}
-          className="px-2.5 py-1 rounded-lg font-medium bg-black/4 dark:bg-white/5 hover:bg-blue-500/10 hover:text-blue-500 dark:hover:text-blue-400 transition-colors cursor-pointer shrink-0"
+          className="px-2.5 py-1 rounded-lg font-medium bg-black/4 dark:bg-white/5 hover:bg-accent-subtle hover:text-accent transition-colors cursor-pointer shrink-0"
         >
           Home (~)
         </button>
         <button
           type="button"
           onClick={() => { setHistory((prev) => [...prev, currentPath]); loadTree('~/Downloads'); }}
-          className="px-2.5 py-1 rounded-lg font-medium bg-black/4 dark:bg-white/5 hover:bg-blue-500/10 hover:text-blue-500 dark:hover:text-blue-400 transition-colors cursor-pointer shrink-0"
+          className="px-2.5 py-1 rounded-lg font-medium bg-black/4 dark:bg-white/5 hover:bg-accent-subtle hover:text-accent transition-colors cursor-pointer shrink-0"
         >
           Downloads
         </button>
         <button
           type="button"
           onClick={() => { setHistory((prev) => [...prev, currentPath]); loadTree('~/Developer'); }}
-          className="px-2.5 py-1 rounded-lg font-medium bg-black/4 dark:bg-white/5 hover:bg-blue-500/10 hover:text-blue-500 dark:hover:text-blue-400 transition-colors cursor-pointer shrink-0"
+          className="px-2.5 py-1 rounded-lg font-medium bg-black/4 dark:bg-white/5 hover:bg-accent-subtle hover:text-accent transition-colors cursor-pointer shrink-0"
         >
           Developer
         </button>
         <button
           type="button"
           onClick={() => { setHistory((prev) => [...prev, currentPath]); loadTree('/Applications'); }}
-          className="px-2.5 py-1 rounded-lg font-medium bg-black/4 dark:bg-white/5 hover:bg-blue-500/10 hover:text-blue-500 dark:hover:text-blue-400 transition-colors cursor-pointer shrink-0"
+          className="px-2.5 py-1 rounded-lg font-medium bg-black/4 dark:bg-white/5 hover:bg-accent-subtle hover:text-accent transition-colors cursor-pointer shrink-0"
         >
           Applications
         </button>
@@ -144,7 +134,7 @@ export default function DiskVisualizer() {
               type="button"
               onClick={handleNavigateBack}
               title={t('common.back', 'Back')}
-              className="p-1.5 rounded-xl hover:bg-black/5 dark:hover:bg-white/8 text-slate-500 cursor-pointer"
+              className="p-1 rounded-lg hover:bg-black/5 dark:hover:bg-white/8 text-slate-600 dark:text-neutral-300 transition-colors cursor-pointer shrink-0"
             >
               <ArrowUp size={14} />
             </button>
@@ -152,15 +142,19 @@ export default function DiskVisualizer() {
 
           <button
             type="button"
-            onClick={() => handleBreadcrumbClick('/')}
-            className="px-2 py-1 rounded-lg hover:bg-black/4 dark:hover:bg-white/6 text-slate-700 dark:text-neutral-300 cursor-pointer"
+            onClick={() => { setHistory([]); loadTree('/'); }}
+            className={`px-2 py-1 rounded-lg transition-colors cursor-pointer ${
+              currentPath === '/'
+                ? 'bg-accent text-white font-bold shadow-xs'
+                : 'hover:bg-black/4 dark:hover:bg-white/6 text-slate-700 dark:text-neutral-300'
+            }`}
           >
             /
           </button>
 
-          {breadcrumbs.map((segment, idx) => {
-            const pathUpTo = '/' + breadcrumbs.slice(0, idx + 1).join('/');
-            const isLast = idx === breadcrumbs.length - 1;
+          {breadcrumbs.map((segment, index) => {
+            const isLast = index === breadcrumbs.length - 1;
+            const pathUpTo = '/' + breadcrumbs.slice(0, index + 1).join('/');
 
             return (
               <div key={pathUpTo} className="flex items-center gap-1">
@@ -170,7 +164,7 @@ export default function DiskVisualizer() {
                   onClick={() => handleBreadcrumbClick(pathUpTo)}
                   className={`px-2 py-1 rounded-lg transition-colors cursor-pointer truncate max-w-35 ${
                     isLast
-                      ? 'bg-blue-500 text-white font-bold shadow-xs'
+                      ? 'bg-accent text-white font-bold shadow-xs'
                       : 'hover:bg-black/4 dark:hover:bg-white/6 text-slate-700 dark:text-neutral-300'
                   }`}
                 >
@@ -184,7 +178,7 @@ export default function DiskVisualizer() {
         <button
           type="button"
           onClick={() => revealInFinder(currentPath)}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold glass-pill text-slate-600 dark:text-neutral-300 hover:text-blue-500 shrink-0 cursor-pointer"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold glass-pill text-slate-600 dark:text-neutral-300 hover:text-accent shrink-0 cursor-pointer"
         >
           <ExternalLink size={12} />
           <span>Finder</span>
@@ -211,32 +205,32 @@ export default function DiskVisualizer() {
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
-              {rootNode.children.slice(0, 12).map((child, index) => {
+              {rootNode.children.slice(0, 12).map((child) => {
                 const percent = Math.max(1, Math.round((child.size / totalSize) * 100));
-                const colorClass = tileColors[index % tileColors.length];
 
                 return (
                   <button
                     key={child.id}
                     type="button"
                     onClick={() => child.isDir ? handleNavigateInto(child) : revealInFinder(child.path)}
-                    className={`
-                      relative p-3.5 rounded-2xl border text-left cursor-pointer
-                      transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]
-                      flex flex-col justify-between min-h-27.5 shadow-2xs
-                      ${colorClass}
-                    `}
+                    className="group relative p-3.5 rounded-2xl glass-panel border border-black/6 dark:border-white/8 hover:border-accent/40 text-left cursor-pointer transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] flex flex-col justify-between min-h-27.5 shadow-2xs"
                   >
                     <div className="flex items-start justify-between w-full gap-2">
-                      <div className="p-1.5 rounded-xl bg-white/40 dark:bg-black/20 shrink-0">
+                      <div className="p-1.5 rounded-xl bg-black/5 dark:bg-white/6 text-slate-500 dark:text-neutral-400 group-hover:text-accent transition-colors shrink-0">
                         {child.isDir ? <Folder size={16} /> : <File size={16} />}
                       </div>
-                      <span className="text-xs font-extrabold">{percent}%</span>
+                      <span className="text-xs font-black px-1.5 py-0.5 rounded-md bg-accent-subtle text-accent border border-accent/15">
+                        {percent}%
+                      </span>
                     </div>
 
                     <div className="min-w-0 mt-2">
-                      <p className="text-xs font-bold truncate">{child.name}</p>
-                      <p className="text-[11px] opacity-80 mt-0.5">{formatSize(child.size)}</p>
+                      <p className="text-xs font-bold text-slate-800 dark:text-neutral-100 truncate group-hover:text-accent transition-colors">
+                        {child.name}
+                      </p>
+                      <p className="text-[11px] text-slate-400 dark:text-neutral-400 mt-0.5 font-mono">
+                        {formatSize(child.size)}
+                      </p>
                     </div>
                   </button>
                 );
@@ -267,13 +261,13 @@ export default function DiskVisualizer() {
                       onClick={() => child.isDir && handleNavigateInto(child)}
                       className={`flex items-center gap-3 min-w-0 flex-1 ${child.isDir ? 'cursor-pointer' : ''}`}
                     >
-                      <div className="w-8 h-8 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center shrink-0">
+                      <div className="w-8 h-8 rounded-xl bg-accent-subtle text-accent flex items-center justify-center shrink-0">
                         {child.isDir ? <FolderOpen size={16} /> : <File size={16} />}
                       </div>
 
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2">
-                          <span className="text-xs font-bold text-slate-800 dark:text-neutral-200 truncate group-hover:text-blue-500 transition-colors">
+                          <span className="text-xs font-bold text-slate-800 dark:text-neutral-200 truncate group-hover:text-accent transition-colors">
                             {child.name}
                           </span>
                           {child.isDir && (
@@ -286,7 +280,7 @@ export default function DiskVisualizer() {
                         {/* Capacity Bar */}
                         <div className="w-36 h-1.5 bg-black/6 dark:bg-white/8 rounded-full overflow-hidden mt-1">
                           <div
-                            className="h-full bg-blue-500 rounded-full"
+                            className="h-full bg-accent rounded-full"
                             style={{ width: `${percent}%` }}
                           />
                         </div>

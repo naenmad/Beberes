@@ -125,17 +125,17 @@ export default function FileShredder() {
           {/* 1 Pass */}
           <button
             onClick={() => setPasses(1)}
-            className={`p-3.5 rounded-2xl border text-left transition-all flex flex-col justify-between gap-2 ${
+            className={`p-3.5 rounded-2xl border text-left transition-all flex flex-col justify-between gap-2 cursor-pointer ${
               passes === 1
-                ? 'bg-blue-500/10 border-blue-500/30 text-blue-600 dark:text-blue-400 shadow-xs ring-1 ring-blue-500/20'
-                : 'glass-panel border-black/4 dark:border-white/4 text-slate-600 dark:text-slate-400 hover:border-blue-500/20'
+                ? 'bg-accent-subtle border-accent/40 text-accent shadow-xs ring-1 ring-accent/20'
+                : 'glass-panel border-black/4 dark:border-white/4 text-slate-600 dark:text-neutral-400 hover:border-accent/20'
             }`}
           >
             <div className="flex items-center justify-between w-full">
               <span className="text-xs font-bold text-slate-900 dark:text-white">
                 {t('fileShredder.quickZero', 'Quick Zero')}
               </span>
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-500/10 font-mono">
+              <span className={`text-[10px] px-2 py-0.5 rounded-full font-mono ${passes === 1 ? 'bg-accent/20 text-accent' : 'bg-black/5 dark:bg-white/5 text-slate-500'}`}>
                 {t('fileShredder.passBadge', '{count} Pass', { count: 1 })}
               </span>
             </div>
@@ -147,17 +147,17 @@ export default function FileShredder() {
           {/* 3 Passes */}
           <button
             onClick={() => setPasses(3)}
-            className={`p-3.5 rounded-2xl border text-left transition-all flex flex-col justify-between gap-2 ${
+            className={`p-3.5 rounded-2xl border text-left transition-all flex flex-col justify-between gap-2 cursor-pointer ${
               passes === 3
-                ? 'bg-rose-500/10 border-rose-500/30 text-rose-600 dark:text-rose-400 shadow-xs ring-1 ring-rose-500/20'
-                : 'glass-panel border-black/4 dark:border-white/4 text-slate-600 dark:text-slate-400 hover:border-rose-500/20'
+                ? 'bg-accent-subtle border-accent/40 text-accent shadow-xs ring-1 ring-accent/20'
+                : 'glass-panel border-black/4 dark:border-white/4 text-slate-600 dark:text-neutral-400 hover:border-accent/20'
             }`}
           >
             <div className="flex items-center justify-between w-full">
               <span className="text-xs font-bold text-slate-900 dark:text-white">
                 DoD 5220.22-M
               </span>
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-rose-500/10 font-mono">
+              <span className={`text-[10px] px-2 py-0.5 rounded-full font-mono ${passes === 3 ? 'bg-accent/20 text-accent' : 'bg-black/5 dark:bg-white/5 text-slate-500'}`}>
                 {t('fileShredder.passesBadge', '{count} Passes', { count: 3 })}
               </span>
             </div>
@@ -169,17 +169,17 @@ export default function FileShredder() {
           {/* 7 Passes */}
           <button
             onClick={() => setPasses(7)}
-            className={`p-3.5 rounded-2xl border text-left transition-all flex flex-col justify-between gap-2 ${
+            className={`p-3.5 rounded-2xl border text-left transition-all flex flex-col justify-between gap-2 cursor-pointer ${
               passes === 7
-                ? 'bg-purple-500/10 border-purple-500/30 text-purple-600 dark:text-purple-400 shadow-xs ring-1 ring-purple-500/20'
-                : 'glass-panel border-black/4 dark:border-white/4 text-slate-600 dark:text-slate-400 hover:border-purple-500/20'
+                ? 'bg-accent-subtle border-accent/40 text-accent shadow-xs ring-1 ring-accent/20'
+                : 'glass-panel border-black/4 dark:border-white/4 text-slate-600 dark:text-neutral-400 hover:border-accent/20'
             }`}
           >
             <div className="flex items-center justify-between w-full">
               <span className="text-xs font-bold text-slate-900 dark:text-white">
                 Gutmann Lite
               </span>
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-purple-500/10 font-mono">
+              <span className={`text-[10px] px-2 py-0.5 rounded-full font-mono ${passes === 7 ? 'bg-accent/20 text-accent' : 'bg-black/5 dark:bg-white/5 text-slate-500'}`}>
                 {t('fileShredder.passesBadge', '{count} Passes', { count: 7 })}
               </span>
             </div>

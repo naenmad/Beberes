@@ -52,39 +52,39 @@ import {
 
 const categoryMeta: Record<string, { icon: React.ReactNode; color: string; bgColor: string }> = {
   Screenshots: {
-    icon: <Camera size={16} className="text-pink-500" />,
-    color: 'text-pink-600 dark:text-pink-400',
-    bgColor: 'bg-pink-50 dark:bg-pink-500/10',
+    icon: <Camera size={16} className="text-accent" />,
+    color: 'text-accent',
+    bgColor: 'bg-accent-subtle',
   },
   Installers: {
-    icon: <Package size={16} className="text-amber-500" />,
-    color: 'text-amber-600 dark:text-amber-400',
-    bgColor: 'bg-amber-50 dark:bg-amber-500/10',
+    icon: <Package size={16} className="text-accent" />,
+    color: 'text-accent',
+    bgColor: 'bg-accent-subtle',
   },
   Documents: {
-    icon: <FileText size={16} className="text-blue-500" />,
-    color: 'text-blue-600 dark:text-blue-400',
-    bgColor: 'bg-blue-50 dark:bg-blue-500/10',
+    icon: <FileText size={16} className="text-accent" />,
+    color: 'text-accent',
+    bgColor: 'bg-accent-subtle',
   },
   Archives: {
-    icon: <Archive size={16} className="text-purple-500" />,
-    color: 'text-purple-600 dark:text-purple-400',
-    bgColor: 'bg-purple-50 dark:bg-purple-500/10',
+    icon: <Archive size={16} className="text-accent" />,
+    color: 'text-accent',
+    bgColor: 'bg-accent-subtle',
   },
   Media: {
-    icon: <Film size={16} className="text-emerald-500" />,
-    color: 'text-emerald-600 dark:text-emerald-400',
-    bgColor: 'bg-emerald-50 dark:bg-emerald-500/10',
+    icon: <Film size={16} className="text-accent" />,
+    color: 'text-accent',
+    bgColor: 'bg-accent-subtle',
   },
   Code: {
-    icon: <Layers size={16} className="text-indigo-500" />,
-    color: 'text-indigo-600 dark:text-indigo-400',
-    bgColor: 'bg-indigo-50 dark:bg-indigo-500/10',
+    icon: <Layers size={16} className="text-accent" />,
+    color: 'text-accent',
+    bgColor: 'bg-accent-subtle',
   },
   Other: {
-    icon: <FolderOpen size={16} className="text-slate-400" />,
-    color: 'text-slate-600 dark:text-neutral-400',
-    bgColor: 'bg-slate-50 dark:bg-neutral-800',
+    icon: <FolderOpen size={16} className="text-accent" />,
+    color: 'text-accent',
+    bgColor: 'bg-accent-subtle',
   },
 };
 
@@ -421,7 +421,7 @@ export default function TidyUp() {
       {/* Header */}
       <PageHeader
         icon={<FolderTree size={20} />}
-        iconColor="text-blue-500"
+        iconColor="text-accent"
         title={t('tidyUp.title')}
         subtitle={t('tidyUp.subtitle')}
       />
@@ -434,7 +434,7 @@ export default function TidyUp() {
             onClick={() => setTidyMode('organize')}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
               tidyMode === 'organize'
-                ? 'bg-white dark:bg-neutral-700 text-blue-600 dark:text-blue-400 shadow-xs'
+                ? 'bg-white dark:bg-neutral-700 text-accent shadow-xs'
                 : 'text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
@@ -448,7 +448,7 @@ export default function TidyUp() {
             }}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
               tidyMode === 'smart_rules'
-                ? 'bg-white dark:bg-neutral-700 text-amber-600 dark:text-amber-400 shadow-xs'
+                ? 'bg-white dark:bg-neutral-700 text-accent font-bold shadow-xs'
                 : 'text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
@@ -459,7 +459,7 @@ export default function TidyUp() {
             onClick={() => setTidyMode('maintenance')}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
               tidyMode === 'maintenance'
-                ? 'bg-white dark:bg-neutral-700 text-blue-600 dark:text-blue-400 shadow-xs'
+                ? 'bg-white dark:bg-neutral-700 text-accent font-bold shadow-xs'
                 : 'text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
@@ -474,7 +474,7 @@ export default function TidyUp() {
             onClick={() => setActiveTab('downloads')}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
               activeTab === 'downloads'
-                ? 'bg-white dark:bg-neutral-700 text-blue-600 dark:text-blue-400 shadow-xs'
+                ? 'bg-white dark:bg-neutral-700 text-accent font-bold shadow-xs'
                 : 'text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
@@ -485,7 +485,7 @@ export default function TidyUp() {
             onClick={() => setActiveTab('desktop')}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
               activeTab === 'desktop'
-                ? 'bg-white dark:bg-neutral-700 text-blue-600 dark:text-blue-400 shadow-xs'
+                ? 'bg-white dark:bg-neutral-700 text-accent font-bold shadow-xs'
                 : 'text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
@@ -496,7 +496,7 @@ export default function TidyUp() {
             onClick={handlePickCustomFolder}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
               activeTab === 'custom'
-                ? 'bg-white dark:bg-neutral-700 text-blue-600 dark:text-blue-400 shadow-xs'
+                ? 'bg-white dark:bg-neutral-700 text-accent font-bold shadow-xs'
                 : 'text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
@@ -559,19 +559,19 @@ export default function TidyUp() {
               </div>
               <div className="p-4 rounded-2xl glass-panel">
                 <span className="text-xs text-slate-400 dark:text-neutral-400">{t('tidyUp.statTotalClutter')}</span>
-                <p className="text-lg font-bold text-blue-600 dark:text-blue-400 mt-0.5">
+                <p className="text-lg font-bold text-accent mt-0.5">
                   {formatSize(currentScan.totalSize)}
                 </p>
               </div>
               <div className="p-4 rounded-2xl glass-panel">
                 <span className="text-xs text-slate-400 dark:text-neutral-400">{t('tidyUp.statScreenshots')}</span>
-                <p className="text-lg font-bold text-pink-600 dark:text-pink-400 mt-0.5">
+                <p className="text-lg font-bold text-slate-900 dark:text-white mt-0.5">
                   {categoryStats['Screenshots']?.count || 0}
                 </p>
               </div>
               <div className="p-4 rounded-2xl glass-panel">
                 <span className="text-xs text-slate-400 dark:text-neutral-400">{t('tidyUp.statInstallers')}</span>
-                <p className="text-lg font-bold text-amber-600 dark:text-amber-400 mt-0.5">
+                <p className="text-lg font-bold text-slate-900 dark:text-white mt-0.5">
                   {categoryStats['Installers']?.count || 0} ({formatSize(categoryStats['Installers']?.size || 0)})
                 </p>
               </div>
@@ -587,7 +587,7 @@ export default function TidyUp() {
                 placeholder={t('tidyUp.searchPlaceholder')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-4 py-2 text-xs bg-white dark:bg-neutral-800 border border-black/6 dark:border-white/8 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 dark:text-neutral-200"
+                className="w-full pl-9 pr-4 py-2 text-xs bg-white dark:bg-neutral-800 border border-black/6 dark:border-white/8 rounded-xl focus:outline-none focus:ring-2 focus:ring-accent text-slate-800 dark:text-neutral-200"
               />
             </div>
 
@@ -624,7 +624,7 @@ export default function TidyUp() {
                       onClick={() => setSelectedCategory(cat)}
                       className={`px-3 py-1 rounded-full font-semibold transition-colors shrink-0 cursor-pointer ${
                         selectedCategory === cat
-                          ? 'bg-blue-600 text-white shadow-xs'
+                          ? 'bg-accent text-white shadow-xs'
                           : 'bg-black/4 dark:bg-white/6 text-slate-600 dark:text-neutral-400 hover:bg-black/7 dark:hover:bg-white/10'
                       }`}
                     >
@@ -687,7 +687,7 @@ export default function TidyUp() {
                           <div className="flex items-center gap-2 text-[11px] text-slate-400 dark:text-neutral-500 mt-0.5">
                             <span>{item.lastModified}</span>
                             <span>•</span>
-                            <span className="flex items-center gap-1 text-blue-600 dark:text-blue-400 font-mono">
+                            <span className="flex items-center gap-1 text-accent font-mono">
                               <ArrowRight size={10} /> {item.targetFolder}/
                             </span>
                           </div>
@@ -700,7 +700,7 @@ export default function TidyUp() {
                           <button
                             onClick={(e) => handleReveal(e, item.path)}
                             title={t('common.revealInFinder')}
-                            className="p-1.5 rounded-lg text-slate-400 hover:text-blue-500 hover:bg-black/4 dark:hover:bg-white/6 opacity-60 group-hover:opacity-100 transition-all cursor-pointer"
+                            className="p-1.5 rounded-lg text-slate-400 hover:text-accent hover:bg-black/4 dark:hover:bg-white/6 opacity-60 group-hover:opacity-100 transition-all cursor-pointer"
                           >
                             <ExternalLink size={14} />
                           </button>
@@ -752,7 +752,7 @@ export default function TidyUp() {
               <span className="text-xs text-slate-400 dark:text-neutral-400">
                 {t('tidyUp.statTotalMaintenance', 'Cleanup Candidates')}
               </span>
-              <p className="text-lg font-bold text-blue-600 dark:text-blue-400 mt-0.5">
+              <p className="text-lg font-bold text-accent mt-0.5">
                 {totalMaintenanceCount}
               </p>
             </div>
@@ -760,7 +760,7 @@ export default function TidyUp() {
               <span className="text-xs text-slate-400 dark:text-neutral-400">
                 Selected
               </span>
-              <p className="text-lg font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">
+              <p className="text-lg font-bold text-accent mt-0.5">
                 {selectedMaintenanceIds.size}
               </p>
             </div>
@@ -810,13 +810,13 @@ export default function TidyUp() {
               <CardSkeleton />
             </div>
           ) : totalMaintenanceCount === 0 ? (
-            <div className="rounded-2xl glass-panel py-16 text-center">
+            <div className="p-12 text-center rounded-2xl glass-panel border border-black/4 dark:border-white/6">
               <CheckCircle2 size={36} className="text-emerald-500 mx-auto mb-2" />
-              <p className="text-sm font-bold text-slate-700 dark:text-neutral-300">
-                {t('tidyUp.cleanAllGood', 'Directory is clean! No empty folders or broken links.')}
+              <p className="text-sm font-bold text-slate-900 dark:text-white">
+                {t('tidyUp.maintenanceCleanTitle', 'Everything is Clean & Tidy!')}
               </p>
-              <p className="text-xs text-slate-400 dark:text-neutral-500 mt-1">
-                {t('tidyUp.emptyCleanDesc', 'No unorganized loose files found in {path}', { path: currentPath })}
+              <p className="text-xs text-slate-400 dark:text-neutral-500 mt-1 max-w-sm mx-auto">
+                {t('tidyUp.maintenanceCleanSubtitle', 'No empty folder clutter or dead symlinks found in this folder.')}
               </p>
             </div>
           ) : (
@@ -826,7 +826,7 @@ export default function TidyUp() {
                 <div className="rounded-2xl glass-panel overflow-hidden">
                   <div className="px-4 py-2.5 bg-black/2 dark:bg-white/2 border-b border-black/4 dark:border-white/6 flex items-center justify-between">
                     <div className="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-neutral-300">
-                      <FolderMinus size={14} className="text-blue-500" />
+                      <FolderMinus size={14} className="text-accent" />
                       <span>{t('tidyUp.emptyFoldersTitle', 'Empty Directories (excluding .DS_Store)')}</span>
                     </div>
                     <span className="text-[11px] text-slate-400 dark:text-neutral-500 font-mono">
@@ -842,8 +842,8 @@ export default function TidyUp() {
                           className="flex items-center gap-3 px-4 py-3 hover:bg-black/2 dark:hover:bg-white/3 transition-colors group"
                         >
                           <Checkbox checked={isChecked} onChange={() => toggleMaintenanceSelection(item.id)} />
-                          <div className="p-2 rounded-xl bg-blue-50 dark:bg-blue-500/10 shrink-0">
-                            <FolderMinus size={16} className="text-blue-500" />
+                          <div className="p-2 rounded-xl bg-accent-subtle shrink-0">
+                            <FolderMinus size={16} className="text-accent" />
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="text-xs font-semibold text-slate-800 dark:text-neutral-200 truncate">
@@ -856,7 +856,7 @@ export default function TidyUp() {
                           <button
                             onClick={(e) => handleReveal(e, item.path)}
                             title={t('common.revealInFinder')}
-                            className="p-1.5 rounded-lg text-slate-400 hover:text-blue-500 hover:bg-black/4 dark:hover:bg-white/6 opacity-60 group-hover:opacity-100 transition-all cursor-pointer"
+                            className="p-1.5 rounded-lg text-slate-400 hover:text-accent hover:bg-black/4 dark:hover:bg-white/6 opacity-60 group-hover:opacity-100 transition-all cursor-pointer"
                           >
                             <ExternalLink size={14} />
                           </button>
@@ -902,7 +902,7 @@ export default function TidyUp() {
                           <button
                             onClick={(e) => handleReveal(e, item.path)}
                             title={t('common.revealInFinder')}
-                            className="p-1.5 rounded-lg text-slate-400 hover:text-blue-500 hover:bg-black/4 dark:hover:bg-white/6 opacity-60 group-hover:opacity-100 transition-all cursor-pointer"
+                            className="p-1.5 rounded-lg text-slate-400 hover:text-accent hover:bg-black/4 dark:hover:bg-white/6 opacity-60 group-hover:opacity-100 transition-all cursor-pointer"
                           >
                             <ExternalLink size={14} />
                           </button>
@@ -920,10 +920,10 @@ export default function TidyUp() {
       {/* SMART AUTOMATION RULES MODE */}
       {tidyMode === 'smart_rules' && (
         <div className="space-y-4">
-          <div className="p-4 rounded-2xl border border-blue-500/20 bg-blue-500/[0.03] flex items-start justify-between gap-3.5">
+          <div className="p-4 rounded-2xl border border-accent/20 bg-accent-subtle flex items-start justify-between gap-3.5">
             <div className="flex items-start gap-3.5 min-w-0">
-              <div className="w-10 h-10 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center shrink-0">
-                <Sparkles size={20} className="text-blue-600 dark:text-blue-400" />
+              <div className="w-10 h-10 rounded-2xl bg-accent-subtle border border-accent/20 flex items-center justify-center shrink-0">
+                <Sparkles size={20} className="text-accent" />
               </div>
               <div>
                 <h3 className="text-sm font-bold text-slate-900 dark:text-white">
@@ -951,7 +951,7 @@ export default function TidyUp() {
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2.5">
-                    <div className="p-2.5 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400">
+                    <div className="p-2.5 rounded-xl bg-accent-subtle text-accent">
                       <Archive size={18} />
                     </div>
                     <div>
@@ -961,7 +961,7 @@ export default function TidyUp() {
                       <span className="text-[10px] text-slate-400">{t('tidyUp.ruleDownloadsAge')}</span>
                     </div>
                   </div>
-                  <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400">
+                  <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-accent-subtle text-accent">
                     {t('tidyUp.ruleDownloadsBadge', '{count} files ({size})', {
                       count: smartStats?.old_downloads_count ?? 0,
                       size: formatSize(smartStats?.old_downloads_size ?? 0),
@@ -996,7 +996,7 @@ export default function TidyUp() {
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2.5">
-                    <div className="p-2.5 rounded-xl bg-pink-500/10 text-pink-600 dark:text-pink-400">
+                    <div className="p-2.5 rounded-xl bg-accent-subtle text-accent">
                       <Camera size={18} />
                     </div>
                     <div>
@@ -1006,7 +1006,7 @@ export default function TidyUp() {
                       <span className="text-[10px] text-slate-400">{t('tidyUp.ruleScreenshotsAge')}</span>
                     </div>
                   </div>
-                  <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-pink-500/10 text-pink-600 dark:text-pink-400">
+                  <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-accent-subtle text-accent">
                     {t('tidyUp.ruleScreenshotsBadge', '{count} screenshots ({size})', {
                       count: smartStats?.screenshots_count ?? 0,
                       size: formatSize(smartStats?.screenshots_size ?? 0),

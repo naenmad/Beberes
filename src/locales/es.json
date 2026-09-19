@@ -30,7 +30,8 @@
     "trashMode": "Mover a la Papelera",
     "directDelete": "Eliminación directa",
     "mode": "Modo",
-    "processing": "Procesando"
+    "processing": "Procesando",
+    "scrollToTop": "Volver arriba"
   },
   "nav": {
     "dashboard": "Panel",
@@ -310,7 +311,8 @@
     "orphanedKpiReclaimableDesc": "Application Support, cachés y estados guardados",
     "orphanedKpiSafety": "Protección del sistema macOS",
     "orphanedKpiSafetyStatus": "100% Seguro",
-    "orphanedKpiSafetyDesc": "com.apple.* e identificadores de sistema estrictamente protegidos"
+    "orphanedKpiSafetyDesc": "com.apple.* e identificadores de sistema estrictamente protegidos",
+    "uninstallBtn": "Desinstalar"
   },
   "settings": {
     "title": "Ajustes y Preferencias",
@@ -358,7 +360,36 @@
       "darkTitle": "Modo Oscuro",
       "darkDesc": "Estilo de vidrio esmerilado oscuro de Apple",
       "lightTitle": "Modo Claro",
-      "lightDesc": "Diseño diurno nítido y minimalista"
+      "lightDesc": "Diseño diurno nítido y minimalista",
+      "accentColorsTitle": "Colores de Acento",
+      "accentColorsDesc": "Personaliza los colores primario y secundario del tema utilizados en iconos, botones e insignias.",
+      "presetsTitle": "Combinaciones de Color Seleccionadas",
+      "primaryAccentTitle": "Acento Primario",
+      "primaryAccentDesc": "Color principal para botones, navegación activa, casillas de verificación e iconos primarios.",
+      "secondaryAccentTitle": "Acento Secundario",
+      "secondaryAccentDesc": "Color acompañante para insignias secundarias, etiquetas auxiliares y elementos bitono.",
+      "livePreview": "Vista Previa en Vivo del Tema",
+      "primaryPreviewBtn": "Acción Primaria",
+      "primaryBadge": "Insignia Activa",
+      "secondaryBadge": "Etiqueta Secundaria",
+      "activeIconSample": "Acento de Tema Activo"
+    },
+    "colors": {
+      "blue": "Azul Apple",
+      "indigo": "Índigo",
+      "purple": "Púrpura Eléctrico",
+      "cyan": "Cian Cielo",
+      "emerald": "Verde Esmeralda",
+      "amber": "Ámbar Atardecer",
+      "rose": "Rosa",
+      "slate": "Gris Pizarra",
+      "presets": {
+        "appleClassic": "Apple Clásico",
+        "cyberPurple": "Púrpura Cíber",
+        "emeraldGarden": "Jardín Esmeralda",
+        "sunsetGlow": "Brillo del Ocaso",
+        "cleanSlate": "Pizarra Limpia"
+      }
     },
     "textScale": {
       "title": "Tamaño del Texto y Escala de la IU",
@@ -759,5 +790,17 @@
     "hygiene": "Higiene",
     "cleanAll": "Limpiar todo a la vez",
     "cleaning": "Limpiando..."
+  },
+  "queue": {
+    "title": "Cola de limpieza acumulada",
+    "subtitle": "Elementos seleccionados de varias páginas listos para limpiar",
+    "reviewBtn": "Revisar cola",
+    "clearAll": "Vaciar cola",
+    "emptyTitle": "No hay elementos en la cola",
+    "emptyDesc": "Seleccione elementos en cualquier página para acumularlos aquí.",
+    "cleanAll": "Limpiar todos los acumulados ({size})",
+    "cleaningAll": "Limpiando elementos de la cola...",
+    "removeFromQueue": "Quitar de la cola",
+    "itemsCount": "{count} elementos ({size})"
   }
 }

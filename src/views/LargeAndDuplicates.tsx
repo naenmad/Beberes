@@ -11,7 +11,6 @@ import {
 import { formatSize } from '../lib/utils';
 import Button from '../components/ui/Button';
 import Checkbox from '../components/ui/Checkbox';
-import FloatingActionBar from '../components/ui/FloatingActionBar';
 import PageHeader from '../components/layout/PageHeader';
 import ConfirmModal from '../components/ui/ConfirmModal';
 import { CardSkeleton } from '../components/ui/SkeletonLoader';
@@ -34,7 +33,16 @@ type FinderTab = 'large' | 'duplicates' | 'old';
 
 export default function LargeAndDuplicates() {
   const { t } = useTranslation();
-  const { deleteToTrash, recordCleanResult, globalRefreshTrigger } = useAppStore();
+  const {
+    deleteToTrash,
+    recordCleanResult,
+    globalRefreshTrigger,
+    stagedItems,
+    stageItem,
+    unstageItem,
+    stageMultipleItems,
+    unstageMultipleItems,
+  } = useAppStore();
 
   const [activeTab, setActiveTab] = useState<FinderTab>('large');
   const [minLargeSizeMb, setMinLargeSizeMb] = useState<number>(100);
@@ -65,53 +73,93 @@ export default function LargeAndDuplicates() {
     loadData(minLargeSizeMb);
   }, [minLargeSizeMb, globalRefreshTrigger, loadData]);
 
+
   // Toggle single path selection
-  const togglePath = (path: string) => {
-    setSelectedPaths((prev) => {
-      const next = new Set(prev);
-      if (next.has(path)) {
+  const togglePath = (path: string, itemObj?: { name: string; size: number }) => {
+    const key = `large_${path}`;
+    if (stagedItems[key]) {
+      unstageItem(key);
+      setSelectedPaths((prev) => {
+        const next = new Set(prev);
         next.delete(path);
-      } else {
-        next.add(path);
+        return next;
+      });
+    } else {
+      let name = itemObj?.name || path.split('/').pop() || path;
+      let size = itemObj?.size || 0;
+      if (!itemObj && data) {
+        const all = [
+          ...data.large_files,
+          ...data.old_files,
+          ...data.duplicate_groups.flatMap((g) => g.items),
+        ];
+        const found = all.find((f) => f.path === path);
+        if (found) {
+          name = found.name;
+          size = found.size;
+        }
       }
-      return next;
-    });
+      stageItem({
+        id: key,
+        name,
+        path,
+        size,
+        originPage: 'large-duplicates',
+        categoryName: t('largeDuplicates.title'),
+        itemType: 'file',
+      });
+      setSelectedPaths((prev) => {
+        const next = new Set(prev);
+        next.add(path);
+        return next;
+      });
+    }
   };
 
   // Smart duplicate selections
   const handleSelectDuplicates = (strategy: 'keep-newest' | 'keep-oldest' | 'all-copies' | 'none') => {
     if (!data) return;
-    const next = new Set<string>();
+    const allDupPaths = data.duplicate_groups.flatMap((g) => g.items.map((i) => i.path));
+    unstageMultipleItems(allDupPaths.map((p) => `large_${p}`));
 
     if (strategy === 'none') {
-      setSelectedPaths(next);
+      setSelectedPaths(new Set());
       return;
     }
 
+    const itemsToStage: FileMetadataItem[] = [];
     data.duplicate_groups.forEach((group) => {
       if (group.items.length <= 1) return;
 
       if (strategy === 'all-copies') {
-        // Keep 1st item, select remaining copies
         for (let i = 1; i < group.items.length; i++) {
-          next.add(group.items[i].path);
+          itemsToStage.push(group.items[i]);
         }
       } else if (strategy === 'keep-newest') {
-        // Sort items by last_modified descending, keep index 0, select rest
         const sorted = [...group.items].sort((a, b) => b.last_modified.localeCompare(a.last_modified));
         for (let i = 1; i < sorted.length; i++) {
-          next.add(sorted[i].path);
+          itemsToStage.push(sorted[i]);
         }
       } else if (strategy === 'keep-oldest') {
-        // Sort items by last_modified ascending, keep index 0, select rest
         const sorted = [...group.items].sort((a, b) => a.last_modified.localeCompare(b.last_modified));
         for (let i = 1; i < sorted.length; i++) {
-          next.add(sorted[i].path);
+          itemsToStage.push(sorted[i]);
         }
       }
     });
 
-    setSelectedPaths(next);
+    stageMultipleItems(
+      itemsToStage.map((i) => ({
+        id: `large_${i.path}`,
+        name: i.name,
+        path: i.path,
+        size: i.size,
+        originPage: 'large-duplicates' as const,
+        categoryName: t('largeDuplicates.title'),
+        itemType: 'file' as const,
+      }))
+    );
+    setSelectedPaths(new Set(itemsToStage.map((i) => i.path)));
   };
 
   // Select all or none in current view
@@ -124,12 +172,29 @@ export default function LargeAndDuplicates() {
         ? data.old_files
         : data.duplicate_groups.flatMap((g) => g.items.slice(1));
 
-    if (selectedPaths.size >= currentItems.length && currentItems.length > 0) {
+    const allStaged =
+      currentItems.length > 0 &&
+      currentItems.every((i) => Boolean(stagedItems[`large_${i.path}`]));
+
+    if (allStaged) {
+      unstageMultipleItems(currentItems.map((i) => `large_${i.path}`));
       setSelectedPaths(new Set());
     } else {
+      stageMultipleItems(
+        currentItems.map((i) => ({
+          id: `large_${i.path}`,
+          name: i.name,
+          path: i.path,
+          size: i.size,
+          originPage: 'large-duplicates' as const,
+          categoryName: t('largeDuplicates.title'),
+          itemType: 'file' as const,
+        }))
+      );
       setSelectedPaths(new Set(currentItems.map((i) => i.path)));
     }
   };
+
 
   // Calculate selected total size
   const selectedTotalSize = useMemo(() => {
@@ -201,21 +266,21 @@ export default function LargeAndDuplicates() {
   const getKindIcon = (kind: string) => {
     switch (kind) {
       case 'image':
-        return <ImageIcon size={14} className="text-pink-500" />;
+        return <ImageIcon size={14} className="text-accent" />;
       case 'video':
-        return <Film size={14} className="text-purple-500" />;
+        return <Film size={14} className="text-accent" />;
       case 'audio':
-        return <Music size={14} className="text-indigo-500" />;
+        return <Music size={14} className="text-accent" />;
       case 'document':
-        return <FileText size={14} className="text-blue-500" />;
+        return <FileText size={14} className="text-accent" />;
       case 'archive':
-        return <Archive size={14} className="text-amber-500" />;
+        return <Archive size={14} className="text-accent" />;
       case 'installer':
-        return <Package size={14} className="text-emerald-500" />;
+        return <Package size={14} className="text-accent" />;
       case 'code':
-        return <Code2 size={14} className="text-cyan-500" />;
+        return <Code2 size={14} className="text-accent" />;
       default:
-        return <FileText size={14} className="text-slate-400" />;
+        return <FileText size={14} className="text-accent" />;
     }
   };
 
@@ -224,7 +289,7 @@ export default function LargeAndDuplicates() {
       {/* Header */}
       <PageHeader
         icon={<Layers size={20} />}
-        iconColor="text-violet-500"
+        iconColor="text-accent"
         title={t('largeDuplicates.title', 'Large & Duplicate Files')}
         subtitle={t('largeDuplicates.subtitle', 'Reclaim gigabytes by hunting down massive files, duplicate copies, and forgotten items.')}
       />
@@ -238,14 +303,14 @@ export default function LargeAndDuplicates() {
             onClick={() => setActiveTab('large')}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
               activeTab === 'large'
-                ? 'bg-white dark:bg-neutral-700 text-blue-600 dark:text-blue-400 shadow-xs'
+                ? 'bg-white dark:bg-neutral-700 text-accent shadow-xs'
                 : 'text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
             <HardDrive size={13} />
             <span>{t('largeDuplicates.tabLarge', 'Large Files')}</span>
             {data && data.large_files.length > 0 && (
-              <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-blue-500/10 text-blue-500">
+              <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-accent-subtle text-accent">
                 {data.large_files.length}
               </span>
             )}
@@ -256,14 +321,14 @@ export default function LargeAndDuplicates() {
             onClick={() => setActiveTab('duplicates')}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
               activeTab === 'duplicates'
-                ? 'bg-white dark:bg-neutral-700 text-blue-600 dark:text-blue-400 shadow-xs'
+                ? 'bg-white dark:bg-neutral-700 text-accent shadow-xs'
                 : 'text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
             <Copy size={13} />
             <span>{t('largeDuplicates.tabDuplicates', 'Duplicates')}</span>
             {data && data.duplicate_groups.length > 0 && (
-              <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-violet-500/10 text-violet-500">
+              <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-accent-subtle text-accent border border-accent/20">
                 {data.duplicate_groups.length}
               </span>
             )}
@@ -274,14 +339,14 @@ export default function LargeAndDuplicates() {
             onClick={() => setActiveTab('old')}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
               activeTab === 'old'
-                ? 'bg-white dark:bg-neutral-700 text-blue-600 dark:text-blue-400 shadow-xs'
+                ? 'bg-white dark:bg-neutral-700 text-accent shadow-xs'
                 : 'text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
             <Clock size={13} />
             <span>{t('largeDuplicates.tabOld', 'Old Files (>6 Mos)')}</span>
             {data && data.old_files.length > 0 && (
-              <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-amber-500/10 text-amber-500">
+              <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-accent-subtle text-accent border border-accent/20">
                 {data.old_files.length}
               </span>
             )}
@@ -300,7 +365,7 @@ export default function LargeAndDuplicates() {
                   onClick={() => setMinLargeSizeMb(mb)}
                   className={`px-2 py-0.5 rounded-md text-[11px] font-mono cursor-pointer transition-colors ${
                     minLargeSizeMb === mb
-                      ? 'bg-blue-600 text-white shadow-2xs font-semibold'
+                      ? 'bg-accent text-white shadow-2xs font-semibold'
                       : 'bg-black/4 dark:bg-white/6 text-slate-600 dark:text-neutral-400 hover:bg-black/8'
                   }`}
                 >
@@ -375,7 +440,7 @@ export default function LargeAndDuplicates() {
                   onClick={() => togglePath(file.path)}
                   className={`flex items-center justify-between gap-3 p-3 rounded-2xl glass-panel cursor-pointer transition-all ${
                     isSelected
-                      ? 'border-blue-500/50 bg-blue-500/4'
+                      ? 'border-accent/50 bg-accent-subtle/30'
                       : 'hover:border-black/10 dark:hover:border-white/10'
                   }`}
                 >
@@ -408,11 +473,11 @@ export default function LargeAndDuplicates() {
                       : file.last_modified
                       ? Date.now() - new Date(file.last_modified).getTime() <= 24 * 60 * 60 * 1000
                       : false) && (
-                      <span className="hidden sm:inline-flex text-[10px] font-semibold px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+                      <span className="hidden sm:inline-flex text-[10px] font-semibold px-2 py-0.5 rounded-full bg-accent-subtle text-accent border border-accent/20">
                         {t('safety.recentBadge', 'Recent (< 24h)')}
                       </span>
                     )}
-                    <span className="text-xs font-mono font-semibold text-blue-600 dark:text-blue-400">
+                    <span className="text-xs font-mono font-semibold text-accent">
                       {formatSize(file.size)}
                     </span>
                     <button
@@ -456,7 +521,7 @@ export default function LargeAndDuplicates() {
                     <span className="text-xs font-bold text-slate-800 dark:text-neutral-200">
                       {t('largeDuplicates.group', 'Duplicate Group #{index}', { index: gIdx + 1 })}
                     </span>
-                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-violet-500/10 text-violet-500 font-medium">
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-accent-subtle text-accent border border-accent/20 font-medium">
                       {group.items.length} {t('largeDuplicates.copies', 'copies')}
                     </span>
                   </div>
@@ -474,7 +539,7 @@ export default function LargeAndDuplicates() {
                         onClick={() => togglePath(item.path)}
                         className={`flex items-center justify-between gap-3 p-2.5 rounded-xl cursor-pointer transition-all ${
                           isSelected
-                            ? 'bg-blue-500/10 dark:bg-blue-500/20 text-blue-600 dark:text-blue-300'
+                            ? 'bg-accent-subtle text-accent font-medium'
                             : 'hover:bg-black/2 dark:hover:bg-white/2 text-slate-700 dark:text-neutral-300'
                         }`}
                       >
@@ -537,7 +602,7 @@ export default function LargeAndDuplicates() {
                   onClick={() => togglePath(file.path)}
                   className={`flex items-center justify-between gap-3 p-3 rounded-2xl glass-panel cursor-pointer transition-all ${
                     isSelected
-                      ? 'border-blue-500/50 bg-blue-500/4'
+                      ? 'border-accent/50 bg-accent-subtle/30'
                       : 'hover:border-black/10 dark:hover:border-white/10'
                   }`}
                 >
@@ -560,7 +625,7 @@ export default function LargeAndDuplicates() {
                   </div>
 
                   <div className="flex items-center gap-3 shrink-0">
-                    <span className="text-xs font-mono font-semibold text-amber-600 dark:text-amber-400">
+                    <span className="text-xs font-mono font-semibold text-accent">
                       {formatSize(file.size)}
                     </span>
                     <button
@@ -581,14 +646,6 @@ export default function LargeAndDuplicates() {
           )}
         </div>
       )}
-
-      {/* Floating Action Bar */}
-      <FloatingActionBar
-        selectedCount={selectedPaths.size}
-        selectedSize={selectedTotalSize}
-        onClean={() => setShowConfirmModal(true)}
-        onDeselect={() => setSelectedPaths(new Set())}
-      />
 
       {/* Confirmation Modal */}
       <ConfirmModal

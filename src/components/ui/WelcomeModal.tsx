@@ -60,8 +60,8 @@ export default function WelcomeModal() {
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-fade-in">
       <div className="relative w-full max-w-lg rounded-3xl glass-panel-modal border border-white/20 dark:border-white/10 shadow-2xl p-7 flex flex-col items-center text-center overflow-hidden">
         {/* Ambient background glows */}
-        <div className="absolute -top-24 -left-24 w-56 h-56 bg-blue-500/15 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-24 -right-24 w-56 h-56 bg-indigo-500/15 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -top-24 -left-24 w-56 h-56 bg-accent/15 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-24 -right-24 w-56 h-56 bg-accent/10 rounded-full blur-3xl pointer-events-none" />
 
         {/* Step Progress Indicators */}
         <div className="w-full flex items-center justify-between mb-5">
@@ -71,9 +71,9 @@ export default function WelcomeModal() {
                 key={s}
                 className={`h-1.5 rounded-full transition-all duration-300 ${
                   s === step
-                    ? 'w-8 bg-blue-500'
+                    ? 'w-8 bg-accent'
                     : s < step
-                    ? 'w-4 bg-blue-500/40'
+                    ? 'w-4 bg-accent/40'
                     : 'w-4 bg-black/10 dark:bg-white/10'
                 }`}
               />
@@ -93,9 +93,9 @@ export default function WelcomeModal() {
               <img
                 src="/icon-beberes.webp"
                 alt="Beberes Logo"
-                className="w-20 h-20 rounded-2xl shadow-xl shadow-blue-500/20 drop-shadow-md select-none pointer-events-none"
+                className="w-20 h-20 rounded-2xl shadow-xl shadow-accent/20 drop-shadow-md select-none pointer-events-none"
               />
-              <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center border-2 border-white dark:border-neutral-900 shadow-xs">
+              <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-accent text-white flex items-center justify-center border-2 border-white dark:border-neutral-900 shadow-xs">
                 <Sparkles size={12} />
               </div>
             </div>
@@ -103,7 +103,7 @@ export default function WelcomeModal() {
             <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">
               {t('welcome.step1Title', 'Welcome to Beberes')}
             </h2>
-            <div className="inline-flex items-center gap-1 px-2.5 py-0.5 mt-1 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[11px] font-semibold">
+            <div className="inline-flex items-center gap-1 px-2.5 py-0.5 mt-1 rounded-full bg-accent-subtle text-accent text-[11px] font-semibold">
               <span>{t('welcome.step1Subtitle', 'Next-Gen Mac Cleaning & Optimization • Bayu Edition')}</span>
             </div>
 
@@ -115,7 +115,7 @@ export default function WelcomeModal() {
             <div className="w-full grid grid-cols-2 gap-2 mt-5 text-left">
               <div className="p-3 rounded-2xl bg-black/2 dark:bg-white/4 border border-black/4 dark:border-white/6 flex flex-col gap-1">
                 <div className="flex items-center gap-1.5 text-xs font-bold text-slate-900 dark:text-white">
-                  <Sparkles size={14} className="text-blue-500 shrink-0" />
+                  <Sparkles size={14} className="text-accent shrink-0" />
                   <span>{t('welcome.pillarCleanTitle', 'Deep System Clean')}</span>
                 </div>
                 <p className="text-[10px] text-slate-500 dark:text-neutral-400 leading-tight">
@@ -125,7 +125,7 @@ export default function WelcomeModal() {
 
               <div className="p-3 rounded-2xl bg-black/2 dark:bg-white/4 border border-black/4 dark:border-white/6 flex flex-col gap-1">
                 <div className="flex items-center gap-1.5 text-xs font-bold text-slate-900 dark:text-white">
-                  <FolderTree size={14} className="text-indigo-500 shrink-0" />
+                  <FolderTree size={14} className="text-accent shrink-0" />
                   <span>{t('welcome.pillarTidyTitle', 'Intelligent File Tidy')}</span>
                 </div>
                 <p className="text-[10px] text-slate-500 dark:text-neutral-400 leading-tight">
@@ -168,7 +168,7 @@ export default function WelcomeModal() {
                 onClick={() => setStep(2)}
                 variant="primary"
                 size="md"
-                className="px-6 shadow-md shadow-blue-500/20"
+                className="px-6 shadow-md shadow-accent/20"
                 icon={<ArrowRight size={14} />}
               >
                 {t('welcome.next', 'Continue')}
@@ -199,26 +199,26 @@ export default function WelcomeModal() {
             </p>
 
             {/* Step-by-Step Instructions Card */}
-            <div className="w-full mt-4 p-4 rounded-2xl bg-blue-50/60 dark:bg-blue-950/30 border border-blue-200/60 dark:border-blue-800/40 text-left flex flex-col gap-2.5">
-              <div className="text-[11px] font-bold uppercase tracking-wider text-blue-700 dark:text-blue-300">
+            <div className="w-full mt-4 p-4 rounded-2xl bg-accent-subtle border border-accent/20 text-left flex flex-col gap-2.5">
+              <div className="text-[11px] font-bold uppercase tracking-wider text-accent">
                 Quick 3-Step Guide:
               </div>
 
               <div className="space-y-1.5 text-xs text-slate-700 dark:text-neutral-200">
                 <div className="flex items-center gap-2">
-                  <span className="w-4 h-4 rounded-full bg-blue-500 text-white text-[10px] font-bold flex items-center justify-center shrink-0">
+                  <span className="w-4 h-4 rounded-full bg-accent text-white text-[10px] font-bold flex items-center justify-center shrink-0">
                     1
                   </span>
                   <span>{t('welcome.step2Action1', "Click 'Open System Settings' below")}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="w-4 h-4 rounded-full bg-blue-500 text-white text-[10px] font-bold flex items-center justify-center shrink-0">
+                  <span className="w-4 h-4 rounded-full bg-accent text-white text-[10px] font-bold flex items-center justify-center shrink-0">
                     2
                   </span>
                   <span>{t('welcome.step2Action2', 'Under Privacy & Security > Full Disk Access, find Beberes')}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="w-4 h-4 rounded-full bg-blue-500 text-white text-[10px] font-bold flex items-center justify-center shrink-0">
+                  <span className="w-4 h-4 rounded-full bg-accent text-white text-[10px] font-bold flex items-center justify-center shrink-0">
                     3
                   </span>
                   <span>{t('welcome.step2Action3', 'Toggle switch to ON (enter Mac password if prompted)')}</span>
@@ -254,7 +254,7 @@ export default function WelcomeModal() {
                 onClick={() => setStep(3)}
                 variant="primary"
                 size="md"
-                className="px-6 shadow-md shadow-blue-500/20"
+                className="px-6 shadow-md shadow-accent/20"
                 icon={<ArrowRight size={14} />}
               >
                 {t('welcome.next', 'Continue')}
@@ -284,7 +284,7 @@ export default function WelcomeModal() {
             {/* Quick Tips List */}
             <div className="w-full space-y-2 mt-5 text-left">
               <div className="p-3 rounded-2xl bg-black/2 dark:bg-white/4 border border-black/4 dark:border-white/6 flex items-start gap-3">
-                <div className="p-2 rounded-xl bg-blue-500/10 text-blue-500 shrink-0">
+                <div className="p-2 rounded-xl bg-accent-subtle text-accent shrink-0">
                   <Command size={16} />
                 </div>
                 <div className="min-w-0">
@@ -298,7 +298,7 @@ export default function WelcomeModal() {
               </div>
 
               <div className="p-3 rounded-2xl bg-black/2 dark:bg-white/4 border border-black/4 dark:border-white/6 flex items-start gap-3">
-                <div className="p-2 rounded-xl bg-purple-500/10 text-purple-500 shrink-0">
+                <div className="p-2 rounded-xl bg-accent-subtle text-accent shrink-0">
                   <Layers size={16} />
                 </div>
                 <div className="min-w-0">
@@ -341,7 +341,7 @@ export default function WelcomeModal() {
                 onClick={handleComplete}
                 variant="primary"
                 size="lg"
-                className="flex-1 justify-center py-2.5 text-sm font-bold shadow-lg shadow-blue-500/25"
+                className="flex-1 justify-center py-2.5 text-sm font-bold shadow-lg shadow-accent/25"
                 icon={<Sparkles size={15} />}
               >
                 {t('welcome.launchApp', 'Launch Beberes')}

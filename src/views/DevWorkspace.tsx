@@ -21,7 +21,6 @@ import { formatSize } from '../lib/utils';
 import Card from '../components/ui/Card';
 import Checkbox from '../components/ui/Checkbox';
 import Button from '../components/ui/Button';
-import FloatingActionBar from '../components/ui/FloatingActionBar';
 import PageHeader from '../components/layout/PageHeader';
 import ConfirmModal from '../components/ui/ConfirmModal';
 import CleaningFlowModal from '../components/ui/CleaningFlowModal';
@@ -63,20 +62,20 @@ import {
 import { useState, useMemo, useEffect } from 'react';
 
 const categoryIcons: Record<string, React.ReactNode> = {
-  xcode_cache: <XcodeIcon size={18} />,
-  package_cache: <PackageCacheIcon size={18} />,
-  node_modules: <NodeIcon size={18} />,
-  cargo_target: <RustIcon size={18} />,
-  docker_volumes: <DockerIcon size={18} />,
-  flutter_cache: <FlutterIcon size={18} />,
-  golang_cache: <GoIcon size={18} />,
-  maven_cache: <JavaIcon size={18} />,
-  composer_cache: <PhpIcon size={18} />,
-  ai_models: <AiModelsIcon size={18} />,
-  ruby_cache: <RubyIcon size={18} />,
-  nuget_cache: <DotNetIcon size={18} />,
-  cpp_cache: <CppIcon size={18} />,
-  python_cache: <PythonIcon size={18} />,
+  xcode_cache: <XcodeIcon size={18} className="text-accent" />,
+  package_cache: <PackageCacheIcon size={18} className="text-accent" />,
+  node_modules: <NodeIcon size={18} className="text-accent" />,
+  cargo_target: <RustIcon size={18} className="text-accent" />,
+  docker_volumes: <DockerIcon size={18} className="text-accent" />,
+  flutter_cache: <FlutterIcon size={18} className="text-accent" />,
+  golang_cache: <GoIcon size={18} className="text-accent" />,
+  maven_cache: <JavaIcon size={18} className="text-accent" />,
+  composer_cache: <PhpIcon size={18} className="text-accent" />,
+  ai_models: <AiModelsIcon size={18} className="text-accent" />,
+  ruby_cache: <RubyIcon size={18} className="text-accent" />,
+  nuget_cache: <DotNetIcon size={18} className="text-accent" />,
+  cpp_cache: <CppIcon size={18} className="text-accent" />,
+  python_cache: <PythonIcon size={18} className="text-accent" />,
 };
 
 type SizeFilter = 'all' | '100mb' | '1gb';
@@ -370,12 +369,12 @@ export default function DevWorkspace() {
       {/* Header */}
       <PageHeader
         icon={<Code2 size={20} />}
-        iconColor="text-indigo-500"
+        iconColor="text-accent"
         title={t('devWorkspace.title')}
         subtitle={t('devWorkspace.subtitle')}
         badge={
           totalItemsCount > 0 ? (
-            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400">
+            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-accent-subtle text-accent">
               {t('devWorkspace.itemsCount', '{count} items', { count: totalItemsCount })}
             </span>
           ) : undefined
@@ -406,10 +405,10 @@ export default function DevWorkspace() {
               : 'text-slate-500 dark:text-neutral-400 hover:text-slate-800 dark:hover:text-neutral-200'
           }`}
         >
-          <Radio size={14} className="text-blue-500" />
+          <Radio size={14} className="text-accent" />
           <span>{t('devWorkspace.tabPorts', 'Zombie Port Hunter')}</span>
           {ports.length > 0 && (
-            <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-blue-500/10 text-blue-600 dark:text-blue-400 font-mono">
+            <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-accent-subtle text-accent font-mono">
               {ports.length}
             </span>
           )}
@@ -458,18 +457,18 @@ export default function DevWorkspace() {
       {activeTab === 'artifacts' && (
         <div className="space-y-6">
           {/* Homebrew & Global Tooling Hygiene Card */}
-          <Card className="p-4! border-indigo-500/20 bg-indigo-500/[0.03]">
+          <Card className="p-4! border-accent/20 bg-accent-subtle">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div className="flex items-center gap-3 min-w-0">
-                <div className="w-10 h-10 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center shrink-0">
-                  <Terminal size={18} className="text-indigo-600 dark:text-indigo-400" />
+                <div className="w-10 h-10 rounded-2xl bg-accent-subtle border border-accent/20 flex items-center justify-center shrink-0">
+                  <Terminal size={18} className="text-accent" />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
                     <h4 className="text-xs font-bold text-slate-900 dark:text-white">
                       {t('devWorkspace.homebrewTitle')}
                     </h4>
-                    <span className="px-2 py-0.5 rounded text-[9px] font-semibold bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
+                    <span className="px-2 py-0.5 rounded text-[9px] font-semibold bg-accent-subtle text-accent border border-accent/20">
                       brew cleanup --prune=all
                     </span>
                   </div>
@@ -533,7 +532,7 @@ export default function DevWorkspace() {
                   placeholder={t('devWorkspace.searchPlaceholder')}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-9 pr-8 py-1.5 text-xs rounded-xl bg-white/60 dark:bg-neutral-900/60 border border-black/8 dark:border-white/8 focus:border-indigo-500 focus:outline-none transition-all placeholder:text-slate-400"
+                  className="w-full pl-9 pr-8 py-1.5 text-xs rounded-xl bg-white/60 dark:bg-neutral-900/60 border border-black/8 dark:border-white/8 focus:border-accent focus:outline-none transition-all placeholder:text-slate-400"
                 />
                 {searchQuery && (
                   <button
@@ -629,7 +628,7 @@ export default function DevWorkspace() {
           {!isScanning && filteredCategories.length === 0 && (
             <Card className="p-12 text-center">
               <div className="flex flex-col items-center justify-center max-w-sm mx-auto space-y-3">
-                <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 flex items-center justify-center text-indigo-500">
+                <div className="w-12 h-12 rounded-2xl bg-accent-subtle flex items-center justify-center text-accent">
                   <Sparkles size={24} />
                 </div>
                 <h3 className="font-semibold text-sm text-slate-800 dark:text-neutral-200">
@@ -657,7 +656,7 @@ export default function DevWorkspace() {
                       />
 
                       <div className="flex items-center gap-2.5 min-w-0 cursor-pointer" onClick={() => toggleExpand(category.id)}>
-                        <div className="p-1.5 rounded-lg bg-black/4 dark:bg-white/6 text-slate-600 dark:text-neutral-300">
+                        <div className="p-1.5 rounded-lg bg-accent-subtle text-accent border border-accent/15">
                           {categoryIcons[category.id] || <Code2 size={16} />}
                         </div>
                         <div className="truncate">
@@ -724,14 +723,6 @@ export default function DevWorkspace() {
             })}
           </div>
 
-          {/* Floating Action Bar */}
-          <FloatingActionBar
-            selectedCount={selectedItems.length}
-            selectedSize={selectedSize}
-            onClean={() => setShowConfirmModal(true)}
-            isCleaning={isCleaning}
-            cleanLabel={deleteToTrash ? t('devWorkspace.cleanToTrash') : t('devWorkspace.cleanSelected')}
-          />
         </div>
       )}
 
@@ -741,7 +732,7 @@ export default function DevWorkspace() {
       {activeTab === 'ports' && (
         <div className="space-y-4">
           {portToast && (
-            <div className="p-3 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-700 dark:text-blue-300 text-xs flex items-center justify-between">
+            <div className="p-3 rounded-xl bg-accent-subtle border border-accent/20 text-accent text-xs flex items-center justify-between">
               <span>{portToast}</span>
               <button type="button" onClick={() => setPortToast(null)} className="cursor-pointer">
                 <X size={12} />
@@ -757,7 +748,7 @@ export default function DevWorkspace() {
                 placeholder={t('devWorkspace.portsPlaceholder')}
                 value={portSearch}
                 onChange={(e) => setPortSearch(e.target.value)}
-                className="w-full pl-9 pr-8 py-1.5 text-xs rounded-xl bg-white/60 dark:bg-neutral-900/60 border border-black/8 dark:border-white/8 focus:border-blue-500 focus:outline-none transition-all placeholder:text-slate-400"
+                className="w-full pl-9 pr-8 py-1.5 text-xs rounded-xl bg-white/60 dark:bg-neutral-900/60 border border-black/8 dark:border-white/8 focus:border-accent focus:outline-none transition-all placeholder:text-slate-400"
               />
               {portSearch && (
                 <button
@@ -790,7 +781,7 @@ export default function DevWorkspace() {
           ) : filteredPorts.length === 0 ? (
             <Card className="p-12 text-center">
               <div className="flex flex-col items-center justify-center max-w-sm mx-auto space-y-2">
-                <div className="w-10 h-10 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-500">
+                <div className="w-10 h-10 rounded-2xl bg-accent-subtle flex items-center justify-center text-accent">
                   <Radio size={20} />
                 </div>
                 <h4 className="text-xs font-semibold text-slate-800 dark:text-neutral-200">
@@ -816,7 +807,7 @@ export default function DevWorkspace() {
                       key={`${p.port}-${p.pid}`}
                       className="hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors"
                     >
-                      <td className="py-2.5 px-4 font-mono font-bold text-blue-600 dark:text-blue-400">
+                      <td className="py-2.5 px-4 font-mono font-bold text-accent">
                         :{p.port}
                       </td>
                       <td className="py-2.5 px-4">
@@ -910,7 +901,7 @@ export default function DevWorkspace() {
       {activeTab === 'xcode' && (
         <div className="space-y-4">
           {xcodeToast && (
-            <div className="p-3 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-700 dark:text-blue-300 text-xs flex items-center justify-between">
+            <div className="p-3 rounded-xl bg-accent-subtle border border-accent/20 text-accent text-xs flex items-center justify-between">
               <span>{xcodeToast}</span>
               <button type="button" onClick={() => setXcodeToast(null)} className="cursor-pointer">
                 <X size={12} />
@@ -967,7 +958,7 @@ export default function DevWorkspace() {
                       <h4 className="text-xs font-bold text-slate-800 dark:text-neutral-200">
                         {target.title}
                       </h4>
-                      <span className="text-xs font-mono font-bold text-blue-600 dark:text-blue-400">
+                      <span className="text-xs font-mono font-bold text-accent">
                         {formatSize(target.size_bytes)}
                       </span>
                     </div>
@@ -1073,7 +1064,7 @@ export default function DevWorkspace() {
           ) : filteredDormant.length === 0 ? (
             <Card className="p-12 text-center">
               <div className="flex flex-col items-center justify-center max-w-sm mx-auto space-y-2">
-                <div className="w-10 h-10 rounded-2xl bg-amber-500/10 flex items-center justify-center text-amber-500">
+                <div className="w-10 h-10 rounded-2xl bg-accent-subtle flex items-center justify-center text-accent">
                   <CheckCircle2 size={20} />
                 </div>
                 <h4 className="text-xs font-semibold text-slate-800 dark:text-neutral-200">
@@ -1094,7 +1085,7 @@ export default function DevWorkspace() {
                         <h4 className="text-xs font-bold text-slate-800 dark:text-neutral-100 truncate">
                           {proj.name}
                         </h4>
-                        <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-amber-500/10 text-amber-600 dark:text-amber-400">
+                        <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-black/5 dark:bg-white/8 text-slate-600 dark:text-neutral-300 border border-black/5 dark:border-white/5">
                           {t('devWorkspace.hibernateDaysAgo', '{days} days ago', { days: proj.inactive_days })}
                         </span>
                       </div>
@@ -1116,7 +1107,7 @@ export default function DevWorkspace() {
                     </div>
 
                     <div className="flex flex-col items-end gap-2 shrink-0 self-end sm:self-center">
-                      <span className="text-xs font-mono font-bold text-amber-600 dark:text-amber-400">
+                      <span className="text-xs font-mono font-bold text-accent">
                         {formatSize(proj.total_reclaimable_bytes)}
                       </span>
                       <Button

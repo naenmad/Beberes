@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useAppStore } from '../store/appStore';
+import { useAppStore, APP_VERSION } from '../store/appStore';
 import { pickFolder, getSystemDetails, clearIconCache, openExternalUrl } from '../lib/commands';
 import type { SystemDetails } from '../lib/commands';
 import { formatSize } from '../lib/utils';
@@ -32,7 +32,9 @@ import {
   Sparkles,
   ArrowDownCircle,
   ExternalLink,
+  Palette,
 } from 'lucide-react';
+import { ACCENT_COLORS, ACCENT_PRESETS, getAccentColor } from '../lib/themeColors';
 
 type SettingsTab = 'general' | 'appearance' | 'folders' | 'system' | 'data';
 
@@ -41,6 +43,11 @@ export default function Settings() {
     // Theme & Appearance
     isDarkMode,
     toggleDarkMode,
+    primaryAccent,
+    secondaryAccent,
+    setPrimaryAccent,
+    setSecondaryAccent,
+    setAccentPair,
     uiScale,
     setUiScale,
 
@@ -176,7 +183,7 @@ export default function Settings() {
           onClick={() => setActiveTab('general')}
           className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
             activeTab === 'general'
-              ? 'bg-blue-500 text-white shadow-sm'
+              ? 'bg-accent text-white shadow-sm'
               : 'text-slate-600 dark:text-neutral-300 hover:bg-black/4 dark:hover:bg-white/5'
           }`}
         >
@@ -189,7 +196,7 @@ export default function Settings() {
           onClick={() => setActiveTab('appearance')}
           className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
             activeTab === 'appearance'
-              ? 'bg-blue-500 text-white shadow-sm'
+              ? 'bg-accent text-white shadow-sm'
               : 'text-slate-600 dark:text-neutral-300 hover:bg-black/4 dark:hover:bg-white/5'
           }`}
         >
@@ -202,7 +209,7 @@ export default function Settings() {
           onClick={() => setActiveTab('folders')}
           className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
             activeTab === 'folders'
-              ? 'bg-blue-500 text-white shadow-sm'
+              ? 'bg-accent text-white shadow-sm'
               : 'text-slate-600 dark:text-neutral-300 hover:bg-black/4 dark:hover:bg-white/5'
           }`}
         >
@@ -215,7 +222,7 @@ export default function Settings() {
           onClick={() => setActiveTab('system')}
           className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
             activeTab === 'system'
-              ? 'bg-blue-500 text-white shadow-sm'
+              ? 'bg-accent text-white shadow-sm'
               : 'text-slate-600 dark:text-neutral-300 hover:bg-black/4 dark:hover:bg-white/5'
           }`}
         >
@@ -228,7 +235,7 @@ export default function Settings() {
           onClick={() => setActiveTab('data')}
           className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
             activeTab === 'data'
-              ? 'bg-blue-500 text-white shadow-sm'
+              ? 'bg-accent text-white shadow-sm'
               : 'text-slate-600 dark:text-neutral-300 hover:bg-black/4 dark:hover:bg-white/5'
           }`}
         >
@@ -247,7 +254,7 @@ export default function Settings() {
             <CardHeader>
               <div className="flex items-center justify-between w-full">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-xl bg-blue-50 dark:bg-blue-500/10 text-blue-500">
+                  <div className="p-2 rounded-xl bg-accent-subtle text-accent">
                     <ArrowDownCircle size={20} />
                   </div>
                   <div>
@@ -279,15 +286,15 @@ export default function Settings() {
                   <div>
                     <div className="flex items-center gap-2">
                       <span className="text-xs font-bold text-slate-900 dark:text-white">Beberes</span>
-                      <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400">
-                        v1.1.0 (Bayu)
+                      <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full bg-accent-subtle text-accent">
+                        v{APP_VERSION} (Bayu)
                       </span>
                     </div>
                     <p className="text-[11px] text-slate-500 dark:text-neutral-400 mt-0.5">
                       {updateInfo?.available
                         ? t('updates.availableDesc', { version: updateInfo.latestVersion })
                         : updateInfo && !updateInfo.available
-                        ? t('updates.upToDateDesc', { version: '1.1.0' })
+                        ? t('updates.upToDateDesc', { version: APP_VERSION })
                         : t('updates.subtitle', 'Check for releases and improvements')}
                     </p>
                   </div>
@@ -322,8 +329,8 @@ export default function Settings() {
 
               {/* Release Notes Summary if available */}
               {updateInfo?.available && updateInfo.releaseNotes && (
-                <div className="p-3.5 rounded-2xl bg-blue-50/60 dark:bg-blue-950/20 border border-blue-200/60 dark:border-blue-800/40 text-left">
-                  <div className="text-xs font-bold text-blue-900 dark:text-blue-200 mb-1">
+                <div className="p-3.5 rounded-2xl bg-accent-subtle border border-accent/20 text-left">
+                  <div className="text-xs font-bold text-accent mb-1">
                     {t('updates.releaseNotes', 'Release Notes')} (v{updateInfo.latestVersion}):
                   </div>
                   <div className="text-[11px] text-slate-600 dark:text-neutral-300 whitespace-pre-wrap line-clamp-3 font-mono">
@@ -347,7 +354,7 @@ export default function Settings() {
                   type="button"
                   onClick={() => setAutoCheckUpdate(!autoCheckUpdate)}
                   className={`w-11 h-6 flex items-center rounded-full p-1 transition-colors duration-200 cursor-pointer ${
-                    autoCheckUpdate ? 'bg-blue-600' : 'bg-slate-300 dark:bg-neutral-700'
+                    autoCheckUpdate ? 'bg-accent' : 'bg-slate-300 dark:bg-neutral-700'
                   }`}
                 >
                   <div
@@ -364,7 +371,7 @@ export default function Settings() {
           <Card>
             <CardHeader>
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-xl bg-blue-50 dark:bg-blue-500/10 text-blue-500">
+                <div className="p-2 rounded-xl bg-accent-subtle text-accent">
                   <Globe size={20} />
                 </div>
                 <div>
@@ -387,7 +394,7 @@ export default function Settings() {
                       onClick={() => setLanguage(lang.code)}
                       className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between ${
                         isSelected
-                          ? 'border-blue-500 bg-blue-500/5 shadow-sm'
+                          ? 'border-accent bg-accent-subtle/40 shadow-sm'
                           : 'border-slate-200 dark:border-neutral-700/60 hover:bg-slate-50 dark:hover:bg-neutral-800/50'
                       }`}
                     >
@@ -405,7 +412,7 @@ export default function Settings() {
                         </div>
                       </div>
                       {isSelected && (
-                        <div className="w-5 h-5 rounded-full bg-blue-500 text-white flex items-center justify-center">
+                        <div className="w-5 h-5 rounded-full bg-accent text-white flex items-center justify-center">
                           <Check size={12} strokeWidth={3} />
                         </div>
                       )}
@@ -426,7 +433,7 @@ export default function Settings() {
           <Card>
             <CardHeader>
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-xl bg-blue-50 dark:bg-blue-500/10 text-blue-500">
+                <div className="p-2 rounded-xl bg-accent-subtle text-accent">
                   <Trash2 size={20} />
                 </div>
                 <div>
@@ -446,13 +453,13 @@ export default function Settings() {
                   onClick={() => !deleteToTrash && toggleDeleteToTrash()}
                   className={`p-4 rounded-2xl border transition-all cursor-pointer relative ${
                     deleteToTrash
-                      ? 'border-blue-500 bg-blue-500/5 shadow-sm'
+                      ? 'border-accent bg-accent-subtle shadow-sm'
                       : 'border-slate-200 dark:border-neutral-700/60 hover:bg-slate-50 dark:hover:bg-neutral-800/50'
                   }`}
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-2.5">
-                      <div className="p-2 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400">
+                      <div className="p-2 rounded-xl bg-accent-subtle text-accent">
                         <Trash2 size={18} />
                       </div>
                       <div>
@@ -465,7 +472,7 @@ export default function Settings() {
                       </div>
                     </div>
                     {deleteToTrash && (
-                      <div className="w-5 h-5 rounded-full bg-blue-500 text-white flex items-center justify-center">
+                      <div className="w-5 h-5 rounded-full bg-accent text-white flex items-center justify-center">
                         <Check size={12} strokeWidth={3} />
                       </div>
                     )}
@@ -545,7 +552,7 @@ export default function Settings() {
                     type="button"
                     onClick={() => setAlwaysConfirmClean(!alwaysConfirmClean)}
                     className={`w-11 h-6 rounded-full transition-colors relative cursor-pointer ${
-                      alwaysConfirmClean ? 'bg-blue-500' : 'bg-slate-300 dark:bg-neutral-600'
+                      alwaysConfirmClean ? 'bg-accent' : 'bg-slate-300 dark:bg-neutral-600'
                     }`}
                   >
                     <div
@@ -570,7 +577,7 @@ export default function Settings() {
                     type="button"
                     onClick={() => setShowSafetyNotice(!showSafetyNotice)}
                     className={`w-11 h-6 rounded-full transition-colors relative cursor-pointer ${
-                      showSafetyNotice ? 'bg-blue-500' : 'bg-slate-300 dark:bg-neutral-600'
+                      showSafetyNotice ? 'bg-accent' : 'bg-slate-300 dark:bg-neutral-600'
                     }`}
                   >
                     <div
@@ -595,7 +602,7 @@ export default function Settings() {
                     type="button"
                     onClick={() => setHoldCmdQToQuit(!holdCmdQToQuit)}
                     className={`w-11 h-6 rounded-full transition-colors relative cursor-pointer ${
-                      holdCmdQToQuit ? 'bg-blue-500' : 'bg-slate-300 dark:bg-neutral-600'
+                      holdCmdQToQuit ? 'bg-accent' : 'bg-slate-300 dark:bg-neutral-600'
                     }`}
                   >
                     <div
@@ -620,7 +627,7 @@ export default function Settings() {
                     type="button"
                     onClick={() => setSoundEffectsEnabled(!soundEffectsEnabled)}
                     className={`w-11 h-6 rounded-full transition-colors relative cursor-pointer ${
-                      soundEffectsEnabled ? 'bg-blue-500' : 'bg-slate-300 dark:bg-neutral-600'
+                      soundEffectsEnabled ? 'bg-accent' : 'bg-slate-300 dark:bg-neutral-600'
                     }`}
                   >
                     <div
@@ -645,7 +652,7 @@ export default function Settings() {
                     type="button"
                     onClick={() => setLowDiskAlertEnabled(!lowDiskAlertEnabled)}
                     className={`w-11 h-6 rounded-full transition-colors relative cursor-pointer ${
-                      lowDiskAlertEnabled ? 'bg-blue-500' : 'bg-slate-300 dark:bg-neutral-600'
+                      lowDiskAlertEnabled ? 'bg-accent' : 'bg-slate-300 dark:bg-neutral-600'
                     }`}
                   >
                     <div
@@ -668,7 +675,7 @@ export default function Settings() {
           <Card>
             <CardHeader>
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-xl bg-violet-50 dark:bg-violet-500/10 text-violet-500">
+                <div className="p-2 rounded-xl bg-accent-subtle text-accent">
                   {isDarkMode ? <Moon size={20} /> : <Sun size={20} />}
                 </div>
                 <div>
@@ -687,7 +694,7 @@ export default function Settings() {
                   onClick={() => !isDarkMode && toggleDarkMode()}
                   className={`p-4 rounded-2xl border transition-all cursor-pointer flex items-center justify-between ${
                     isDarkMode
-                      ? 'border-blue-500 bg-blue-500/5 shadow-sm'
+                      ? 'border-accent bg-accent-subtle/40 shadow-sm'
                       : 'border-slate-200 dark:border-neutral-700/60 hover:bg-slate-50 dark:hover:bg-neutral-800/50'
                   }`}
                 >
@@ -705,7 +712,7 @@ export default function Settings() {
                     </div>
                   </div>
                   {isDarkMode && (
-                    <div className="w-5 h-5 rounded-full bg-blue-500 text-white flex items-center justify-center">
+                    <div className="w-5 h-5 rounded-full bg-accent text-white flex items-center justify-center">
                       <Check size={12} strokeWidth={3} />
                     </div>
                   )}
@@ -715,7 +722,7 @@ export default function Settings() {
                   onClick={() => isDarkMode && toggleDarkMode()}
                   className={`p-4 rounded-2xl border transition-all cursor-pointer flex items-center justify-between ${
                     !isDarkMode
-                      ? 'border-blue-500 bg-blue-500/5 shadow-sm'
+                      ? 'border-accent bg-accent-subtle/40 shadow-sm'
                       : 'border-slate-200 dark:border-neutral-700/60 hover:bg-slate-50 dark:hover:bg-neutral-800/50'
                   }`}
                 >
@@ -733,10 +740,183 @@ export default function Settings() {
                     </div>
                   </div>
                   {!isDarkMode && (
-                    <div className="w-5 h-5 rounded-full bg-blue-500 text-white flex items-center justify-center">
+                    <div className="w-5 h-5 rounded-full bg-accent text-white flex items-center justify-center">
                       <Check size={12} strokeWidth={3} />
                     </div>
                   )}
+                </div>
+              </div>
+            </CardBody>
+          </Card>
+
+          {/* Theme Accent Colors (Primary & Secondary) */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-xl bg-accent-subtle text-accent">
+                  <Palette size={20} />
+                </div>
+                <div>
+                  <h3 className="text-sm font-semibold text-slate-800 dark:text-white">
+                    {t('settings.appearance.accentColorsTitle')}
+                  </h3>
+                  <p className="text-xs text-slate-400 dark:text-neutral-500">
+                    {t('settings.appearance.accentColorsDesc')}
+                  </p>
+                </div>
+              </div>
+            </CardHeader>
+            <CardBody className="space-y-6">
+              {/* Presets Row */}
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-slate-700 dark:text-neutral-300">
+                  {t('settings.appearance.presetsTitle')}
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {ACCENT_PRESETS.map((preset) => {
+                    const isSelected = primaryAccent === preset.primary && secondaryAccent === preset.secondary;
+                    const primaryObj = getAccentColor(preset.primary);
+                    const secondaryObj = getAccentColor(preset.secondary);
+                    return (
+                      <button
+                        key={preset.id}
+                        type="button"
+                        onClick={() => setAccentPair(preset.primary, preset.secondary)}
+                        className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
+                          isSelected
+                            ? 'border-accent bg-accent-subtle text-slate-900 dark:text-white shadow-xs'
+                            : 'border-slate-200 dark:border-neutral-700/60 hover:bg-slate-50 dark:hover:bg-neutral-800/50 text-slate-600 dark:text-neutral-400'
+                        }`}
+                      >
+                        <div className="flex items-center -space-x-1">
+                          <span
+                            className="w-3.5 h-3.5 rounded-full border border-white dark:border-neutral-900 shadow-xs"
+                            style={{ backgroundColor: primaryObj.hex }}
+                          />
+                          <span
+                            className="w-3.5 h-3.5 rounded-full border border-white dark:border-neutral-900 shadow-xs"
+                            style={{ backgroundColor: secondaryObj.hex }}
+                          />
+                        </div>
+                        <span>{t(preset.nameKey)}</span>
+                        {isSelected && <Check size={12} className="text-accent ml-1" strokeWidth={3} />}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Primary Accent Picker */}
+              <div className="space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="text-xs font-bold text-slate-800 dark:text-white">
+                      {t('settings.appearance.primaryAccentTitle')}
+                    </h4>
+                    <p className="text-[11px] text-slate-400 dark:text-neutral-400">
+                      {t('settings.appearance.primaryAccentDesc')}
+                    </p>
+                  </div>
+                  <span className="text-xs font-semibold uppercase tracking-wider text-accent font-mono">
+                    {t(getAccentColor(primaryAccent).nameKey)}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-4 sm:grid-cols-8 gap-2.5">
+                  {ACCENT_COLORS.map((c) => {
+                    const isSelected = primaryAccent === c.id;
+                    return (
+                      <button
+                        key={`primary-${c.id}`}
+                        type="button"
+                        onClick={() => setPrimaryAccent(c.id)}
+                        className={`group relative flex flex-col items-center gap-1.5 p-2 rounded-xl border transition-all cursor-pointer ${
+                          isSelected
+                            ? 'border-accent bg-accent-subtle shadow-xs'
+                            : 'border-slate-200 dark:border-neutral-700/60 hover:bg-slate-50 dark:hover:bg-neutral-800/40'
+                        }`}
+                        title={t(c.nameKey)}
+                      >
+                        <div
+                          className="w-6 h-6 rounded-full flex items-center justify-center shadow-xs transition-transform group-hover:scale-110"
+                          style={{ backgroundColor: c.hex }}
+                        >
+                          {isSelected && <Check size={13} className="text-white" strokeWidth={3} />}
+                        </div>
+                        <span className="text-[10px] font-medium text-slate-600 dark:text-neutral-300 truncate max-w-full">
+                          {t(c.nameKey)}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Secondary Accent Picker */}
+              <div className="space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="text-xs font-bold text-slate-800 dark:text-white">
+                      {t('settings.appearance.secondaryAccentTitle')}
+                    </h4>
+                    <p className="text-[11px] text-slate-400 dark:text-neutral-400">
+                      {t('settings.appearance.secondaryAccentDesc')}
+                    </p>
+                  </div>
+                  <span className="text-xs font-semibold uppercase tracking-wider text-secondary-accent font-mono">
+                    {t(getAccentColor(secondaryAccent).nameKey)}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-4 sm:grid-cols-8 gap-2.5">
+                  {ACCENT_COLORS.map((c) => {
+                    const isSelected = secondaryAccent === c.id;
+                    return (
+                      <button
+                        key={`secondary-${c.id}`}
+                        type="button"
+                        onClick={() => setSecondaryAccent(c.id)}
+                        className={`group relative flex flex-col items-center gap-1.5 p-2 rounded-xl border transition-all cursor-pointer ${
+                          isSelected
+                            ? 'border-secondary-accent bg-secondary-subtle shadow-xs'
+                            : 'border-slate-200 dark:border-neutral-700/60 hover:bg-slate-50 dark:hover:bg-neutral-800/40'
+                        }`}
+                        title={t(c.nameKey)}
+                      >
+                        <div
+                          className="w-6 h-6 rounded-full flex items-center justify-center shadow-xs transition-transform group-hover:scale-110"
+                          style={{ backgroundColor: c.hex }}
+                        >
+                          {isSelected && <Check size={13} className="text-white" strokeWidth={3} />}
+                        </div>
+                        <span className="text-[10px] font-medium text-slate-600 dark:text-neutral-300 truncate max-w-full">
+                          {t(c.nameKey)}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Live Preview Box */}
+              <div className="p-4 rounded-2xl border border-black/5 dark:border-white/10 bg-black/[0.02] dark:bg-white/[0.02] space-y-3">
+                <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-500">
+                  {t('settings.appearance.livePreview')}
+                </div>
+                <div className="flex flex-wrap items-center gap-3">
+                  <Button size="sm" variant="primary">
+                    {t('settings.appearance.primaryPreviewBtn')}
+                  </Button>
+                  <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-accent-subtle text-accent border border-accent-subtle">
+                    {t('settings.appearance.primaryBadge')}
+                  </span>
+                  <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-secondary-subtle text-secondary-accent border border-secondary-subtle">
+                    {t('settings.appearance.secondaryBadge')}
+                  </span>
+                  <div className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-neutral-300">
+                    <Sparkles size={14} className="text-accent" />
+                    <span>{t('settings.appearance.activeIconSample')}</span>
+                  </div>
                 </div>
               </div>
             </CardBody>
@@ -746,7 +926,7 @@ export default function Settings() {
           <Card>
             <CardHeader>
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-xl bg-blue-50 dark:bg-blue-500/10 text-blue-500">
+                <div className="p-2 rounded-xl bg-accent-subtle text-accent">
                   <Type size={20} />
                 </div>
                 <div>
@@ -766,16 +946,20 @@ export default function Settings() {
                   onClick={() => setUiScale('compact')}
                   className={`p-4 rounded-2xl border transition-all cursor-pointer relative ${
                     uiScale === 'compact'
-                      ? 'border-blue-500 bg-blue-500/5 shadow-sm'
+                      ? 'border-accent bg-accent-subtle/40 shadow-sm'
                       : 'border-slate-200 dark:border-neutral-700/60 hover:bg-slate-50 dark:hover:bg-neutral-800/50'
                   }`}
                 >
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-mono font-bold px-2 py-0.5 rounded bg-slate-100 dark:bg-neutral-700 text-slate-700 dark:text-neutral-200">
+                    <span className={`text-xs font-mono font-bold px-2 py-0.5 rounded ${
+                      uiScale === 'compact'
+                        ? 'bg-accent-subtle text-accent border border-accent/20'
+                        : 'bg-black/5 dark:bg-white/5 text-slate-600 dark:text-neutral-400'
+                    }`}>
                       14px • 87.5%
                     </span>
                     {uiScale === 'compact' && (
-                      <div className="w-4 h-4 rounded-full bg-blue-500 text-white flex items-center justify-center">
+                      <div className="w-4 h-4 rounded-full bg-accent text-white flex items-center justify-center">
                         <Check size={10} strokeWidth={3} />
                       </div>
                     )}
@@ -793,16 +977,20 @@ export default function Settings() {
                   onClick={() => setUiScale('normal')}
                   className={`p-4 rounded-2xl border transition-all cursor-pointer relative ${
                     uiScale === 'normal'
-                      ? 'border-blue-500 bg-blue-500/5 shadow-sm'
+                      ? 'border-accent bg-accent-subtle/40 shadow-sm'
                       : 'border-slate-200 dark:border-neutral-700/60 hover:bg-slate-50 dark:hover:bg-neutral-800/50'
                   }`}
                 >
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-mono font-bold px-2 py-0.5 rounded bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">
+                    <span className={`text-xs font-mono font-bold px-2 py-0.5 rounded ${
+                      uiScale === 'normal'
+                        ? 'bg-accent-subtle text-accent border border-accent/20'
+                        : 'bg-black/5 dark:bg-white/5 text-slate-600 dark:text-neutral-400'
+                    }`}>
                       16px • 100%
                     </span>
                     {uiScale === 'normal' && (
-                      <div className="w-4 h-4 rounded-full bg-blue-500 text-white flex items-center justify-center">
+                      <div className="w-4 h-4 rounded-full bg-accent text-white flex items-center justify-center">
                         <Check size={10} strokeWidth={3} />
                       </div>
                     )}
@@ -820,16 +1008,20 @@ export default function Settings() {
                   onClick={() => setUiScale('large')}
                   className={`p-4 rounded-2xl border transition-all cursor-pointer relative ${
                     uiScale === 'large'
-                      ? 'border-blue-500 bg-blue-500/5 shadow-sm'
+                      ? 'border-accent bg-accent-subtle/40 shadow-sm'
                       : 'border-slate-200 dark:border-neutral-700/60 hover:bg-slate-50 dark:hover:bg-neutral-800/50'
                   }`}
                 >
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-mono font-bold px-2 py-0.5 rounded bg-slate-100 dark:bg-neutral-700 text-slate-700 dark:text-neutral-200">
+                    <span className={`text-xs font-mono font-bold px-2 py-0.5 rounded ${
+                      uiScale === 'large'
+                        ? 'bg-accent-subtle text-accent border border-accent/20'
+                        : 'bg-black/5 dark:bg-white/5 text-slate-600 dark:text-neutral-400'
+                    }`}>
                       18px • 112.5%
                     </span>
                     {uiScale === 'large' && (
-                      <div className="w-4 h-4 rounded-full bg-blue-500 text-white flex items-center justify-center">
+                      <div className="w-4 h-4 rounded-full bg-accent text-white flex items-center justify-center">
                         <Check size={10} strokeWidth={3} />
                       </div>
                     )}
@@ -918,7 +1110,7 @@ export default function Settings() {
                       className="flex items-center justify-between py-2 px-3 rounded-xl bg-slate-50 dark:bg-neutral-700/30 group border border-slate-100 dark:border-neutral-700/30"
                     >
                       <div className="flex items-center gap-2 min-w-0">
-                        <AlertTriangle size={14} className={isCoreSystem ? 'text-amber-500' : 'text-blue-500'} />
+                        <AlertTriangle size={14} className={isCoreSystem ? 'text-amber-500' : 'text-accent'} />
                         <span className="text-xs text-slate-700 dark:text-neutral-200 truncate font-mono">
                           {path}
                         </span>
@@ -950,7 +1142,7 @@ export default function Settings() {
                   onChange={(e) => setNewWhitelistPath(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleAddWhitelist()}
                   placeholder={t('settings.whitelist.addPlaceholder')}
-                  className="flex-1 px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-neutral-600 bg-white dark:bg-neutral-800 text-slate-700 dark:text-neutral-200 placeholder:text-slate-400 dark:placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30 font-mono"
+                  className="flex-1 px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-neutral-600 bg-white dark:bg-neutral-800 text-slate-700 dark:text-neutral-200 placeholder:text-slate-400 dark:placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-accent/30 font-mono"
                 />
                 <Button
                   variant="secondary"
@@ -971,7 +1163,7 @@ export default function Settings() {
           <Card>
             <CardHeader>
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-xl bg-blue-50 dark:bg-blue-500/10 text-blue-500">
+                <div className="p-2 rounded-xl bg-accent-subtle text-accent">
                   <FolderPlus size={20} />
                 </div>
                 <div>
@@ -984,31 +1176,33 @@ export default function Settings() {
                 </div>
               </div>
             </CardHeader>
-            <CardBody>
-              {customScanPaths.length > 0 ? (
-                <div className="space-y-2 mb-3">
-                  {customScanPaths.map((path) => (
-                    <div
-                      key={path}
-                      className="flex items-center justify-between py-2 px-3 rounded-xl bg-slate-50 dark:bg-neutral-700/30 group border border-slate-100 dark:border-neutral-700/30"
-                    >
-                      <div className="flex items-center gap-2 min-w-0">
-                        <FolderOpen size={14} className="text-blue-500 shrink-0" />
-                        <span className="text-xs text-slate-700 dark:text-neutral-200 truncate font-mono">
-                          {path}
-                        </span>
+            <CardBody className="space-y-4">
+              {/* Custom Paths List */}
+              <div className="space-y-2">
+                {customScanPaths.map((path) => (
+                  <div
+                    key={path}
+                    className="p-3 rounded-2xl bg-black/2 dark:bg-white/3 border border-black/4 dark:border-white/6 flex items-center justify-between gap-3"
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div className="p-1.5 rounded-lg bg-black/4 dark:bg-white/6">
+                        <FolderOpen size={14} className="text-accent shrink-0" />
                       </div>
-                      <button
-                        onClick={() => removeCustomScanPath(path)}
-                        className="opacity-0 group-hover:opacity-100 p-1 rounded-lg hover:bg-slate-200 dark:hover:bg-neutral-600 text-slate-400 hover:text-rose-500 transition-all cursor-pointer"
-                        title={t('common.remove', 'Remove')}
-                      >
-                        <X size={14} />
-                      </button>
+                      <span className="text-xs text-slate-700 dark:text-neutral-200 truncate font-mono">
+                        {path}
+                      </span>
                     </div>
-                  ))}
-                </div>
-              ) : (
+                    <button
+                      onClick={() => removeCustomScanPath(path)}
+                      className="opacity-0 group-hover:opacity-100 p-1 rounded-lg hover:bg-slate-200 dark:hover:bg-neutral-600 text-slate-400 hover:text-rose-500 transition-all cursor-pointer"
+                      title={t('common.remove', 'Remove')}
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+              {customScanPaths.length === 0 && (
                 <p className="text-xs text-slate-400 dark:text-neutral-500 mb-3">
                   {t('settings.customPaths.empty')}
                 </p>
@@ -1021,7 +1215,7 @@ export default function Settings() {
                   onChange={(e) => setNewCustomPath(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleAddCustom()}
                   placeholder={t('settings.customPaths.addPlaceholder')}
-                  className="flex-1 px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-neutral-600 bg-white dark:bg-neutral-800 text-slate-700 dark:text-neutral-200 placeholder:text-slate-400 dark:placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30 font-mono"
+                  className="flex-1 px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-neutral-600 bg-white dark:bg-neutral-800 text-slate-700 dark:text-neutral-200 placeholder:text-slate-400 dark:placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-accent/30 font-mono"
                 />
                 <Button
                   variant="secondary"
@@ -1146,7 +1340,7 @@ export default function Settings() {
           <Card>
             <CardHeader>
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-xl bg-blue-50 dark:bg-blue-500/10 text-blue-500">
+                <div className="p-2 rounded-xl bg-accent-subtle text-accent">
                   <HardDrive size={20} />
                 </div>
                 <div>
@@ -1225,20 +1419,20 @@ export default function Settings() {
                   </p>
                 </div>
 
-                <div className="p-4 rounded-2xl bg-blue-50/50 dark:bg-blue-950/20 border border-blue-200/40 dark:border-blue-800/30">
-                  <span className="text-xs font-semibold text-blue-700 dark:text-blue-400">
-                    {t('impact.cleanCycles', 'Clean Cycles')}
+                <div className="p-4 rounded-2xl bg-accent-subtle border border-accent/20">
+                  <span className="text-xs font-semibold text-accent">
+                    Total Scans Performed
                   </span>
-                  <p className="text-2xl font-extrabold text-blue-600 dark:text-blue-300 mt-1">
+                  <p className="text-2xl font-extrabold text-accent mt-1">
                     {cleanHistory.length}
                   </p>
                 </div>
 
-                <div className="p-4 rounded-2xl bg-purple-50/50 dark:bg-purple-950/20 border border-purple-200/40 dark:border-purple-800/30">
-                  <span className="text-xs font-semibold text-purple-700 dark:text-purple-400">
+                <div className="p-4 rounded-2xl bg-accent-subtle border border-accent/20">
+                  <span className="text-xs font-semibold text-accent">
                     {t('impact.recycledItems', 'Files Processed')}
                   </span>
-                  <p className="text-2xl font-extrabold text-purple-600 dark:text-purple-300 mt-1">
+                  <p className="text-2xl font-extrabold text-accent mt-1">
                     {totalRecycledItems.toLocaleString()}
                   </p>
                 </div>
