@@ -15,9 +15,29 @@ import StartupManager from './views/StartupManager';
 import FileShredder from './views/FileShredder';
 import GitSweeper from './views/GitSweeper';
 import Settings from './views/Settings';
+import HardwareIntelligence from './views/HardwareIntelligence';
+import SimilarPhotos from './views/SimilarPhotos';
+import PluginManager from './views/PluginManager';
+import PopoverView from './views/PopoverView';
+import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
 
 // Beberes macOS Modern Clean Architecture
 export default function App() {
+  const [isPopoverWindow, setIsPopoverWindow] = useState(false);
+
+  useEffect(() => {
+    try {
+      const win = getCurrentWebviewWindow();
+      if (win.label === 'popover') {
+        setIsPopoverWindow(true);
+        document.documentElement.classList.add('popover-window', 'dark');
+        document.body.classList.add('popover-window', 'dark');
+      }
+    } catch {
+      // Ignored if not running inside Tauri webview window
+    }
+  }, []);
+
   const {
     currentPage,
     setCurrentPage,
@@ -33,13 +53,14 @@ export default function App() {
 
   // Track visited pages to lazily mount them and keep them alive for instant tab switching
   useEffect(() => {
+    if (isPopoverWindow) return;
     setVisitedPages((prev) => {
       if (prev.has(currentPage)) return prev;
       const next = new Set(prev);
       next.add(currentPage);
       return next;
     });
-  }, [currentPage]);
+  }, [currentPage, isPopoverWindow]);
 
   // Listen for macOS menu bar tray navigation & actions
   useEffect(() => {
@@ -173,6 +194,10 @@ export default function App() {
     applyThemeColors(primaryAccent, secondaryAccent);
   }, [primaryAccent, secondaryAccent]);
 
+  if (isPopoverWindow) {
+    return <PopoverView />;
+  }
+
   return (
     <MainLayout>
       <div className={currentPage === 'dashboard' ? 'block animate-fade-in' : 'hidden'}>
@@ -210,6 +235,15 @@ export default function App() {
       </div>
       <div className={currentPage === 'git-sweeper' ? 'block animate-fade-in' : 'hidden'}>
         {visitedPages.has('git-sweeper') && <GitSweeper />}
+      </div>
+      <div className={currentPage === 'hardware' ? 'block animate-fade-in' : 'hidden'}>
+        {visitedPages.has('hardware') && <HardwareIntelligence />}
+      </div>
+      <div className={currentPage === 'similar-photos' ? 'block animate-fade-in' : 'hidden'}>
+        {visitedPages.has('similar-photos') && <SimilarPhotos />}
+      </div>
+      <div className={currentPage === 'plugins' ? 'block animate-fade-in' : 'hidden'}>
+        {visitedPages.has('plugins') && <PluginManager />}
       </div>
       <div className={currentPage === 'settings' ? 'block animate-fade-in' : 'hidden'}>
         {visitedPages.has('settings') && <Settings />}

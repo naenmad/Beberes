@@ -782,4 +782,180 @@ export async function hibernateProject(
   });
 }
 
+// ==========================================
+// 17. Popover Controls
+// ==========================================
+export async function hidePopover(): Promise<void> {
+  return await invoke('hide_popover');
+}
+
+export async function openMainWindowFromPopover(targetPage?: string): Promise<void> {
+  return await invoke('open_main_window_from_popover', { targetPage: targetPage || null });
+}
+
+// ==========================================
+// 18. Battery & Hardware Intelligence
+// ==========================================
+export interface BatteryIntelligence {
+  has_battery: boolean;
+  cycle_count: number;
+  health_percentage: number;
+  current_percentage: number;
+  design_capacity: number;
+  nominal_capacity: number;
+  is_charging: boolean;
+  is_fully_charged: boolean;
+  is_plugged_in: boolean;
+  charger_watts: number | null;
+  condition: string;
+}
+
+export interface ThermalIntelligence {
+  thermal_state: string;
+  cpu_speed_limit: number;
+  is_throttled: boolean;
+  cpu_brand: string;
+  cpu_usage: number;
+  core_count: number;
+}
+
+export interface EnergyHogProcess {
+  pid: number;
+  name: string;
+  cpu_usage: number;
+  memory_bytes: number;
+}
+
+export interface HardwareReport {
+  battery: BatteryIntelligence;
+  thermal: ThermalIntelligence;
+  energy_hogs: EnergyHogProcess[];
+}
+
+export async function getHardwareIntelligence(): Promise<HardwareReport> {
+  return await invoke<HardwareReport>('get_hardware_intelligence');
+}
+
+// ==========================================
+// 19. Scheduled Background Cleaning (LaunchAgent)
+// ==========================================
+export interface ScheduleConfig {
+  enabled: boolean;
+  interval_type: 'daily' | 'weekly' | 'monthly';
+  hour: number;
+  clean_trash_older_days: number;
+  clean_xcode_derived_data: boolean;
+  clean_system_logs: boolean;
+  notify_on_complete: boolean;
+}
+
+export interface ScheduledCleanSummary {
+  success: boolean;
+  total_freed_bytes: number;
+  cleaned_items_count: number;
+  message: string;
+}
+
+export async function getScheduleConfig(): Promise<ScheduleConfig> {
+  return await invoke<ScheduleConfig>('get_schedule_config');
+}
+
+export async function saveScheduleConfig(config: ScheduleConfig): Promise<void> {
+  return await invoke('save_schedule_config', { config });
+}
+
+export async function triggerScheduledCleanNow(): Promise<ScheduledCleanSummary> {
+  return await invoke<ScheduledCleanSummary>('trigger_scheduled_clean_now');
+}
+
+// ==========================================
+// 20. Similar / Burst Photo Hunter
+// ==========================================
+export interface SimilarPhotoItem {
+  id: string;
+  path: string;
+  filename: string;
+  size_bytes: number;
+  width: number;
+  height: number;
+  last_modified: number;
+  is_recommended_keep: boolean;
+  selected_to_remove: boolean;
+}
+
+export interface SimilarPhotoGroup {
+  group_id: string;
+  similarity_percentage: number;
+  items: SimilarPhotoItem[];
+  reclaimable_bytes: number;
+}
+
+export interface SimilarMediaScanResult {
+  groups: SimilarPhotoGroup[];
+  total_similar_count: number;
+  total_reclaimable_bytes: number;
+}
+
+export async function scanSimilarPhotos(
+  targetFolders?: string[],
+  maxDistance?: number
+): Promise<SimilarMediaScanResult> {
+  return await invoke<SimilarMediaScanResult>('scan_similar_photos', {
+    targetFolders: targetFolders || null,
+    maxDistance: maxDistance || null,
+  });
+}
+
+export async function deleteSimilarPhotos(
+  photoPaths: string[],
+  toTrash: boolean = true
+): Promise<number> {
+  return await invoke<number>('delete_similar_photos', { photoPaths, toTrash });
+}
+
+// ==========================================
+// 21. Browser Extensions & macOS Plugins
+// ==========================================
+export interface ExtensionItem {
+  id: string;
+  name: string;
+  version: string;
+  description: string;
+  browser_or_type: string;
+  path: string;
+  size_bytes: number;
+  is_system_plugin: boolean;
+}
+
+export interface PluginScanReport {
+  items: ExtensionItem[];
+  total_count: number;
+  total_size_bytes: number;
+}
+
+export async function scanBrowserAndSystemPlugins(): Promise<PluginScanReport> {
+  return await invoke<PluginScanReport>('scan_browser_and_system_plugins');
+}
+
+export async function removePluginOrExtension(path: string): Promise<boolean> {
+  return await invoke<boolean>('remove_plugin_or_extension', { path });
+}
+
+// ==========================================
+// 22. Exportable System Health Report
+// ==========================================
+export async function exportReportMarkdown(
+  content: string,
+  savePath?: string
+): Promise<string> {
+  return await invoke<string>('export_report_markdown', {
+    content,
+    savePath: savePath || null,
+  });
+}
+
+
+
+
+
 

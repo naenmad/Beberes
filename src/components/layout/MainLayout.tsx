@@ -7,6 +7,7 @@ import WelcomeModal from '../ui/WelcomeModal';
 import HoldCmdQModal from '../ui/HoldCmdQModal';
 import MoveToApplicationsModal from '../ui/MoveToApplicationsModal';
 import StagedItemsModal from '../ui/StagedItemsModal';
+import ReportModal from '../ReportModal';
 import ScrollToTopButton from '../ui/ScrollToTopButton';
 import FloatingActionBar from '../ui/FloatingActionBar';
 import { useAppStore } from '../../store/appStore';
@@ -22,6 +23,8 @@ export default function MainLayout({ children }: MainLayoutProps) {
     stagedItems,
     openStagedModal,
     clearStagingQueue,
+    isReportModalOpen,
+    closeReportModal,
   } = useAppStore();
   const [isDraggingOver, setIsDraggingOver] = useState(false);
   const mainRef = useRef<HTMLElement>(null);
@@ -135,6 +138,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
       <HoldCmdQModal />
       <MoveToApplicationsModal />
       <StagedItemsModal />
+      <ReportModal isOpen={isReportModalOpen} onClose={closeReportModal} />
     </div>
   );
 }

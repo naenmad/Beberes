@@ -1,7 +1,15 @@
 import { useState, useEffect } from 'react';
 import { useAppStore, APP_VERSION } from '../store/appStore';
-import { pickFolder, getSystemDetails, clearIconCache, openExternalUrl } from '../lib/commands';
-import type { SystemDetails } from '../lib/commands';
+import {
+  pickFolder,
+  getSystemDetails,
+  clearIconCache,
+  openExternalUrl,
+  getScheduleConfig,
+  saveScheduleConfig,
+  triggerScheduledCleanNow,
+} from '../lib/commands';
+import type { SystemDetails, ScheduleConfig } from '../lib/commands';
 import { formatSize } from '../lib/utils';
 import { useTranslation } from '../lib/i18n';
 import Card, { CardHeader, CardBody } from '../components/ui/Card';
@@ -33,10 +41,12 @@ import {
   ArrowDownCircle,
   ExternalLink,
   Palette,
+  Clock,
 } from 'lucide-react';
 import { ACCENT_COLORS, ACCENT_PRESETS, getAccentColor } from '../lib/themeColors';
 
-type SettingsTab = 'general' | 'appearance' | 'folders' | 'system' | 'data';
+type SettingsTab = 'general' | 'appearance' | 'scheduler' | 'folders' | 'system' | 'data';
+
 
 export default function Settings() {
   const {
@@ -99,6 +109,57 @@ export default function Settings() {
   const [iconCacheClearedMsg, setIconCacheClearedMsg] = useState<string | null>(null);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const totalRecycledItems = cleanHistory.reduce((sum, e) => sum + (e.itemsCount || 0), 0);
+
+  // Scheduled Cleaning State
+  const [scheduleConfig, setScheduleConfig] = useState<ScheduleConfig>({
+    enabled: false,
+    interval_type: 'weekly',
+    hour: 10,
+    clean_trash_older_days: 30,
+    clean_xcode_derived_data: true,
+    clean_system_logs: true,
+    notify_on_complete: true,
+  });
+  const [isSavingSchedule, setIsSavingSchedule] = useState(false);
+  const [isRunningScheduledClean, setIsRunningScheduledClean] = useState(false);
+  const [scheduleFeedback, setScheduleFeedback] = useState<string | null>(null);
+
+  useEffect(() => {
+    getScheduleConfig().then((cfg) => {
+      if (cfg) setScheduleConfig(cfg);
+    }).catch(console.error);
+  }, []);
+
+  const handleSaveSchedule = async (newCfg: ScheduleConfig) => {
+    setIsSavingSchedule(true);
+    setScheduleFeedback(null);
+    try {
+      await saveScheduleConfig(newCfg);
+      setScheduleConfig(newCfg);
+      setScheduleFeedback(newCfg.enabled ? 'Scheduled cleaner active via macOS LaunchAgent' : 'Scheduled cleaner disabled');
+      setTimeout(() => setScheduleFeedback(null), 4000);
+    } catch (e: any) {
+      setScheduleFeedback(`Failed to save schedule: ${e}`);
+      setTimeout(() => setScheduleFeedback(null), 4000);
+    } finally {
+      setIsSavingSchedule(false);
+    }
+  };
+
+  const handleRunScheduledCleanNow = async () => {
+    setIsRunningScheduledClean(true);
+    setScheduleFeedback(null);
+    try {
+      const res = await triggerScheduledCleanNow();
+      setScheduleFeedback(`Maintenance finished: Reclaimed ${formatSize(res.total_freed_bytes)} across ${res.cleaned_items_count} items`);
+      setTimeout(() => setScheduleFeedback(null), 5000);
+    } catch (e: any) {
+      setScheduleFeedback(`Error running clean: ${e}`);
+      setTimeout(() => setScheduleFeedback(null), 4000);
+    } finally {
+      setIsRunningScheduledClean(false);
+    }
+  };
 
   // Load system details on mount
   useEffect(() => {
@@ -202,6 +263,19 @@ export default function Settings() {
         >
           <Type size={14} />
           <span>{t('settings.tabs.appearance')}</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('scheduler')}
+          className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
+            activeTab === 'scheduler'
+              ? 'bg-accent text-white shadow-sm'
+              : 'text-slate-600 dark:text-neutral-300 hover:bg-black/4 dark:hover:bg-white/5'
+          }`}
+        >
+          <Clock size={14} />
+          <span>Scheduled Clean</span>
         </button>
 
         <button
@@ -1046,6 +1120,144 @@ export default function Settings() {
                 <p className="text-xs text-slate-500 dark:text-neutral-400 mt-0.5">
                   {t('settings.textScale.previewNote', { scale: uiScale.toUpperCase() })}
                 </p>
+              </div>
+            </CardBody>
+          </Card>
+        </div>
+      )}
+
+      {/* SCHEDULED CLEANING (LAUNCHAGENT) */}
+      {activeTab === 'scheduler' && (
+        <div className="space-y-6">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between w-full">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-xl bg-accent-subtle text-accent">
+                    <Clock size={20} />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-semibold text-slate-800 dark:text-white">
+                      Automated Background Maintenance
+                    </h3>
+                    <p className="text-xs text-slate-400 dark:text-neutral-500">
+                      Configure background maintenance via native macOS LaunchAgent.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <Button
+                    onClick={handleRunScheduledCleanNow}
+                    loading={isRunningScheduledClean}
+                    variant="secondary"
+                    size="sm"
+                    icon={<Sparkles size={13} />}
+                  >
+                    Run Test Now
+                  </Button>
+                  <Button
+                    onClick={() => handleSaveSchedule(scheduleConfig)}
+                    loading={isSavingSchedule}
+                    variant="primary"
+                    size="sm"
+                    icon={<Check size={13} />}
+                  >
+                    Apply Schedule
+                  </Button>
+                </div>
+              </div>
+            </CardHeader>
+            <CardBody className="space-y-4">
+              {scheduleFeedback && (
+                <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-semibold flex items-center gap-2 animate-fade-in">
+                  <CheckCircle2 size={15} />
+                  <span>{scheduleFeedback}</span>
+                </div>
+              )}
+
+              {/* Toggle Enable */}
+              <div className="flex items-center justify-between p-3.5 rounded-xl bg-black/2 dark:bg-white/3 border border-black/5 dark:border-white/5">
+                <div>
+                  <div className="text-xs font-semibold text-slate-800 dark:text-white">
+                    Enable Scheduled Cleaning
+                  </div>
+                  <div className="text-[11px] text-slate-500 dark:text-neutral-400">
+                    Registers a native LaunchAgent daemon to maintain system cleanliness automatically.
+                  </div>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={scheduleConfig.enabled}
+                  onChange={(e) => setScheduleConfig({ ...scheduleConfig, enabled: e.target.checked })}
+                  className="w-4 h-4 text-accent rounded accent-emerald-500 cursor-pointer"
+                />
+              </div>
+
+              {/* Interval Selection */}
+              <div className="p-3.5 rounded-xl bg-black/2 dark:bg-white/3 border border-black/5 dark:border-white/5 space-y-2">
+                <label className="text-xs font-semibold text-slate-800 dark:text-white block">
+                  Maintenance Frequency
+                </label>
+                <div className="grid grid-cols-3 gap-2">
+                  {(['daily', 'weekly', 'monthly'] as const).map((type) => (
+                    <button
+                      key={type}
+                      type="button"
+                      onClick={() => setScheduleConfig({ ...scheduleConfig, interval_type: type })}
+                      className={`py-2 px-3 rounded-lg text-xs font-medium border capitalize transition-all ${
+                        scheduleConfig.interval_type === type
+                          ? 'bg-accent/15 border-accent text-accent font-semibold'
+                          : 'border-black/5 dark:border-white/10 hover:bg-black/4 dark:hover:bg-white/5 text-slate-600 dark:text-neutral-300'
+                      }`}
+                    >
+                      {type}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Rules & Scope */}
+              <div className="space-y-2 pt-2">
+                <span className="text-xs font-semibold text-slate-800 dark:text-white block">
+                  Automated Cleaning Rules
+                </span>
+
+                <label className="flex items-center justify-between p-3 rounded-lg bg-black/2 dark:bg-white/3 border border-black/5 dark:border-white/5 cursor-pointer">
+                  <span className="text-xs text-slate-700 dark:text-neutral-300">
+                    Clean system & user log diagnostics
+                  </span>
+                  <input
+                    type="checkbox"
+                    checked={scheduleConfig.clean_system_logs}
+                    onChange={(e) => setScheduleConfig({ ...scheduleConfig, clean_system_logs: e.target.checked })}
+                    className="w-3.5 h-3.5 accent-emerald-500"
+                  />
+                </label>
+
+                <label className="flex items-center justify-between p-3 rounded-lg bg-black/2 dark:bg-white/3 border border-black/5 dark:border-white/5 cursor-pointer">
+                  <span className="text-xs text-slate-700 dark:text-neutral-300">
+                    Clean Xcode DerivedData & temporary build artifacts
+                  </span>
+                  <input
+                    type="checkbox"
+                    checked={scheduleConfig.clean_xcode_derived_data}
+                    onChange={(e) => setScheduleConfig({ ...scheduleConfig, clean_xcode_derived_data: e.target.checked })}
+                    className="w-3.5 h-3.5 accent-emerald-500"
+                  />
+                </label>
+
+                <label className="flex items-center justify-between p-3 rounded-lg bg-black/2 dark:bg-white/3 border border-black/5 dark:border-white/5 cursor-pointer">
+                  <span className="text-xs text-slate-700 dark:text-neutral-300">
+                    Display macOS notification upon completion
+                  </span>
+                  <input
+                    type="checkbox"
+                    checked={scheduleConfig.notify_on_complete}
+                    onChange={(e) => setScheduleConfig({ ...scheduleConfig, notify_on_complete: e.target.checked })}
+                    className="w-3.5 h-3.5 accent-emerald-500"
+                  />
+                </label>
               </div>
             </CardBody>
           </Card>

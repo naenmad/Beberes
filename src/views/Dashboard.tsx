@@ -43,6 +43,7 @@ import {
   Usb,
   Cpu,
   RefreshCw,
+  FileText,
 } from 'lucide-react';
 
 export default function Dashboard() {
@@ -67,6 +68,7 @@ export default function Dashboard() {
     recordCleanResult,
     deleteToTrash,
     globalRefreshTrigger,
+    openReportModal,
   } = useAppStore();
 
   const [quickCleanResult, setQuickCleanResult] = useState<CleanResult | null>(null);
@@ -210,6 +212,15 @@ export default function Dashboard() {
         }
         actions={
           <>
+            <Button
+              onClick={openReportModal}
+              variant="secondary"
+              size="sm"
+              icon={<FileText size={14} />}
+            >
+              Audit Report
+            </Button>
+
             {cleanHistory.length > 0 && (
               <Button
                 onClick={() => setShowHistoryModal(true)}

@@ -17,6 +17,9 @@ import {
   Zap,
   ShieldAlert,
   GitBranch,
+  Activity,
+  Images,
+  Puzzle,
 } from 'lucide-react';
 import { useTranslation } from '../../lib/i18n';
 import DriveSelector from './DriveSelector';
@@ -31,6 +34,7 @@ const navGroups: NavGroup[] = [
     categoryKey: 'nav.categories.overview',
     items: [
       { id: 'dashboard', labelKey: 'nav.dashboard', icon: <LayoutDashboard size={16} /> },
+      { id: 'hardware', labelKey: 'nav.hardware', icon: <Activity size={16} /> },
     ],
   },
   {
@@ -49,6 +53,7 @@ const navGroups: NavGroup[] = [
       { id: 'large-duplicates', labelKey: 'nav.largeDuplicates', icon: <Layers size={16} /> },
       { id: 'quick-review', labelKey: 'nav.quickReview', icon: <Eye size={16} /> },
       { id: 'disk-visualizer', labelKey: 'nav.diskVisualizer', icon: <PieChart size={16} /> },
+      { id: 'similar-photos', labelKey: 'nav.similarPhotos', icon: <Images size={16} /> },
     ],
   },
   {
@@ -57,6 +62,7 @@ const navGroups: NavGroup[] = [
       { id: 'dev-workspace', labelKey: 'nav.devWorkspace', icon: <Code2 size={16} /> },
       { id: 'git-sweeper', labelKey: 'nav.gitSweeper', icon: <GitBranch size={16} /> },
       { id: 'startup-manager', labelKey: 'nav.startupManager', icon: <Zap size={16} /> },
+      { id: 'plugins', labelKey: 'nav.plugins', icon: <Puzzle size={16} /> },
     ],
   },
 ];

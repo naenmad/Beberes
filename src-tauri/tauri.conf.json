@@ -12,12 +12,25 @@
   "app": {
     "windows": [
       {
+        "label": "main",
         "title": "Beberes",
         "width": 1100,
         "height": 750,
         "minWidth": 900,
         "minHeight": 600,
         "center": true
+      },
+      {
+        "label": "popover",
+        "title": "Beberes Mini",
+        "width": 360,
+        "height": 480,
+        "decorations": false,
+        "transparent": true,
+        "alwaysOnTop": true,
+        "visible": false,
+        "skipTaskbar": true,
+        "resizable": false
       }
     ],
     "security": {

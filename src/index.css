@@ -295,3 +295,12 @@
   }
 }
 
+/* Popover Transparent Window Mode */
+html.popover-window,
+body.popover-window {
+  background-color: transparent !important;
+  overflow: hidden !important;
+  user-select: none !important;
+}
+
+

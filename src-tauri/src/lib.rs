@@ -30,6 +30,12 @@ use commands::smart_rules::{archive_old_downloads, consolidate_desktop_screensho
 use commands::ports::{kill_process_by_pid, list_active_ports};
 use commands::xcode_sim::{clean_xcode_target, purge_unavailable_simulators, scan_xcode_environments};
 use commands::dormant::{hibernate_project, scan_dormant_projects};
+use commands::popover::{hide_popover, open_main_window_from_popover};
+use commands::hardware::get_hardware_intelligence;
+use commands::scheduler::{get_schedule_config, save_schedule_config, trigger_scheduled_clean_now};
+use commands::similar_media::{delete_similar_photos, scan_similar_photos};
+use commands::plugins::{remove_plugin_or_extension, scan_browser_and_system_plugins};
+use commands::report::export_report_markdown;
 
 #[tauri::command]
 fn exit_app(app: tauri::AppHandle) {
@@ -42,7 +48,11 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
         .on_window_event(|window, event| {
-            if let tauri::WindowEvent::CloseRequested { api, .. } = event {
+            if window.label() == "popover" {
+                if let tauri::WindowEvent::Focused(false) = event {
+                    let _ = window.hide();
+                }
+            } else if let tauri::WindowEvent::CloseRequested { api, .. } = event {
                 #[cfg(target_os = "macos")]
                 {
                     api.prevent_close();
@@ -102,7 +112,46 @@ pub fn run() {
                 .icon_as_template(false)
                 .tooltip("Beberes - Mac Cleaner & Optimizer")
                 .menu(&menu)
-                .show_menu_on_left_click(true)
+                .show_menu_on_left_click(false)
+                .on_tray_icon_event(|tray, event| {
+                    use tauri::tray::{MouseButton, MouseButtonState, TrayIconEvent};
+                    if let TrayIconEvent::Click {
+                        button: MouseButton::Left,
+                        button_state: MouseButtonState::Up,
+                        rect,
+                        ..
+                    } = event
+                    {
+                        if let Some(popover) = tray.app_handle().get_webview_window("popover") {
+                            let is_visible = popover.is_visible().unwrap_or(false);
+                            if is_visible {
+                                let _ = popover.hide();
+                            } else {
+                                let scale_factor = popover.scale_factor().unwrap_or(1.0);
+                                let win_size = popover.outer_size().unwrap_or(tauri::PhysicalSize {
+                                    width: (360.0 * scale_factor) as u32,
+                                    height: (480.0 * scale_factor) as u32,
+                                });
+                                let (pos_x, pos_y) = match rect.position {
+                                    tauri::Position::Physical(p) => (p.x, p.y),
+                                    tauri::Position::Logical(l) => ((l.x * scale_factor) as i32, (l.y * scale_factor) as i32),
+                                };
+                                let (size_w, size_h) = match rect.size {
+                                    tauri::Size::Physical(s) => (s.width as i32, s.height as i32),
+                                    tauri::Size::Logical(l) => ((l.width * scale_factor) as i32, (l.height * scale_factor) as i32),
+                                };
+                                let target_x = pos_x + (size_w / 2) - (win_size.width as i32 / 2);
+                                let target_y = pos_y + size_h + 4;
+                                let _ = popover.set_position(tauri::Position::Physical(tauri::PhysicalPosition {
+                                    x: target_x.max(8),
+                                    y: target_y,
+                                }));
+                                let _ = popover.show();
+                                let _ = popover.set_focus();
+                            }
+                        }
+                    }
+                })
                 .on_menu_event(|app, event| match event.id.as_ref() {
                     "show" => {
                         let _ = app.set_activation_policy(tauri::ActivationPolicy::Regular);
@@ -274,6 +323,17 @@ pub fn run() {
             clean_xcode_target,
             scan_dormant_projects,
             hibernate_project,
+            hide_popover,
+            open_main_window_from_popover,
+            get_hardware_intelligence,
+            get_schedule_config,
+            save_schedule_config,
+            trigger_scheduled_clean_now,
+            scan_similar_photos,
+            delete_similar_photos,
+            scan_browser_and_system_plugins,
+            remove_plugin_or_extension,
+            export_report_markdown,
         ])
         .build(tauri::generate_context!())
         .expect("error while building tauri application");

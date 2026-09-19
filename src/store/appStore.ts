@@ -65,7 +65,11 @@ export type ViewPage =
   | 'startup-manager'
   | 'file-shredder'
   | 'git-sweeper'
+  | 'hardware'
+  | 'similar-photos'
+  | 'plugins'
   | 'settings';
+
 
 export interface StagedCleanItem {
   id: string;
@@ -241,6 +245,11 @@ interface AppState {
   openAboutModal: () => void;
   closeAboutModal: () => void;
 
+  // System Health Report Modal
+  isReportModalOpen: boolean;
+  openReportModal: () => void;
+  closeReportModal: () => void;
+
   // Theme & Accent Colors
   isDarkMode: boolean;
   toggleDarkMode: () => void;
@@ -374,6 +383,11 @@ export const useAppStore = create<AppState>((set, get) => ({
   isAboutModalOpen: false,
   openAboutModal: () => set({ isAboutModalOpen: true }),
   closeAboutModal: () => set({ isAboutModalOpen: false }),
+
+  // System Health Report Modal
+  isReportModalOpen: false,
+  openReportModal: () => set({ isReportModalOpen: true }),
+  closeReportModal: () => set({ isReportModalOpen: false }),
 
   // Theme
   isDarkMode: (() => {
