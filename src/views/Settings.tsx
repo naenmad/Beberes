@@ -14,6 +14,7 @@ import { formatSize } from '../lib/utils';
 import { useTranslation } from '../lib/i18n';
 import Card, { CardHeader, CardBody } from '../components/ui/Card';
 import Button from '../components/ui/Button';
+import Checkbox from '../components/ui/Checkbox';
 import PageHeader from '../components/layout/PageHeader';
 import {
   Shield,
@@ -1177,38 +1178,39 @@ export default function Settings() {
               )}
 
               {/* Toggle Enable */}
-              <div className="flex items-center justify-between p-3.5 rounded-xl bg-black/2 dark:bg-white/3 border border-black/5 dark:border-white/5">
+              <div
+                onClick={() => setScheduleConfig({ ...scheduleConfig, enabled: !scheduleConfig.enabled })}
+                className="flex items-center justify-between p-4 rounded-2xl bg-black/2 dark:bg-white/4 border border-black/5 dark:border-white/6 cursor-pointer hover:border-black/10 dark:hover:border-white/10 transition-all"
+              >
                 <div>
                   <div className="text-xs font-semibold text-slate-800 dark:text-white">
                     Enable Scheduled Cleaning
                   </div>
-                  <div className="text-[11px] text-slate-500 dark:text-neutral-400">
+                  <div className="text-[11px] text-slate-500 dark:text-neutral-400 mt-0.5">
                     Registers a native LaunchAgent daemon to maintain system cleanliness automatically.
                   </div>
                 </div>
-                <input
-                  type="checkbox"
+                <Checkbox
                   checked={scheduleConfig.enabled}
-                  onChange={(e) => setScheduleConfig({ ...scheduleConfig, enabled: e.target.checked })}
-                  className="w-4 h-4 text-accent rounded accent-emerald-500 cursor-pointer"
+                  onChange={() => setScheduleConfig({ ...scheduleConfig, enabled: !scheduleConfig.enabled })}
                 />
               </div>
 
               {/* Interval Selection */}
-              <div className="p-3.5 rounded-xl bg-black/2 dark:bg-white/3 border border-black/5 dark:border-white/5 space-y-2">
+              <div className="p-4 rounded-2xl bg-black/2 dark:bg-white/4 border border-black/5 dark:border-white/6 space-y-2.5">
                 <label className="text-xs font-semibold text-slate-800 dark:text-white block">
                   Maintenance Frequency
                 </label>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-3 gap-2.5">
                   {(['daily', 'weekly', 'monthly'] as const).map((type) => (
                     <button
                       key={type}
                       type="button"
                       onClick={() => setScheduleConfig({ ...scheduleConfig, interval_type: type })}
-                      className={`py-2 px-3 rounded-lg text-xs font-medium border capitalize transition-all ${
+                      className={`py-2 px-3 rounded-xl text-xs font-semibold border capitalize transition-all ${
                         scheduleConfig.interval_type === type
-                          ? 'bg-accent/15 border-accent text-accent font-semibold'
-                          : 'border-black/5 dark:border-white/10 hover:bg-black/4 dark:hover:bg-white/5 text-slate-600 dark:text-neutral-300'
+                          ? 'bg-accent text-white border-accent shadow-xs'
+                          : 'border-black/6 dark:border-white/8 hover:bg-black/4 dark:hover:bg-white/6 text-slate-600 dark:text-neutral-300'
                       }`}
                     >
                       {type}
@@ -1218,46 +1220,49 @@ export default function Settings() {
               </div>
 
               {/* Rules & Scope */}
-              <div className="space-y-2 pt-2">
+              <div className="space-y-2.5 pt-1">
                 <span className="text-xs font-semibold text-slate-800 dark:text-white block">
                   Automated Cleaning Rules
                 </span>
 
-                <label className="flex items-center justify-between p-3 rounded-lg bg-black/2 dark:bg-white/3 border border-black/5 dark:border-white/5 cursor-pointer">
+                <div
+                  onClick={() => setScheduleConfig({ ...scheduleConfig, clean_system_logs: !scheduleConfig.clean_system_logs })}
+                  className="flex items-center justify-between p-3.5 rounded-2xl bg-black/2 dark:bg-white/4 border border-black/5 dark:border-white/6 cursor-pointer hover:border-black/10 dark:hover:border-white/10 transition-all"
+                >
                   <span className="text-xs text-slate-700 dark:text-neutral-300">
                     Clean system & user log diagnostics
                   </span>
-                  <input
-                    type="checkbox"
+                  <Checkbox
                     checked={scheduleConfig.clean_system_logs}
-                    onChange={(e) => setScheduleConfig({ ...scheduleConfig, clean_system_logs: e.target.checked })}
-                    className="w-3.5 h-3.5 accent-emerald-500"
+                    onChange={() => setScheduleConfig({ ...scheduleConfig, clean_system_logs: !scheduleConfig.clean_system_logs })}
                   />
-                </label>
+                </div>
 
-                <label className="flex items-center justify-between p-3 rounded-lg bg-black/2 dark:bg-white/3 border border-black/5 dark:border-white/5 cursor-pointer">
+                <div
+                  onClick={() => setScheduleConfig({ ...scheduleConfig, clean_xcode_derived_data: !scheduleConfig.clean_xcode_derived_data })}
+                  className="flex items-center justify-between p-3.5 rounded-2xl bg-black/2 dark:bg-white/4 border border-black/5 dark:border-white/6 cursor-pointer hover:border-black/10 dark:hover:border-white/10 transition-all"
+                >
                   <span className="text-xs text-slate-700 dark:text-neutral-300">
                     Clean Xcode DerivedData & temporary build artifacts
                   </span>
-                  <input
-                    type="checkbox"
+                  <Checkbox
                     checked={scheduleConfig.clean_xcode_derived_data}
-                    onChange={(e) => setScheduleConfig({ ...scheduleConfig, clean_xcode_derived_data: e.target.checked })}
-                    className="w-3.5 h-3.5 accent-emerald-500"
+                    onChange={() => setScheduleConfig({ ...scheduleConfig, clean_xcode_derived_data: !scheduleConfig.clean_xcode_derived_data })}
                   />
-                </label>
+                </div>
 
-                <label className="flex items-center justify-between p-3 rounded-lg bg-black/2 dark:bg-white/3 border border-black/5 dark:border-white/5 cursor-pointer">
+                <div
+                  onClick={() => setScheduleConfig({ ...scheduleConfig, notify_on_complete: !scheduleConfig.notify_on_complete })}
+                  className="flex items-center justify-between p-3.5 rounded-2xl bg-black/2 dark:bg-white/4 border border-black/5 dark:border-white/6 cursor-pointer hover:border-black/10 dark:hover:border-white/10 transition-all"
+                >
                   <span className="text-xs text-slate-700 dark:text-neutral-300">
                     Display macOS notification upon completion
                   </span>
-                  <input
-                    type="checkbox"
+                  <Checkbox
                     checked={scheduleConfig.notify_on_complete}
-                    onChange={(e) => setScheduleConfig({ ...scheduleConfig, notify_on_complete: e.target.checked })}
-                    className="w-3.5 h-3.5 accent-emerald-500"
+                    onChange={() => setScheduleConfig({ ...scheduleConfig, notify_on_complete: !scheduleConfig.notify_on_complete })}
                   />
-                </label>
+                </div>
               </div>
             </CardBody>
           </Card>

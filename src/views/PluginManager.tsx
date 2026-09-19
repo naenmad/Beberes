@@ -8,10 +8,12 @@ import {
   Trash2,
   RefreshCw,
   CheckCircle2,
-  Sparkles,
+  FolderCheck,
   Search,
   ShieldAlert,
   ExternalLink,
+  Package,
+  HardDrive,
 } from 'lucide-react';
 import {
   scanBrowserAndSystemPlugins,
@@ -23,6 +25,8 @@ import {
 } from '../lib/commands';
 import { formatSize } from '../lib/utils';
 import Button from '../components/ui/Button';
+import PageHeader from '../components/layout/PageHeader';
+import { CardSkeleton } from '../components/ui/SkeletonLoader';
 
 export default function PluginManager() {
   const { t } = useTranslation();
@@ -89,44 +93,44 @@ export default function PluginManager() {
     return true;
   });
 
-  return (
-    <div className="p-6 space-y-6 max-w-6xl mx-auto font-sans">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2.5">
-            <Puzzle className="w-6 h-6 text-emerald-500" />
-            {t('pluginsManager.title', 'Browser Extensions & macOS Plugin Manager')}
-          </h1>
-          <p className="text-sm text-slate-500 dark:text-neutral-400 mt-1">
-            {t(
-              'pluginsManager.subtitle',
-              'Audit and uninstall forgotten web extensions, QuickLook preview generators, Spotlight importers, and Audio plugins.'
-            )}
-          </p>
-        </div>
+  const browserExtCount = (report?.items || []).filter((i) => !i.is_system_plugin).length;
+  const systemPluginCount = (report?.items || []).filter((i) => i.is_system_plugin).length;
 
-        <Button
-          onClick={fetchPlugins}
-          loading={isLoading}
-          variant="secondary"
-          size="sm"
-          icon={<RefreshCw size={13} className={isLoading ? 'animate-spin' : ''} />}
-        >
-          {t('pluginsManager.rescan', 'Rescan Plugins')}
-        </Button>
-      </div>
+  return (
+    <div className="space-y-6 pb-24">
+      {/* Standard Beberes PageHeader */}
+      <PageHeader
+        icon={<Puzzle size={20} />}
+        title={t('pluginsManager.title', 'Browser Extensions & macOS Plugins')}
+        subtitle={t(
+          'pluginsManager.subtitle',
+          'Audit and remove forgotten web extensions, QuickLook generators, and system plugins.'
+        )}
+        actions={
+          <Button
+            onClick={fetchPlugins}
+            loading={isLoading}
+            variant="secondary"
+            size="sm"
+            icon={<RefreshCw size={13} className={isLoading ? 'animate-spin' : ''} />}
+          >
+            {t('pluginsManager.rescan', 'Rescan Plugins')}
+          </Button>
+        }
+      />
 
       {/* Full Disk Access Banner */}
       {report?.permission_denied && (
-        <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-900 dark:text-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-fade-in">
-          <div className="flex items-start gap-3">
-            <ShieldAlert className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+        <div className="p-5 rounded-3xl glass-panel border border-amber-500/20 bg-amber-500/5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-fade-in">
+          <div className="flex items-start gap-3.5">
+            <div className="w-10 h-10 rounded-2xl bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+              <ShieldAlert size={20} />
+            </div>
             <div>
-              <h4 className="text-sm font-bold">
+              <h4 className="text-sm font-bold text-slate-900 dark:text-white">
                 {t('pluginsManager.fdaTitle', 'Full Disk Access Required to Scan Browser Extensions')}
               </h4>
-              <p className="text-xs text-amber-700/90 dark:text-amber-300/90 mt-0.5">
+              <p className="text-xs text-slate-500 dark:text-neutral-400 mt-0.5 max-w-xl">
                 {t(
                   'pluginsManager.fdaDesc',
                   'macOS protects browser user profiles (Chrome, Edge, Brave, etc.) from direct access. Grant Full Disk Access to Beberes in macOS System Settings so it can inspect and list your extensions.'
@@ -136,10 +140,10 @@ export default function PluginManager() {
           </div>
           <Button
             onClick={handleOpenFDA}
-            variant="secondary"
+            variant="primary"
             size="sm"
             icon={<ExternalLink size={13} />}
-            className="shrink-0 text-xs border-amber-500/40 text-amber-800 dark:text-amber-200 hover:bg-amber-500/20"
+            className="shrink-0"
           >
             {t('pluginsManager.fdaButton', 'Open Privacy Settings')}
           </Button>
@@ -147,131 +151,148 @@ export default function PluginManager() {
       )}
 
       {feedback && (
-        <div className="py-2.5 px-4 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-700 dark:text-emerald-300 text-xs font-medium flex items-center gap-2 animate-fade-in">
-          <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+        <div className="py-2.5 px-4 rounded-2xl bg-accent-subtle border border-accent/20 text-accent text-xs font-medium flex items-center gap-2 animate-fade-in">
+          <CheckCircle2 size={16} />
           {feedback}
         </div>
       )}
 
+      {/* Top Overview Cards */}
+      {report && (
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="p-5 rounded-3xl glass-panel flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-accent-subtle text-accent flex items-center justify-center shrink-0">
+              <Package size={20} />
+            </div>
+            <div>
+              <span className="text-[10px] text-slate-400 uppercase font-mono tracking-wider">
+                {t('pluginsManager.allPlugins', 'Total Items')}
+              </span>
+              <p className="text-xl font-bold text-slate-900 dark:text-white">
+                {report.total_count}
+              </p>
+            </div>
+          </div>
+
+          <div className="p-5 rounded-3xl glass-panel flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-secondary-subtle text-secondary-accent flex items-center justify-center shrink-0">
+              <HardDrive size={20} />
+            </div>
+            <div>
+              <span className="text-[10px] text-slate-400 uppercase font-mono tracking-wider">
+                Occupied Size
+              </span>
+              <p className="text-xl font-bold text-slate-900 dark:text-white">
+                {formatSize(report.total_size_bytes)}
+              </p>
+            </div>
+          </div>
+
+          <div className="p-5 rounded-3xl glass-panel flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center shrink-0">
+              <Globe size={20} />
+            </div>
+            <div>
+              <span className="text-[10px] text-slate-400 uppercase font-mono tracking-wider">
+                Categories
+              </span>
+              <p className="text-xs font-semibold text-slate-700 dark:text-neutral-200 mt-0.5">
+                {browserExtCount} Browser &bull; {systemPluginCount} System
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Control Bar: Filters & Search */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 rounded-2xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 shadow-xs">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-2.5 rounded-3xl glass-panel">
         <div className="flex items-center gap-1.5 flex-wrap">
           <button
+            type="button"
             onClick={() => setFilterType('all')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
+            className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
               filterType === 'all'
-                ? 'bg-emerald-500 text-white shadow-xs'
+                ? 'bg-accent text-white shadow-xs'
                 : 'text-slate-600 dark:text-neutral-400 hover:bg-black/5 dark:hover:bg-white/5'
             }`}
           >
-            {t('pluginsManager.allPlugins', 'All Plugins')} ({report?.total_count || 0})
+            {t('pluginsManager.allPlugins', 'All')} ({report?.total_count || 0})
           </button>
           <button
+            type="button"
             onClick={() => setFilterType('browser')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
+            className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
               filterType === 'browser'
-                ? 'bg-emerald-500 text-white shadow-xs'
+                ? 'bg-accent text-white shadow-xs'
                 : 'text-slate-600 dark:text-neutral-400 hover:bg-black/5 dark:hover:bg-white/5'
             }`}
           >
-            {t('pluginsManager.browserExtensions', 'Browser Extensions')}
+            {t('pluginsManager.browserExtensions', 'Browser Extensions')} ({browserExtCount})
           </button>
           <button
+            type="button"
             onClick={() => setFilterType('system')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
+            className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
               filterType === 'system'
-                ? 'bg-emerald-500 text-white shadow-xs'
+                ? 'bg-accent text-white shadow-xs'
                 : 'text-slate-600 dark:text-neutral-400 hover:bg-black/5 dark:hover:bg-white/5'
             }`}
           >
-            {t('pluginsManager.systemPlugins', 'macOS System Plugins')}
+            {t('pluginsManager.systemPlugins', 'macOS System Plugins')} ({systemPluginCount})
           </button>
         </div>
 
         <div className="relative w-full sm:w-64">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+          <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder={t('pluginsManager.searchPlaceholder', 'Search extensions or plugins...')}
-            className="w-full pl-9 pr-3 py-1.5 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-xs text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:border-emerald-500"
+            className="w-full pl-8.5 pr-3 py-1.5 rounded-xl bg-black/4 dark:bg-white/5 border border-black/6 dark:border-white/8 text-xs text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:border-accent"
           />
         </div>
       </div>
 
-      {/* Loading */}
-      {isLoading && (
-        <div className="py-20 text-center text-slate-400">
-          <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-3 text-emerald-500" />
-          <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">
-            {t('pluginsManager.scanning', 'Scanning browser manifest stores and system bundles...')}
+      {/* Main Content */}
+      {isLoading ? (
+        <div className="space-y-4">
+          <CardSkeleton />
+          <CardSkeleton />
+        </div>
+      ) : filteredItems.length === 0 ? (
+        <div className="py-16 text-center rounded-3xl glass-panel max-w-md mx-auto space-y-3">
+          <div className="w-14 h-14 rounded-3xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center mx-auto">
+            <FolderCheck size={32} />
+          </div>
+          <h2 className="text-base font-bold text-slate-800 dark:text-neutral-100">
+            {t('pluginsManager.noPlugins', 'No Extensions or Plugins Found')}
+          </h2>
+          <p className="text-xs text-slate-400">
+            {searchQuery
+              ? t('pluginsManager.noSearchMatch', 'No items match your search query.')
+              : t('pluginsManager.noPluginsDesc', 'No installed plugins found in inspected directories.')}
           </p>
         </div>
-      )}
-
-      {/* Empty State */}
-      {!isLoading && filteredItems.length === 0 && (
-        <div className="py-16 text-center text-slate-400 bg-white dark:bg-white/5 rounded-2xl border border-slate-200 dark:border-white/10 p-6">
-          {report?.permission_denied ? (
-            <div className="max-w-md mx-auto space-y-3">
-              <ShieldAlert className="w-12 h-12 mx-auto text-amber-500" />
-              <h3 className="text-base font-bold text-slate-800 dark:text-white">
-                {t('pluginsManager.fdaEmptyTitle', 'Browser Profiles Protected by macOS')}
-              </h3>
-              <p className="text-xs text-slate-500 dark:text-neutral-400">
-                {t(
-                  'pluginsManager.fdaEmptyDesc',
-                  'Beberes cannot inspect Google Chrome or Microsoft Edge extensions without Full Disk Access. Click below to grant access in System Settings.'
-                )}
-              </p>
-              <div className="pt-2">
-                <Button
-                  onClick={handleOpenFDA}
-                  variant="primary"
-                  size="sm"
-                  icon={<ExternalLink size={13} />}
-                >
-                  {t('pluginsManager.fdaButton', 'Open Privacy Settings')}
-                </Button>
-              </div>
-            </div>
-          ) : (
-            <div className="max-w-md mx-auto space-y-2">
-              <Sparkles className="w-10 h-10 mx-auto text-emerald-500 mb-3" />
-              <h3 className="text-base font-bold text-slate-800 dark:text-white">
-                {t('pluginsManager.noPlugins', 'No Extensions or Plugins Found')}
-              </h3>
-              <p className="text-xs text-slate-500 dark:text-neutral-400">
-                {searchQuery
-                  ? t('pluginsManager.noSearchMatch', 'No items match your search query.')
-                  : t('pluginsManager.noPluginsDesc', 'No installed plugins found in inspected directories.')}
-              </p>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* List */}
-      {!isLoading && filteredItems.length > 0 && (
+      ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {filteredItems.map((item) => (
             <div
               key={item.id}
-              className="p-4 rounded-2xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 shadow-xs flex flex-col justify-between hover:border-slate-300 dark:hover:border-white/20 transition-all"
+              className="p-4 rounded-3xl glass-panel flex flex-col justify-between space-y-3 hover:border-black/10 dark:hover:border-white/12 transition-all"
             >
               <div>
                 <div className="flex items-start justify-between gap-3 mb-2">
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 shrink-0">
-                      {item.is_system_plugin ? <Layers size={18} /> : <Globe size={18} />}
+                    <div className="w-8 h-8 rounded-xl bg-accent-subtle text-accent flex items-center justify-center shrink-0">
+                      {item.is_system_plugin ? <Layers size={16} /> : <Globe size={16} />}
                     </div>
                     <div className="min-w-0">
-                      <h3 className="text-sm font-bold text-slate-900 dark:text-white truncate" title={item.name}>
+                      <h4 className="text-sm font-bold text-slate-900 dark:text-white truncate" title={item.name}>
                         {item.name}
-                      </h3>
+                      </h4>
                       <div className="flex items-center gap-1.5 text-[11px] text-slate-400 mt-0.5 truncate">
-                        <span className="font-semibold text-emerald-600 dark:text-emerald-400 shrink-0">
+                        <span className="font-semibold text-accent shrink-0">
                           {item.browser_or_type}
                         </span>
                         <span>&bull;</span>
@@ -280,40 +301,41 @@ export default function PluginManager() {
                     </div>
                   </div>
 
-                  <span className="text-xs font-mono font-bold text-slate-700 dark:text-neutral-300 px-2 py-0.5 rounded-md bg-slate-100 dark:bg-white/10 shrink-0">
+                  <span className="text-xs font-mono font-bold text-slate-700 dark:text-neutral-300 px-2 py-0.5 rounded-lg bg-black/4 dark:bg-white/8 shrink-0">
                     {formatSize(item.size_bytes)}
                   </span>
                 </div>
 
                 {item.description && (
-                  <p className="text-xs text-slate-500 dark:text-neutral-400 line-clamp-2 my-2" title={item.description}>
+                  <p className="text-xs text-slate-500 dark:text-neutral-400 line-clamp-2 my-1" title={item.description}>
                     {item.description}
                   </p>
                 )}
               </div>
 
               {/* Bottom Actions */}
-              <div className="flex items-center justify-between pt-3 mt-2 border-t border-slate-100 dark:border-white/5">
+              <div className="flex items-center justify-between pt-2.5 border-t border-black/4 dark:border-white/6 text-xs">
                 <button
                   type="button"
                   onClick={() => revealInFinder(item.path)}
-                  className="text-[11px] font-semibold text-slate-500 dark:text-neutral-400 hover:text-slate-800 dark:hover:text-white flex items-center gap-1 transition-colors"
+                  className="text-slate-400 hover:text-slate-800 dark:hover:text-white flex items-center gap-1 transition-colors text-[11px]"
                 >
-                  <FolderOpen size={13} />
+                  <FolderOpen size={12} />
                   {t('pluginsManager.revealInFinder', 'Reveal in Finder')}
                 </button>
 
-                <button
-                  type="button"
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  loading={removingPath === item.path}
                   onClick={() => handleRemove(item)}
-                  disabled={removingPath === item.path}
-                  className="px-2.5 py-1 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 text-xs font-semibold flex items-center gap-1 transition-colors disabled:opacity-50"
+                  className="text-rose-600 dark:text-rose-400 hover:bg-rose-500/10 text-[11px] font-semibold px-2.5 py-1 rounded-lg border border-rose-500/20"
                 >
                   <Trash2 size={12} />
                   {removingPath === item.path
                     ? t('pluginsManager.uninstalling', 'Removing...')
                     : t('pluginsManager.uninstall', 'Uninstall')}
-                </button>
+                </Button>
               </div>
             </div>
           ))}

@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from '../lib/i18n';
 import {
   Images,
   Sparkles,
   Trash2,
   CheckCircle2,
   RefreshCw,
-  Check,
   FolderOpen,
+  FolderCheck,
+  CheckCheck,
 } from 'lucide-react';
 import {
   scanSimilarPhotos,
@@ -16,10 +18,13 @@ import {
 } from '../lib/commands';
 import { convertFileSrc } from '@tauri-apps/api/core';
 import { formatSize } from '../lib/utils';
-import Card, { CardBody } from '../components/ui/Card';
 import Button from '../components/ui/Button';
+import Checkbox from '../components/ui/Checkbox';
+import PageHeader from '../components/layout/PageHeader';
+import { CardSkeleton } from '../components/ui/SkeletonLoader';
 
 export default function SimilarPhotos() {
+  const { t } = useTranslation();
   const [result, setResult] = useState<SimilarMediaScanResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedPaths, setSelectedPaths] = useState<Set<string>>(new Set());
@@ -33,7 +38,7 @@ export default function SimilarPhotos() {
       const data = await scanSimilarPhotos();
       setResult(data);
 
-      // Auto-select duplicates (non-recommended items)
+      // Auto-select duplicates (non-recommended keep items)
       const toSelect = new Set<string>();
       data.groups.forEach((g) => {
         g.items.forEach((item) => {
@@ -43,8 +48,9 @@ export default function SimilarPhotos() {
         });
       });
       setSelectedPaths(toSelect);
-    } catch {
-      setFeedback('Failed to scan photos.');
+    } catch (err) {
+      console.error('Failed to scan similar photos:', err);
+      setFeedback('Failed to scan photo library.');
     } finally {
       setIsLoading(false);
     }
@@ -66,6 +72,20 @@ export default function SimilarPhotos() {
     });
   };
 
+  const selectGroupDuplicates = (groupPaths: string[], keepPath?: string) => {
+    setSelectedPaths((prev) => {
+      const next = new Set(prev);
+      groupPaths.forEach((p) => {
+        if (p !== keepPath) {
+          next.add(p);
+        } else {
+          next.delete(p);
+        }
+      });
+      return next;
+    });
+  };
+
   const handleClean = async () => {
     if (selectedPaths.size === 0 || isDeleting) return;
     setIsDeleting(true);
@@ -73,40 +93,44 @@ export default function SimilarPhotos() {
     try {
       const paths = Array.from(selectedPaths);
       const freed = await deleteSimilarPhotos(paths, true);
-      setFeedback(`Moved ${paths.length} similar photos to Trash, freed ${formatSize(freed)}`);
+      setFeedback(
+        t('similarPhotos.cleanedSuccess', 'Moved {count} similar photos to Trash ({size} freed)')
+          .replace('{count}', paths.length.toString())
+          .replace('{size}', formatSize(freed))
+      );
       setTimeout(() => setFeedback(null), 4000);
       await startScan();
     } catch {
-      setFeedback('Error deleting selected photos.');
+      setFeedback('Error moving selected photos to Trash.');
     } finally {
       setIsDeleting(false);
     }
   };
 
-  const selectedBytes = result?.groups.reduce((sum, g) => {
-    return (
-      sum +
-      g.items
-        .filter((i) => selectedPaths.has(i.path))
-        .reduce((s, i) => s + i.size_bytes, 0)
-    );
-  }, 0) || 0;
+  const selectedBytes =
+    result?.groups.reduce((sum, g) => {
+      return (
+        sum +
+        g.items
+          .filter((i) => selectedPaths.has(i.path))
+          .reduce((s, i) => s + i.size_bytes, 0)
+      );
+    }, 0) || 0;
+
+  const totalReclaimableAll =
+    result?.total_reclaimable_bytes || 0;
 
   return (
-    <div className="p-6 space-y-6 max-w-6xl mx-auto font-sans">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2.5">
-            <Images className="w-6 h-6 text-emerald-500" />
-            Similar & Burst Photo Hunter
-          </h1>
-          <p className="text-sm text-slate-500 dark:text-neutral-400 mt-1">
-            Detect identical or slightly modified photos, burst shots, and accumulated screenshot series using perceptual hashing (pHash).
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2.5">
+    <div className="space-y-6 pb-24">
+      {/* Standard Beberes PageHeader */}
+      <PageHeader
+        icon={<Images size={20} />}
+        title={t('similarPhotos.title', 'Similar & Burst Photos')}
+        subtitle={t(
+          'similarPhotos.subtitle',
+          'Visually cluster redundant camera shots and bursts, keeping only the best quality photo.'
+        )}
+        actions={
           <Button
             onClick={startScan}
             loading={isLoading}
@@ -114,176 +138,202 @@ export default function SimilarPhotos() {
             size="sm"
             icon={<RefreshCw size={13} className={isLoading ? 'animate-spin' : ''} />}
           >
-            Rescan Photos
+            {t('similarPhotos.scanPhotos', 'Scan Photos')}
           </Button>
-          <Button
-            onClick={handleClean}
-            disabled={selectedPaths.size === 0 || isDeleting}
-            loading={isDeleting}
-            variant="danger"
-            size="sm"
-            icon={<Trash2 size={13} />}
-          >
-            Clean Selected ({selectedPaths.size}) • {formatSize(selectedBytes)}
-          </Button>
-        </div>
-      </div>
+        }
+      />
 
       {feedback && (
-        <div className="py-2.5 px-4 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-700 dark:text-emerald-300 text-xs font-medium flex items-center gap-2 animate-fade-in">
-          <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+        <div className="py-2.5 px-4 rounded-2xl bg-accent-subtle border border-accent/20 text-accent text-xs font-medium flex items-center gap-2 animate-fade-in">
+          <CheckCircle2 size={16} />
           {feedback}
         </div>
       )}
 
-      {/* Loading state */}
-      {isLoading && (
-        <div className="py-20 text-center text-slate-400">
-          <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-3 text-emerald-500" />
-          <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">
-            Analyzing visual signatures...
-          </p>
-          <p className="text-xs text-slate-400 mt-1">
-            Generating 64-bit difference hashes and checking perceptual distance in Pictures and Downloads.
-          </p>
-        </div>
-      )}
-
-      {/* Empty State */}
-      {!isLoading && result && result.groups.length === 0 && (
-        <Card>
-          <CardBody className="py-16 text-center text-slate-400">
-            <Sparkles className="w-10 h-10 mx-auto text-emerald-500 mb-3" />
-            <h3 className="text-base font-bold text-slate-800 dark:text-white">
-              No Similar or Burst Photos Found
-            </h3>
-            <p className="text-xs text-slate-500 dark:text-neutral-400 mt-1 max-w-md mx-auto">
-              Your photo albums and screenshot libraries are tidy. No redundant similar media was detected.
-            </p>
-          </CardBody>
-        </Card>
-      )}
-
-      {/* Results Groups */}
-      {!isLoading && result && result.groups.length > 0 && (
-        <div className="space-y-6">
-          {/* Summary bar */}
-          <div className="flex items-center justify-between p-4 rounded-2xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 shadow-xs">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-500">
-                <Images size={20} />
-              </div>
-              <div>
-                <span className="text-xs text-slate-400">Detected Media Duplication</span>
-                <div className="text-sm font-bold text-slate-900 dark:text-white mt-0.5">
-                  {result.groups.length} Similar Groups ({result.total_similar_count} Photos)
-                </div>
-              </div>
+      {/* Top Overview Cards */}
+      {result && result.groups.length > 0 && (
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="p-5 rounded-3xl glass-panel flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-accent-subtle text-accent flex items-center justify-center shrink-0">
+              <Images size={20} />
             </div>
-            <div className="text-right">
-              <span className="text-xs text-slate-400">Reclaimable Space</span>
-              <div className="text-sm font-bold text-emerald-600 dark:text-emerald-400 mt-0.5 font-mono">
-                {formatSize(result.total_reclaimable_bytes)}
-              </div>
+            <div>
+              <span className="text-[10px] text-slate-400 uppercase font-mono tracking-wider">
+                {t('similarPhotos.clustersFound', 'Photo Clusters')}
+              </span>
+              <p className="text-xl font-bold text-slate-900 dark:text-white">
+                {result.groups.length}
+              </p>
             </div>
           </div>
 
-          {/* Groups List */}
-          {result.groups.map((group, gIdx) => (
-            <div
-              key={group.group_id}
-              className="p-4 rounded-2xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 shadow-xs space-y-3"
+          <div className="p-5 rounded-3xl glass-panel flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center shrink-0">
+              <Sparkles size={20} />
+            </div>
+            <div>
+              <span className="text-[10px] text-slate-400 uppercase font-mono tracking-wider">
+                {t('similarPhotos.reclaimable', 'Reclaimable Space')}
+              </span>
+              <p className="text-xl font-bold text-slate-900 dark:text-white">
+                {formatSize(totalReclaimableAll)}
+              </p>
+            </div>
+          </div>
+
+          <div className="p-5 rounded-3xl glass-panel flex items-center justify-between">
+            <div>
+              <span className="text-[10px] text-slate-400 uppercase font-mono tracking-wider">
+                Selected for Cleanup
+              </span>
+              <p className="text-xl font-bold text-rose-600 dark:text-rose-400">
+                {selectedPaths.size} ({formatSize(selectedBytes)})
+              </p>
+            </div>
+
+            <Button
+              variant="danger"
+              size="sm"
+              loading={isDeleting}
+              disabled={selectedPaths.size === 0}
+              icon={<Trash2 size={13} />}
+              onClick={handleClean}
             >
-              <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/5 pb-2.5">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-bold text-slate-800 dark:text-white">
-                    Group #{gIdx + 1}
-                  </span>
-                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 font-semibold font-mono">
-                    {group.similarity_percentage}% Visual Similarity
-                  </span>
+              Clean
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Main Content */}
+      {isLoading ? (
+        <div className="space-y-4">
+          <CardSkeleton />
+          <CardSkeleton />
+        </div>
+      ) : !result || result.groups.length === 0 ? (
+        <div className="py-16 text-center rounded-3xl glass-panel max-w-md mx-auto space-y-3">
+          <div className="w-14 h-14 rounded-3xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center mx-auto">
+            <FolderCheck size={32} />
+          </div>
+          <h2 className="text-base font-bold text-slate-800 dark:text-neutral-100">
+            {t('similarPhotos.noDuplicates', 'No Similar Photos Found')}
+          </h2>
+          <p className="text-xs text-slate-400">
+            {t(
+              'similarPhotos.noDuplicatesDesc',
+              'Your photo library has no redundant burst shots or similar photos.'
+            )}
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-6">
+          {result.groups.map((group, groupIdx) => {
+            const bestItem = group.items.find((i) => i.is_recommended_keep) || group.items[0];
+            const allPaths = group.items.map((i) => i.path);
+
+            return (
+              <div key={groupIdx} className="p-5 rounded-3xl glass-panel space-y-4">
+                {/* Cluster Header */}
+                <div className="flex items-center justify-between pb-3 border-b border-black/4 dark:border-white/6 flex-wrap gap-2">
+                  <div className="flex items-center gap-2.5">
+                    <span className="text-xs font-mono font-bold px-2 py-0.5 rounded-lg bg-accent-subtle text-accent">
+                      Cluster #{groupIdx + 1}
+                    </span>
+                    <span className="text-xs text-slate-500 dark:text-neutral-400">
+                      {group.items.length} photos &bull; {formatSize(group.reclaimable_bytes)} reclaimable
+                    </span>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => selectGroupDuplicates(allPaths, bestItem?.path)}
+                    className="text-xs font-semibold text-accent hover:underline flex items-center gap-1"
+                  >
+                    <CheckCheck size={14} />
+                    Select Similar (Keep Best)
+                  </button>
                 </div>
-                <span className="text-xs text-slate-400">
-                  {group.items.length} variants • Reclaim {formatSize(group.reclaimable_bytes)}
-                </span>
-              </div>
 
-              {/* Side-by-Side Comparison Cards */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                {group.items.map((item) => {
-                  const isSelected = selectedPaths.has(item.path);
-                  return (
-                    <div
-                      key={item.id}
-                      onClick={() => toggleSelect(item.path)}
-                      className={`group relative p-2.5 rounded-xl border transition-all cursor-pointer flex flex-col justify-between ${
-                        isSelected
-                          ? 'border-rose-500/50 bg-rose-500/5 dark:bg-rose-500/10 shadow-xs'
-                          : item.is_recommended_keep
-                          ? 'border-emerald-500/40 bg-emerald-500/5 dark:bg-emerald-500/10'
-                          : 'border-slate-200 dark:border-white/5 hover:border-slate-300 dark:hover:border-white/20'
-                      }`}
-                    >
-                      {/* Image Thumbnail */}
-                      <div className="relative w-full h-36 bg-black/5 dark:bg-black/30 rounded-lg overflow-hidden flex items-center justify-center mb-2">
-                        <img
-                          src={convertFileSrc(item.path)}
-                          alt={item.filename}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                          loading="lazy"
-                        />
+                {/* Photos Grid */}
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                  {group.items.map((item) => {
+                    const isSelected = selectedPaths.has(item.path);
 
-                        {/* Badges */}
-                        <div className="absolute top-2 left-2 flex flex-col gap-1">
-                          {item.is_recommended_keep && (
-                            <span className="px-2 py-0.5 rounded-md bg-emerald-600 text-white text-[10px] font-bold shadow-md flex items-center gap-1">
-                              <Check size={10} />
-                              Best Quality
-                            </span>
-                          )}
-                        </div>
+                    return (
+                      <div
+                        key={item.path}
+                        onClick={() => toggleSelect(item.path)}
+                        className={`rounded-2xl glass-panel p-2.5 space-y-2 cursor-pointer transition-all ${
+                          isSelected
+                            ? 'border-rose-500/50 bg-rose-500/5 shadow-xs'
+                            : item.is_recommended_keep
+                            ? 'border-emerald-500/40 bg-emerald-500/5'
+                            : 'hover:border-black/10 dark:hover:border-white/12'
+                        }`}
+                      >
+                        <div className="relative aspect-4/3 rounded-xl overflow-hidden bg-black/5 dark:bg-white/5">
+                          <img
+                            src={convertFileSrc(item.path)}
+                            alt={item.filename}
+                            className="w-full h-full object-cover"
+                            loading="lazy"
+                          />
 
-                        <div className="absolute top-2 right-2">
-                          <div
-                            className={`w-5 h-5 rounded-md flex items-center justify-center border transition-colors ${
-                              isSelected
-                                ? 'bg-rose-500 border-rose-500 text-white'
-                                : 'bg-white/80 dark:bg-slate-900/80 border-slate-300 dark:border-white/20'
-                            }`}
-                          >
-                            {isSelected && <Check size={12} strokeWidth={3} />}
+                          {/* Checkbox badge */}
+                          <div className="absolute top-2 left-2 z-10" onClick={(e) => e.stopPropagation()}>
+                            <Checkbox
+                              checked={isSelected}
+                              onChange={() => toggleSelect(item.path)}
+                            />
+                          </div>
+
+                          {/* Keep or Similar badge */}
+                          <div className="absolute top-2 right-2 z-10">
+                            {item.is_recommended_keep ? (
+                              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500 text-white shadow-xs">
+                                Keep
+                              </span>
+                            ) : (
+                              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-black/60 text-white backdrop-blur-md">
+                                Similar
+                              </span>
+                            )}
                           </div>
                         </div>
 
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            revealInFinder(item.path);
-                          }}
-                          title="Reveal in Finder"
-                          className="absolute bottom-2 right-2 p-1.5 rounded-md bg-black/60 text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/80"
-                        >
-                          <FolderOpen size={12} />
-                        </button>
-                      </div>
+                        {/* Metadata */}
+                        <div className="text-[11px] space-y-0.5 pt-0.5">
+                          <p className="font-bold text-slate-800 dark:text-neutral-100 truncate" title={item.filename}>
+                            {item.filename}
+                          </p>
+                          <div className="flex items-center justify-between text-slate-400 font-mono text-[10px]">
+                            <span>{formatSize(item.size_bytes)}</span>
+                            <span>{item.width}x{item.height}</span>
+                          </div>
+                        </div>
 
-                      {/* Info Details */}
-                      <div>
-                        <div className="text-xs font-semibold text-slate-800 dark:text-white truncate" title={item.filename}>
-                          {item.filename}
-                        </div>
-                        <div className="flex items-center justify-between text-[11px] text-slate-400 mt-1 font-mono">
-                          <span>{item.width}x{item.height}</span>
-                          <span>{formatSize(item.size_bytes)}</span>
+                        {/* Actions */}
+                        <div className="pt-1.5 border-t border-black/4 dark:border-white/6 flex items-center justify-end">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              revealInFinder(item.path);
+                            }}
+                            className="text-[10px] text-slate-400 hover:text-slate-800 dark:hover:text-white flex items-center gap-1 transition-colors"
+                          >
+                            <FolderOpen size={11} />
+                            Finder
+                          </button>
                         </div>
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
