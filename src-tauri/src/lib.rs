@@ -208,20 +208,18 @@ pub fn run() {
                         }
                     }
                     "free_ram" => {
-                        tokio::spawn(async {
+                        let app_handle = app.clone();
+                        std::thread::spawn(move || {
                             let _ = commands::memory::purge_inactive_memory();
+                            let _ = app_handle.emit("memory-purged", ());
                         });
-                        if let Some(window) = app.get_webview_window("main") {
-                            let _ = window.emit("memory-purged", ());
-                        }
                     }
                     "empty_trash" => {
-                        tokio::spawn(async {
+                        let app_handle = app.clone();
+                        std::thread::spawn(move || {
                             let _ = commands::trash::empty_mac_trash();
+                            let _ = app_handle.emit("trash-emptied", ());
                         });
-                        if let Some(window) = app.get_webview_window("main") {
-                            let _ = window.emit("trash-emptied", ());
-                        }
                     }
                     "nav_dashboard" => {
                         let _ = app.set_activation_policy(tauri::ActivationPolicy::Regular);

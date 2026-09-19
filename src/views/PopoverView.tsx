@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { listen } from '@tauri-apps/api/event';
 import {
   Sparkles,
   HardDrive,
@@ -38,7 +39,27 @@ export default function PopoverView() {
   useEffect(() => {
     loadMetrics();
     const interval = setInterval(loadMetrics, 3500);
-    return () => clearInterval(interval);
+
+    let unlistenMem: (() => void) | undefined;
+    let unlistenTrash: (() => void) | undefined;
+
+    listen('memory-purged', () => {
+      loadMetrics();
+    }).then((fn) => {
+      unlistenMem = fn;
+    });
+
+    listen('trash-emptied', () => {
+      loadMetrics();
+    }).then((fn) => {
+      unlistenTrash = fn;
+    });
+
+    return () => {
+      clearInterval(interval);
+      unlistenMem?.();
+      unlistenTrash?.();
+    };
   }, []);
 
   const handlePurgeRam = async () => {
