@@ -46,3 +46,39 @@ Daftar rencana pematangan repositori, presentasi visual kelas dunia, dan infrast
 - [x] **Penyempurnaan Header & Lencana GitHub**
   - Menambahkan lencana status GitHub Sponsors pink, Latest Release, License GPL-3.0, Tauri v2, Rust 2021, macOS (Apple Silicon & Intel), dan 100% Local First.
   - Menyusun navigasi daftar isi README yang lengkap.
+
+---
+
+## 6. Roadmap Fitur Unggulan Versi 1.3.0
+
+- [ ] **Menu Bar Popover Widget (Mini Beberes di Status Bar macOS)**
+  - Mengembangkan popover interaktif saat ikon Beberes di Menu Bar atas diklik tanpa perlu membuka jendela utama.
+  - Menampilkan ringkasan meter beban kerja secara real-time: pemakaian RAM, CPU, dan sisa kapasitas SSD.
+  - Tombol aksi instan: 1-Click Purge Memory, Quick Trash Empty, dan skor kesehatan sistem (*Mac Hygiene Score*).
+
+- [ ] **Scheduled Background Cleaning (Pembersihan Otomatis Terjadwal via LaunchAgent)**
+  - Otomasi pembersihan di latar belakang berbasis interval waktu (Harian, Mingguan, atau Bulanan).
+  - Pilihan aturan cerdas:
+    - Pengosongan tempat sampah otomatis (*Auto-empty Trash*) untuk berkas yang telah melewati 30 hari.
+    - Pembersihan otomatis cache developer (seperti Xcode DerivedData) jika ukuran direktori melebihi ambang batas (misal > 20 GB).
+    - Notifikasi macOS asli setelah jadwal pembersihan selesai dengan rincian kapasitas yang berhasil dihemat.
+
+- [ ] **Mac Battery & Hardware Intelligence (Kesehatan Baterai & Suhu Hardware)**
+  - Integrasi IOKit dan Apple Silicon SMC untuk membaca kondisi perangkat keras secara mendalam.
+  - Indikator kesehatan baterai asli (*Maximum Capacity %*) dan penghitung siklus pengisian daya (*Battery Cycle Count*).
+  - Pemantau suhu prosesor dan sensor termal (*Thermal State: Normal, Fair, Serious*) beserta deteksi *thermal throttling*.
+  - Deteksi dan rekomendasi aplikasi rakus daya (*Energy Hog Hunter*) yang membebani baterai di latar belakang.
+
+- [ ] **Similar / Burst Photo & Media Hunter (Deteksi Foto & Tangkapan Layar Mirip)**
+  - Implementasi algoritma *perceptual hashing* (pHash) untuk mendeteksi berkas gambar yang serupa namun tidak identik byte-per-byte.
+  - Identifikasi foto jepretan beruntun (*burst shots*), duplikasi resolusi berbeda, dan akumulasi screenshot bertubi-tubi di folder Pictures dan Downloads.
+  - Tampilan pratinjau berdampingan (*side-by-side comparison*) dengan rekomendasi otomatis untuk menyimpan versi resolusi tertinggi dan membuang salinannya.
+
+- [ ] **Browser Extensions & macOS Plugin Manager**
+  - Pemindaian dan manajemen terpusat untuk ekstensi peramban (Safari, Google Chrome, Brave, Arc, dan Firefox).
+  - Pemeriksaan dan pembersihan plugin sistem macOS yang sering terlupakan: QuickLook Plugins (`/Library/QuickLook`), Spotlight Importers, dan Audio Units/VST (`/Library/Audio/Plug-Ins`).
+
+- [ ] **Exportable System Health & Cleaning Report (Ekspor PDF & Markdown)**
+  - Kemampuan membuat dan mengunduh laporan komprehensif kondisi kesehatan Mac dalam format PDF atau Markdown dengan 1-klik.
+  - Memuat riwayat total kapasitas yang berhasil dibersihkan (*All-Time Cleaned*), daftar aplikasi pemakan memori terbesar, konfigurasi perangkat, dan saran perawatan berkala.
+
