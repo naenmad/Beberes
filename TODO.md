@@ -82,3 +82,50 @@ Daftar rencana pematangan repositori, presentasi visual kelas dunia, dan infrast
   - Kemampuan membuat dan mengunduh laporan komprehensif kondisi kesehatan Mac dalam format PDF atau Markdown dengan 1-klik.
   - Memuat riwayat total kapasitas yang berhasil dibersihkan (*All-Time Cleaned*), daftar aplikasi pemakan memori terbesar, konfigurasi perangkat, dan saran perawatan berkala.
 
+---
+
+## 7. Rencana Proyek Terpisah: Developer Toolchain & Workspace Optimizer (SwiftUI + Rust)
+
+Inisiatif pengembangan aplikasi terpisah yang dirancang 100% khusus untuk software engineer dan pengembang aplikasi di macOS tanpa menyentuh berkas sistem umum. Menggabungkan antarmuka asli macOS (SwiftUI) dengan performa komputasi pemindaian multi-threaded (Rust via UniFFI/FFI).
+
+- [ ] **Inisialisasi Arsitektur & Jembatan Interop (SwiftUI + Rust via UniFFI)**
+  - Menyiapkan repository baru dengan struktur monorepo (`crates/core-engine` untuk Rust dan `apps/macos` untuk Xcode / SwiftUI).
+  - Konfigurasi UniFFI untuk otomatisasi generasi Swift bindings yang aman dan modern tanpa boilerplate manual.
+  - Target build native Apple Silicon (`arm64`) dan Intel (`x86_64`) dengan footprint memori minimal (< 25 MB RAM, tanpa webview runtime).
+
+- [ ] **Modul 1: Mobile & Apple Ecosystem Deep Cleaner**
+  - Xcode Archives (`~/Library/Developer/Xcode/Archives`) & DerivedData analyzer.
+  - Deteksi dan pembersihan iOS DeviceSupport usang.
+  - Penghapusan simulator yang tidak terpakai atau rusak via integrasi CLI (`xcrun simctl delete unavailable`).
+  - Android SDK, AVD (Virtual Devices di `~/.android/avd`), dan cache Gradle wrapper usang (`~/.gradle/caches`).
+
+- [ ] **Modul 2: Multi-Language Project Workspace & Artifact Sweeper**
+  - Pemindaian multi-threaded berbasis `rayon`/`jwalk` untuk mendeteksi folder dependensi dan kompilasi yang terbengkalai (> 30/60/90 hari tanpa aktivitas):
+    - Node.js: `node_modules`
+    - Rust: `target/`
+    - Flutter / Dart: `build/`, `.dart_tool/`
+    - Python: `.venv`, `__pycache__`, Conda envs
+    - Go / PHP: `vendor/`, `bin/`
+  - Visualisasi kapasitas yang dapat diklaim kembali per direktori proyek.
+
+- [ ] **Modul 3: Global Package Manager Store Reclaimer**
+  - Pengelolaan cache global terpusat yang sering membengkak puluhan Gigabyte:
+    - `pnpm` virtual store (`~/Library/pnpm/store`)
+    - Yarn & npm global cache
+    - Cargo global registry & git checkout cache (`~/.cargo/registry/cache`, `~/.cargo/git`)
+    - Go build cache & module downloads (`~/go/pkg/mod`, `~/.cache/go-build`)
+    - pip / Conda package cache
+
+- [ ] **Modul 4: Container & Virtualization Storage Manager**
+  - Deteksi ukuran virtual disk Docker Desktop (`Docker.raw`), Podman, atau Colima.
+  - Aksi 1-klik untuk prune dangling images, stopped containers, buildkit cache, dan volume yatim piatu.
+
+- [ ] **Modul 5: IDE & Code Editor Hygiene**
+  - Pembersihan `workspaceStorage` VS Code & Cursor untuk project yang direktori fisiknya sudah dihapus dari disk.
+  - Invalidate dan pembersihan cache lama JetBrains IDEs (IntelliJ, Android Studio, WebStorm).
+
+- [ ] **Modul 6: Dev Utilities & Port Management**
+  - Local Port Killer: deteksi port lokal yang tersangkut (seperti port 3000, 8080, 5173) akibat proses zombie dan penghentian instan (kill process).
+  - Local Secret & Credential Leak Audit: deteksi berkas `.env`, `.pem`, dan private key yang belum terdaftar di `.gitignore`.
+
+
