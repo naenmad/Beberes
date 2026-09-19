@@ -90,9 +90,11 @@ graph TD
 | **Quick Review** | `QuickReview.tsx` | `reviewer.rs`, `organizer.rs` | `scan_review_items`, `review_rename_file`, `review_trash_file` | Downloads, Desktop triage | Trash Protected |
 | **Disk Visualizer** | `DiskVisualizer.tsx` | `visualizer.rs` | `scan_directory_tree` | Arbitrary accessible volumes | Read-only |
 | **File Shredder** | `FileShredder.tsx` | `shredder.rs` | `shred_file_items` | Targeted user files | Permanent (CSPRNG Overwrite) |
-| **Trash Manager** | `TrashManager.tsx` | `trash.rs` | `scan_trash_contents`, `empty_trash_bin`, `delete_trash_item` | `~/.Trash`, External Volume Trashes | Permanent on confirm |
-| **Startup Daemons** | `StartupManager.tsx`| `startup.rs` | `scan_startup_items`, `toggle_startup_item`, `remove_startup_item` | `~/Library/LaunchAgents`, `/Library/LaunchAgents` | System Protected |
 | **Git Sweeper** | `GitSweeper.tsx` | `git_sweeper.rs` | `scan_git_repositories`, `sweep_git_repository` | Local git repositories | Safe Git Operations (`git gc`) |
+| **Zombie Port Hunter** | `DevWorkspace.tsx` | `ports.rs` | `list_active_ports`, `kill_process_by_pid` | Local TCP listening sockets & PIDs | User Controlled (`kill -9`) |
+| **Xcode & Simulator Purger** | `DevWorkspace.tsx` | `xcode_sim.rs` | `scan_xcode_environments`, `purge_unavailable_simulators`, `clean_xcode_target` | Unavailable runtimes, DeviceSupport symbols, DerivedData | High Safety (`simctl delete unavailable`) |
+| **Project Hibernate** | `DevWorkspace.tsx` | `dormant.rs` | `scan_dormant_projects`, `hibernate_project` | Inactive repos > 30/90/180 days, build folders | Non-destructive (Code & git preserved) |
+
 
 ---
 

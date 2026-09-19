@@ -27,6 +27,9 @@ use commands::browser::scan_browser_caches;
 use commands::maintenance::{clean_maintenance_items, scan_maintenance_items};
 use commands::orphaned::{clean_orphaned_leftovers, scan_orphaned_leftovers};
 use commands::smart_rules::{archive_old_downloads, consolidate_desktop_screenshots, get_smart_rules_stats};
+use commands::ports::{kill_process_by_pid, list_active_ports};
+use commands::xcode_sim::{clean_xcode_target, purge_unavailable_simulators, scan_xcode_environments};
+use commands::dormant::{hibernate_project, scan_dormant_projects};
 
 #[tauri::command]
 fn exit_app(app: tauri::AppHandle) {
@@ -264,6 +267,13 @@ pub fn run() {
             get_smart_rules_stats,
             archive_old_downloads,
             consolidate_desktop_screenshots,
+            list_active_ports,
+            kill_process_by_pid,
+            scan_xcode_environments,
+            purge_unavailable_simulators,
+            clean_xcode_target,
+            scan_dormant_projects,
+            hibernate_project,
         ])
         .build(tauri::generate_context!())
         .expect("error while building tauri application");

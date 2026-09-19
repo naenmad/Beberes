@@ -665,4 +665,121 @@ export async function runBrewCleanup(): Promise<string> {
   return await invoke<string>('run_brew_cleanup');
 }
 
+// ==========================================
+// 14. Zombie Port Hunter & Process Killer
+// ==========================================
+export interface ListeningPort {
+  port: number;
+  pid: number;
+  process_name: string;
+  user: string;
+  protocol: string;
+  address: string;
+  memory_bytes: number;
+}
+
+export interface KillResult {
+  success: boolean;
+  pid: number;
+  message: string;
+}
+
+export async function listActivePorts(): Promise<ListeningPort[]> {
+  return await invoke<ListeningPort[]>('list_active_ports');
+}
+
+export async function killProcessByPid(pid: number, force: boolean = false): Promise<KillResult> {
+  return await invoke<KillResult>('kill_process_by_pid', { pid, force });
+}
+
+// ==========================================
+// 15. Xcode & iOS Simulator Deep Purger
+// ==========================================
+export interface XcodeTargetItem {
+  id: string;
+  title: string;
+  path: string;
+  size_bytes: number;
+  description: string;
+  is_safe: boolean;
+}
+
+export interface XcodeEnvironmentReport {
+  has_xcode: boolean;
+  unavailable_simulators_count: number;
+  total_simulators_count: number;
+  targets: XcodeTargetItem[];
+}
+
+export interface SimctlPurgeResult {
+  success: boolean;
+  message: string;
+}
+
+export interface XcodeCleanResult {
+  success: boolean;
+  freedBytes: number;
+  cleanedCount: number;
+  message: string;
+}
+
+export async function scanXcodeEnvironments(): Promise<XcodeEnvironmentReport> {
+  return await invoke<XcodeEnvironmentReport>('scan_xcode_environments');
+}
+
+export async function purgeUnavailableSimulators(): Promise<SimctlPurgeResult> {
+  return await invoke<SimctlPurgeResult>('purge_unavailable_simulators');
+}
+
+export async function cleanXcodeTarget(targetId: string): Promise<XcodeCleanResult> {
+  return await invoke<XcodeCleanResult>('clean_xcode_target', { targetId });
+}
+
+// ==========================================
+// 16. Dormant Projects Hibernate
+// ==========================================
+export interface DormantArtifact {
+  name: string;
+  path: string;
+  size_bytes: number;
+}
+
+export interface DormantProject {
+  name: string;
+  path: string;
+  last_commit_time: number;
+  last_commit_subject: string;
+  inactive_days: number;
+  total_reclaimable_bytes: number;
+  artifacts: DormantArtifact[];
+}
+
+export interface HibernateResult {
+  success: boolean;
+  project_path: string;
+  freed_bytes: number;
+  removed_artifacts_count: number;
+  message: string;
+}
+
+export async function scanDormantProjects(
+  searchDirs?: string[],
+  daysThreshold: number = 30
+): Promise<DormantProject[]> {
+  return await invoke<DormantProject[]>('scan_dormant_projects', {
+    searchDirs: searchDirs ?? null,
+    daysThreshold,
+  });
+}
+
+export async function hibernateProject(
+  projectPath: string,
+  artifactPaths: string[]
+): Promise<HibernateResult> {
+  return await invoke<HibernateResult>('hibernate_project', {
+    projectPath,
+    artifactPaths,
+  });
+}
+
 

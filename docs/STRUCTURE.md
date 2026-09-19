@@ -36,6 +36,7 @@ Beberes/
 │           ├── memory.rs               # Pengoptimal RAM inactive memory (`vm_stat`, `purge`)
 │           ├── organizer.rs            # Mesin pengatur berkas cerdas Tidy Up
 │           ├── orphaned.rs             # Deteksi sisa berkas aplikasi yang telah dihapus
+│           ├── ports.rs                # Zombie Port Hunter & process killer via lsof
 │           ├── reviewer.rs             # Mesin Quick Review & triase berkas
 │           ├── scanner.rs              # Scanner paralel Rayon untuk direktori sistem & 14 stack dev
 │           ├── shredder.rs             # Penghancur berkas kriptografis (CSPRNG, DoD, Gutmann)
@@ -44,7 +45,10 @@ Beberes/
 │           ├── startup.rs              # Manajer LaunchAgents & LaunchDaemons macOS
 │           ├── trash.rs                # Pemeriksa & pengosong native macOS Trash
 │           ├── uninstaller.rs          # Uninstaller aplikasi lengkap dengan kalkulasi sisa berkas
-│           └── visualizer.rs           # Visualisasi treemap ruang penyimpanan hierarkis
+│           ├── visualizer.rs           # Visualisasi treemap ruang penyimpanan hierarkis
+│           ├── xcode_sim.rs            # Pembersih Xcode DerivedData, DeviceSupport, & simulator usang
+│           └── dormant.rs              # Pemindai repositori dorman & hibernasi folder build
+
 │
 ├── src/                                # FRONTEND UI LAYER (React 19 + TypeScript + Vite)
 │   ├── main.tsx                        # Entrypoint React

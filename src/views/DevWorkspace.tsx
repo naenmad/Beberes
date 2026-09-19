@@ -1,9 +1,24 @@
 import { useAppStore } from '../store/appStore';
 import { useTranslation } from '../lib/i18n';
-import { scanDevWorkspaces, cleanSelectedItems, revealInFinder, runBrewCleanup } from '../lib/commands';
-import type { CleanResult } from '../lib/commands';
+import {
+  scanDevWorkspaces,
+  cleanSelectedItems,
+  revealInFinder,
+  runBrewCleanup,
+  listActivePorts,
+  killProcessByPid,
+  scanXcodeEnvironments,
+  purgeUnavailableSimulators,
+  cleanXcodeTarget,
+  scanDormantProjects,
+  hibernateProject,
+  type CleanResult,
+  type ListeningPort,
+  type XcodeEnvironmentReport,
+  type DormantProject,
+} from '../lib/commands';
 import { formatSize } from '../lib/utils';
-import Card, { CardHeader, CardBody } from '../components/ui/Card';
+import Card from '../components/ui/Card';
 import Checkbox from '../components/ui/Checkbox';
 import Button from '../components/ui/Button';
 import FloatingActionBar from '../components/ui/FloatingActionBar';
@@ -12,19 +27,22 @@ import ConfirmModal from '../components/ui/ConfirmModal';
 import CleaningFlowModal from '../components/ui/CleaningFlowModal';
 import { CardSkeleton } from '../components/ui/SkeletonLoader';
 import {
-  FolderOpen,
   ChevronDown,
   ChevronRight,
   Search,
   ExternalLink,
   CheckSquare,
   Square,
-  Filter,
   Sparkles,
   Code2,
   Terminal,
   RefreshCw,
   X,
+  Radio,
+  Layers,
+  Moon,
+  ShieldAlert,
+  CheckCircle2,
 } from 'lucide-react';
 import {
   RustIcon,
@@ -42,7 +60,7 @@ import {
   CppIcon,
   PackageCacheIcon,
 } from '../components/icons/TechBrandIcons';
-import { useState, useMemo, useEffect, useRef } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 
 const categoryIcons: Record<string, React.ReactNode> = {
   xcode_cache: <XcodeIcon size={18} />,
@@ -62,6 +80,7 @@ const categoryIcons: Record<string, React.ReactNode> = {
 };
 
 type SizeFilter = 'all' | '100mb' | '1gb';
+type DevTab = 'artifacts' | 'ports' | 'xcode' | 'hibernate';
 
 export default function DevWorkspace() {
   const { t } = useTranslation();
@@ -82,6 +101,9 @@ export default function DevWorkspace() {
     globalRefreshTrigger,
   } = useAppStore();
 
+  const [activeTab, setActiveTab] = useState<DevTab>('artifacts');
+
+  // Artifacts Tab State
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
   const [cleanResult, setCleanResult] = useState<CleanResult | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -93,6 +115,58 @@ export default function DevWorkspace() {
   const [isCleaningBrew, setIsCleaningBrew] = useState(false);
   const [brewOutput, setBrewOutput] = useState<string | null>(null);
   const [showBrewLog, setShowBrewLog] = useState(false);
+
+  // Port Hunter State
+  const [ports, setPorts] = useState<ListeningPort[]>([]);
+  const [isLoadingPorts, setIsLoadingPorts] = useState(false);
+  const [portSearch, setPortSearch] = useState('');
+  const [killTarget, setKillTarget] = useState<ListeningPort | null>(null);
+  const [isKillingPort, setIsKillingPort] = useState(false);
+  const [portToast, setPortToast] = useState<string | null>(null);
+
+  // Xcode Purger State
+  const [xcodeReport, setXcodeReport] = useState<XcodeEnvironmentReport | null>(null);
+  const [isLoadingXcode, setIsLoadingXcode] = useState(false);
+  const [isPurgingSims, setIsPurgingSims] = useState(false);
+  const [cleaningXcodeId, setCleaningXcodeId] = useState<string | null>(null);
+  const [xcodeToast, setXcodeToast] = useState<string | null>(null);
+
+  // Project Hibernate State
+  const [dormantProjects, setDormantProjects] = useState<DormantProject[]>([]);
+  const [isLoadingDormant, setIsLoadingDormant] = useState(false);
+  const [dormantDays, setDormantDays] = useState<number>(30);
+  const [dormantSearch, setDormantSearch] = useState('');
+  const [hibernatingPath, setHibernatingPath] = useState<string | null>(null);
+  const [hibernateToast, setHibernateToast] = useState<string | null>(null);
+
+  const selectedSize = getSelectedSize('dev');
+  const selectedItems = getSelectedItems('dev');
+  const totalItemsCount = devCategories.reduce((acc, cat) => acc + cat.items.length, 0);
+  const allItemsSelected = totalItemsCount > 0 && selectedItems.length === totalItemsCount;
+
+  const toggleExpand = (id: string) => {
+    setExpandedCategories((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  // --- Handlers for Artifacts & Homebrew ---
+  const runScan = async () => {
+    setIsScanning(true);
+    setCleanResult(null);
+    try {
+      const results = await scanDevWorkspaces();
+      setDevCategories(results);
+      setExpandedCategories(new Set(results.filter((c) => c.items.length > 0).map((c) => c.id)));
+    } catch (err) {
+      console.error('Dev scan failed:', err);
+    } finally {
+      setIsScanning(false);
+    }
+  };
 
   const handleBrewCleanup = async () => {
     setIsCleaningBrew(true);
@@ -112,61 +186,17 @@ export default function DevWorkspace() {
     }
   };
 
-  const selectedSize = getSelectedSize('dev');
-  const selectedItems = getSelectedItems('dev');
-
-  const totalItemsCount = devCategories.reduce((acc, cat) => acc + cat.items.length, 0);
-  const allItemsSelected = totalItemsCount > 0 && selectedItems.length === totalItemsCount;
-
-  const toggleExpand = (id: string) => {
-    setExpandedCategories((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  };
-
-  const runScan = async () => {
-    setIsScanning(true);
-    setCleanResult(null);
-    try {
-      const results = await scanDevWorkspaces();
-      setDevCategories(results);
-      setExpandedCategories(new Set(results.filter((c) => c.items.length > 0).map((c) => c.id)));
-    } catch (err) {
-      console.error('Dev scan failed:', err);
-    } finally {
-      setIsScanning(false);
-    }
-  };
-
-  const lastRefreshRef = useRef(globalRefreshTrigger);
-  useEffect(() => {
-    if (devCategories.length === 0 || lastRefreshRef.current !== globalRefreshTrigger) {
-      lastRefreshRef.current = globalRefreshTrigger;
-      runScan();
-    }
-  }, [globalRefreshTrigger, devCategories.length]);
-
-  const handleCleanClick = () => {
-    if (selectedItems.length === 0) return;
-    setShowConfirmModal(true);
-  };
-
-  const executeClean = async () => {
+  const handleClean = async () => {
     if (selectedItems.length === 0) return;
     setShowConfirmModal(false);
     setShowCleaningFlow(true);
     setIsCleaning(true);
+
     try {
-      const result = await cleanSelectedItems(
-        selectedItems.map((item) => item.path),
-        false,
-        deleteToTrash
-      );
+      const paths = selectedItems.map((item) => item.path);
+      const result = await cleanSelectedItems(paths, false, deleteToTrash);
       setCleanResult(result);
-      recordCleanResult(result.freedBytes, selectedItems.length, false, ['Dev Workspace']);
+      recordCleanResult(result.freedBytes, result.cleaned, false, [t('devWorkspace.title')]);
       await runScan();
     } catch (err) {
       console.error('Clean failed:', err);
@@ -175,16 +205,121 @@ export default function DevWorkspace() {
     }
   };
 
-  const handleReveal = async (e: React.MouseEvent, path: string) => {
-    e.stopPropagation();
+  // --- Handlers for Port Hunter ---
+  const fetchPorts = async () => {
+    setIsLoadingPorts(true);
     try {
-      await revealInFinder(path);
-    } catch (err) {
-      console.error('Failed to reveal in Finder:', err);
+      const res = await listActivePorts();
+      setPorts(res);
+    } catch (err: any) {
+      console.error('Failed to list ports:', err);
+      setPortToast(`Error: ${err}`);
+    } finally {
+      setIsLoadingPorts(false);
     }
   };
 
-  // Filtered categories based on search query and size filter
+  const executeKillPort = async () => {
+    if (!killTarget) return;
+    setIsKillingPort(true);
+    try {
+      const res = await killProcessByPid(killTarget.pid, true);
+      setPortToast(res.message);
+      setKillTarget(null);
+      await fetchPorts();
+    } catch (err: any) {
+      setPortToast(`Failed: ${err}`);
+    } finally {
+      setIsKillingPort(false);
+    }
+  };
+
+  // --- Handlers for Xcode Purger ---
+  const fetchXcode = async () => {
+    setIsLoadingXcode(true);
+    try {
+      const res = await scanXcodeEnvironments();
+      setXcodeReport(res);
+    } catch (err: any) {
+      console.error('Failed to scan Xcode:', err);
+    } finally {
+      setIsLoadingXcode(false);
+    }
+  };
+
+  const handlePurgeSimulators = async () => {
+    setIsPurgingSims(true);
+    try {
+      const res = await purgeUnavailableSimulators();
+      setXcodeToast(res.message);
+      await fetchXcode();
+    } catch (err: any) {
+      setXcodeToast(`Failed to purge simulators: ${err}`);
+    } finally {
+      setIsPurgingSims(false);
+    }
+  };
+
+  const handleCleanXcodeTarget = async (targetId: string) => {
+    setCleaningXcodeId(targetId);
+    try {
+      const res = await cleanXcodeTarget(targetId);
+      setXcodeToast(res.message);
+      recordCleanResult(res.freedBytes, res.cleanedCount, false, ['Xcode & Simulators']);
+      await fetchXcode();
+    } catch (err: any) {
+      setXcodeToast(`Failed to clean target: ${err}`);
+    } finally {
+      setCleaningXcodeId(null);
+    }
+  };
+
+  // --- Handlers for Project Hibernate ---
+  const fetchDormant = async (days = dormantDays) => {
+    setIsLoadingDormant(true);
+    try {
+      const res = await scanDormantProjects(undefined, days);
+      setDormantProjects(res);
+    } catch (err: any) {
+      console.error('Failed to scan dormant projects:', err);
+    } finally {
+      setIsLoadingDormant(false);
+    }
+  };
+
+  const handleHibernate = async (project: DormantProject) => {
+    setHibernatingPath(project.path);
+    try {
+      const artifactPaths = project.artifacts.map((a) => a.path);
+      const res = await hibernateProject(project.path, artifactPaths);
+      setHibernateToast(res.message);
+      recordCleanResult(res.freed_bytes, res.removed_artifacts_count, false, ['Project Hibernate']);
+      await fetchDormant(dormantDays);
+    } catch (err: any) {
+      setHibernateToast(`Failed to hibernate: ${err}`);
+    } finally {
+      setHibernatingPath(null);
+    }
+  };
+
+  // Initial & Tab-switch data fetching
+  useEffect(() => {
+    if (devCategories.length === 0) {
+      runScan();
+    }
+  }, [globalRefreshTrigger]);
+
+  useEffect(() => {
+    if (activeTab === 'ports' && ports.length === 0) {
+      fetchPorts();
+    } else if (activeTab === 'xcode' && !xcodeReport) {
+      fetchXcode();
+    } else if (activeTab === 'hibernate' && dormantProjects.length === 0) {
+      fetchDormant(dormantDays);
+    }
+  }, [activeTab]);
+
+  // Filtered Artifacts
   const filteredCategories = useMemo(() => {
     const q = searchQuery.toLowerCase().trim();
     const minBytes = sizeFilter === '1gb' ? 1024 * 1024 * 1024 : sizeFilter === '100mb' ? 100 * 1024 * 1024 : 0;
@@ -205,6 +340,31 @@ export default function DevWorkspace() {
       .filter((cat) => cat.items.length > 0);
   }, [devCategories, searchQuery, sizeFilter]);
 
+  // Filtered Ports
+  const filteredPorts = useMemo(() => {
+    const q = portSearch.toLowerCase().trim();
+    if (!q) return ports;
+    return ports.filter(
+      (p) =>
+        p.port.toString().includes(q) ||
+        p.process_name.toLowerCase().includes(q) ||
+        p.pid.toString().includes(q) ||
+        p.user.toLowerCase().includes(q)
+    );
+  }, [ports, portSearch]);
+
+  // Filtered Dormant Projects
+  const filteredDormant = useMemo(() => {
+    const q = dormantSearch.toLowerCase().trim();
+    if (!q) return dormantProjects;
+    return dormantProjects.filter(
+      (p) =>
+        p.name.toLowerCase().includes(q) ||
+        p.path.toLowerCase().includes(q) ||
+        p.last_commit_subject.toLowerCase().includes(q)
+    );
+  }, [dormantProjects, dormantSearch]);
+
   return (
     <div className="space-y-6 animate-fade-in pb-20">
       {/* Header */}
@@ -222,269 +382,775 @@ export default function DevWorkspace() {
         }
       />
 
-      {/* Homebrew & Global Tooling Hygiene Card */}
-      <Card className="p-4! border-indigo-500/20 bg-indigo-500/[0.03]">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="w-10 h-10 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center shrink-0">
-              <Terminal size={18} className="text-indigo-600 dark:text-indigo-400" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h4 className="text-xs font-bold text-slate-900 dark:text-white">
-                  Pemeliharaan Global Homebrew & Bottle Cache
-                </h4>
-                <span className="px-2 py-0.5 rounded text-[9px] font-semibold bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
-                  brew cleanup --prune=all
-                </span>
-              </div>
-              <p className="text-[11px] text-slate-500 dark:text-neutral-400 mt-0.5">
-                Bersihkan unduhan bottle usang, lockfile kadaluarsa, dan berkas sementara Homebrew di macOS.
-              </p>
-            </div>
-          </div>
+      {/* Segmented Sub-Navigation Tabs */}
+      <div className="flex items-center gap-1.5 p-1 rounded-xl bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/5 w-fit">
+        <button
+          type="button"
+          onClick={() => setActiveTab('artifacts')}
+          className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+            activeTab === 'artifacts'
+              ? 'bg-white dark:bg-neutral-800 text-slate-900 dark:text-white shadow-xs font-semibold'
+              : 'text-slate-500 dark:text-neutral-400 hover:text-slate-800 dark:hover:text-neutral-200'
+          }`}
+        >
+          <Layers size={14} />
+          <span>{t('devWorkspace.tabArtifacts', 'Build & Caches')}</span>
+        </button>
 
-          <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
-            {brewOutput && (
+        <button
+          type="button"
+          onClick={() => setActiveTab('ports')}
+          className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+            activeTab === 'ports'
+              ? 'bg-white dark:bg-neutral-800 text-slate-900 dark:text-white shadow-xs font-semibold'
+              : 'text-slate-500 dark:text-neutral-400 hover:text-slate-800 dark:hover:text-neutral-200'
+          }`}
+        >
+          <Radio size={14} className="text-blue-500" />
+          <span>{t('devWorkspace.tabPorts', 'Zombie Port Hunter')}</span>
+          {ports.length > 0 && (
+            <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-blue-500/10 text-blue-600 dark:text-blue-400 font-mono">
+              {ports.length}
+            </span>
+          )}
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('xcode')}
+          className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+            activeTab === 'xcode'
+              ? 'bg-white dark:bg-neutral-800 text-slate-900 dark:text-white shadow-xs font-semibold'
+              : 'text-slate-500 dark:text-neutral-400 hover:text-slate-800 dark:hover:text-neutral-200'
+          }`}
+        >
+          <XcodeIcon size={14} />
+          <span>{t('devWorkspace.tabXcode', 'Xcode & Simulators')}</span>
+          {xcodeReport && xcodeReport.unavailable_simulators_count > 0 && (
+            <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-rose-500/10 text-rose-600 dark:text-rose-400 font-mono">
+              {xcodeReport.unavailable_simulators_count}
+            </span>
+          )}
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('hibernate')}
+          className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+            activeTab === 'hibernate'
+              ? 'bg-white dark:bg-neutral-800 text-slate-900 dark:text-white shadow-xs font-semibold'
+              : 'text-slate-500 dark:text-neutral-400 hover:text-slate-800 dark:hover:text-neutral-200'
+          }`}
+        >
+          <Moon size={14} className="text-amber-500" />
+          <span>{t('devWorkspace.tabHibernate', 'Project Hibernate')}</span>
+          {dormantProjects.length > 0 && (
+            <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-amber-500/10 text-amber-600 dark:text-amber-400 font-mono">
+              {dormantProjects.length}
+            </span>
+          )}
+        </button>
+      </div>
+
+      {/* ========================================================================= */}
+      {/* TAB 1: BUILD ARTIFACTS & TECH STACKS */}
+      {/* ========================================================================= */}
+      {activeTab === 'artifacts' && (
+        <div className="space-y-6">
+          {/* Homebrew & Global Tooling Hygiene Card */}
+          <Card className="p-4! border-indigo-500/20 bg-indigo-500/[0.03]">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-10 h-10 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center shrink-0">
+                  <Terminal size={18} className="text-indigo-600 dark:text-indigo-400" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h4 className="text-xs font-bold text-slate-900 dark:text-white">
+                      Pemeliharaan Global Homebrew & Bottle Cache
+                    </h4>
+                    <span className="px-2 py-0.5 rounded text-[9px] font-semibold bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
+                      brew cleanup --prune=all
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-500 dark:text-neutral-400 mt-0.5">
+                    Bersihkan unduhan bottle usang, lockfile kadaluarsa, dan berkas sementara Homebrew di macOS.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
+                {brewOutput && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowBrewLog(!showBrewLog)}
+                    className="text-xs"
+                  >
+                    {showBrewLog ? 'Tutup Log' : 'Lihat Log Output'}
+                  </Button>
+                )}
+
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  disabled={isCleaningBrew}
+                  onClick={handleBrewCleanup}
+                  className="flex items-center gap-1.5"
+                >
+                  <RefreshCw size={13} className={isCleaningBrew ? 'animate-spin' : ''} />
+                  <span>{isCleaningBrew ? 'Membersihkan...' : 'Prune Homebrew'}</span>
+                </Button>
+              </div>
+            </div>
+
+            {brewOutput && showBrewLog && (
+              <div className="mt-3 pt-3 border-t border-black/5 dark:border-white/5">
+                <div className="flex items-center justify-between mb-1.5 text-[11px] text-slate-400">
+                  <span>Output Konsol Homebrew:</span>
+                  <button
+                    type="button"
+                    onClick={() => setShowBrewLog(false)}
+                    className="text-slate-400 hover:text-slate-700 dark:hover:text-white cursor-pointer"
+                  >
+                    <X size={12} />
+                  </button>
+                </div>
+                <pre className="p-3 rounded-xl bg-slate-900 text-slate-200 text-[11px] font-mono whitespace-pre-wrap max-h-48 overflow-y-auto border border-white/10">
+                  {brewOutput}
+                </pre>
+              </div>
+            )}
+          </Card>
+
+          {/* Search, Filter & Bulk Select Bar */}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-3 rounded-2xl bg-white/40 dark:bg-neutral-800/40 border border-black/5 dark:border-white/5 backdrop-blur-md">
+            <div className="flex items-center gap-2 flex-1">
+              <div className="relative flex-1 max-w-sm">
+                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                <input
+                  type="text"
+                  placeholder={t('devWorkspace.searchPlaceholder')}
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-9 pr-8 py-1.5 text-xs rounded-xl bg-white/60 dark:bg-neutral-900/60 border border-black/8 dark:border-white/8 focus:border-indigo-500 focus:outline-none transition-all placeholder:text-slate-400"
+                />
+                {searchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => setSearchQuery('')}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-neutral-200"
+                  >
+                    <X size={12} />
+                  </button>
+                )}
+              </div>
+
+              <div className="flex items-center gap-1 p-0.5 rounded-xl bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/5">
+                {(['all', '100mb', '1gb'] as SizeFilter[]).map((f) => (
+                  <button
+                    key={f}
+                    type="button"
+                    onClick={() => setSizeFilter(f)}
+                    className={`px-2.5 py-1 text-[11px] rounded-lg font-medium transition-all cursor-pointer ${
+                      sizeFilter === f
+                        ? 'bg-white dark:bg-neutral-700 text-slate-900 dark:text-white shadow-2xs font-semibold'
+                        : 'text-slate-500 dark:text-neutral-400 hover:text-slate-800 dark:hover:text-neutral-200'
+                    }`}
+                  >
+                    {f === 'all'
+                      ? t('devWorkspace.filterAll')
+                      : f === '100mb'
+                      ? t('devWorkspace.filter100mb')
+                      : t('devWorkspace.filter1gb')}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 shrink-0">
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => setShowBrewLog(!showBrewLog)}
-                className="text-xs"
+                onClick={() => selectAll('dev', !allItemsSelected)}
+                disabled={totalItemsCount === 0 || isScanning}
+                className="flex items-center gap-1.5 text-xs"
               >
-                {showBrewLog ? 'Tutup Log' : 'Lihat Log Output'}
+                {allItemsSelected ? <CheckSquare size={14} /> : <Square size={14} />}
+                <span>{allItemsSelected ? t('common.deselectAll') : t('common.selectAll')}</span>
               </Button>
-            )}
 
-            <Button
-              variant="secondary"
-              size="sm"
-              disabled={isCleaningBrew}
-              onClick={handleBrewCleanup}
-              className="flex items-center gap-1.5"
-            >
-              <RefreshCw size={13} className={isCleaningBrew ? 'animate-spin' : ''} />
-              <span>{isCleaningBrew ? 'Membersihkan...' : 'Prune Homebrew'}</span>
-            </Button>
-          </div>
-        </div>
-
-        {brewOutput && showBrewLog && (
-          <div className="mt-3 pt-3 border-t border-black/5 dark:border-white/5">
-            <div className="flex items-center justify-between mb-1.5 text-[11px] text-slate-400">
-              <span>Output Konsol Homebrew:</span>
-              <button
-                type="button"
-                onClick={() => setShowBrewLog(false)}
-                className="text-slate-400 hover:text-slate-700 dark:hover:text-white cursor-pointer"
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={runScan}
+                disabled={isScanning}
+                className="flex items-center gap-1.5 text-xs"
               >
-                <X size={12} />
-              </button>
+                <RefreshCw size={13} className={isScanning ? 'animate-spin' : ''} />
+                <span>{t('devWorkspace.scanButton')}</span>
+              </Button>
             </div>
-            <pre className="p-2.5 rounded-xl bg-black/5 dark:bg-black/40 text-[11px] font-mono text-slate-700 dark:text-neutral-300 max-h-36 overflow-y-auto whitespace-pre-wrap">
-              {brewOutput}
-            </pre>
           </div>
-        )}
-      </Card>
 
-      {/* Actions & Search Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div className="flex-1 max-w-md relative">
-          <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-          <input
-            type="text"
-            placeholder={t('devWorkspace.searchPlaceholder')}
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 text-xs bg-white dark:bg-neutral-800 border border-black/6 dark:border-white/8 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 dark:text-neutral-200"
-          />
-        </div>
-        <div className="flex items-center gap-2">
-          {totalItemsCount > 0 && (
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => selectAll('dev', !allItemsSelected)}
-              icon={allItemsSelected ? <Square size={13} /> : <CheckSquare size={13} />}
-            >
-              {allItemsSelected ? t('common.deselectAll') : t('common.selectAll')}
-            </Button>
+          {/* Clean Confirmation Bar */}
+          {cleanResult && !isCleaning && (
+            <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-400 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+                  <CheckCircle2 size={16} />
+                </div>
+                <div>
+                  <h4 className="font-semibold text-xs text-emerald-900 dark:text-emerald-300">
+                    {t('common.cleanupComplete')}
+                  </h4>
+                  <p className="text-[11px] text-emerald-700 dark:text-emerald-400">
+                    {t('common.freedSpace', { size: formatSize(cleanResult.freedBytes) })} &bull;{' '}
+                    {cleanResult.cleaned} {t('common.itemsCleaned')}
+                  </p>
+                </div>
+              </div>
+              <Button variant="ghost" size="sm" onClick={() => setCleanResult(null)} className="text-emerald-700">
+                {t('common.dismiss')}
+              </Button>
+            </div>
           )}
-        </div>
-      </div>
 
-      {/* Filter Pills Bar */}
-      {devCategories.length > 0 && (
-        <div className="flex items-center gap-2 text-xs">
-          <span className="text-slate-400 dark:text-neutral-500 flex items-center gap-1 font-medium">
-            <Filter size={12} /> {t('common.filter')}:
-          </span>
-          {(['all', '100mb', '1gb'] as SizeFilter[]).map((f) => (
-            <button
-              key={f}
-              onClick={() => setSizeFilter(f)}
-              className={`px-3 py-1 rounded-full font-semibold transition-colors cursor-pointer ${
-                sizeFilter === f
-                  ? 'bg-blue-600 text-white shadow-xs'
-                  : 'bg-black/4 dark:bg-white/6 text-slate-600 dark:text-neutral-400 hover:bg-black/7 dark:hover:bg-white/10'
-              }`}
-            >
-              {f === 'all'
-                ? t('devWorkspace.filterAll')
-                : f === '100mb'
-                ? t('devWorkspace.filter100mb')
-                : t('devWorkspace.filter1gb')}
-            </button>
-          ))}
-        </div>
-      )}
+          {/* Skeleton Loaders */}
+          {isScanning && devCategories.length === 0 && (
+            <div className="space-y-4">
+              <CardSkeleton />
+              <CardSkeleton />
+              <CardSkeleton />
+            </div>
+          )}
 
-      {/* Category list */}
-      {isScanning ? (
-        <div className="space-y-4">
-          <CardSkeleton />
-          <CardSkeleton />
-          <CardSkeleton />
-        </div>
-      ) : (
-        <div className="space-y-3">
-          {filteredCategories.map((category, idx) => {
-            const isExpanded = expandedCategories.has(category.id);
-            const someSelected = category.items.some((i) => i.selected);
-            const allSelected = category.items.length > 0 && category.items.every((i) => i.selected);
+          {/* Empty State */}
+          {!isScanning && filteredCategories.length === 0 && (
+            <Card className="p-12 text-center">
+              <div className="flex flex-col items-center justify-center max-w-sm mx-auto space-y-3">
+                <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 flex items-center justify-center text-indigo-500">
+                  <Sparkles size={24} />
+                </div>
+                <h3 className="font-semibold text-sm text-slate-800 dark:text-neutral-200">
+                  {searchQuery ? t('devWorkspace.emptySearch') : t('devWorkspace.emptyClean')}
+                </h3>
+              </div>
+            </Card>
+          )}
 
-            return (
-              <Card key={category.id} className="stagger-item" style={{ animationDelay: `${idx * 0.05}s` }}>
-                <CardHeader className="py-3!">
-                  <div className="flex items-center gap-3">
-                    <Checkbox
-                      checked={allSelected}
-                      indeterminate={someSelected && !allSelected}
-                      onChange={() => toggleCategorySelection('dev', category.id)}
-                    />
-                    <button
-                      onClick={() => toggleExpand(category.id)}
-                      className="flex items-center gap-3 flex-1 cursor-pointer"
-                    >
-                      <div className="p-2 rounded-xl bg-black/3 dark:bg-white/5">
-                        {categoryIcons[category.id] || <FolderOpen size={18} className="text-slate-400" />}
+          {/* Categories Accordion List */}
+          <div className="space-y-4">
+            {filteredCategories.map((category) => {
+              const isExpanded = expandedCategories.has(category.id);
+              const isAllCatSelected = category.items.length > 0 && category.items.every((i) => i.selected);
+              const isSomeCatSelected = category.items.some((i) => i.selected);
+
+              return (
+                <Card key={category.id} className="overflow-hidden border-black/5 dark:border-white/5 transition-all">
+                  <div className="p-3.5 flex items-center justify-between gap-3 hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <Checkbox
+                        checked={isAllCatSelected}
+                        indeterminate={isSomeCatSelected && !isAllCatSelected}
+                        onChange={() => toggleCategorySelection('dev', category.id)}
+                      />
+
+                      <div className="flex items-center gap-2.5 min-w-0 cursor-pointer" onClick={() => toggleExpand(category.id)}>
+                        <div className="p-1.5 rounded-lg bg-black/4 dark:bg-white/6 text-slate-600 dark:text-neutral-300">
+                          {categoryIcons[category.id] || <Code2 size={16} />}
+                        </div>
+                        <div className="truncate">
+                          <h4 className="text-xs font-semibold text-slate-800 dark:text-neutral-200 truncate">
+                            {category.name}
+                          </h4>
+                          <span className="text-[11px] text-slate-400 font-mono">
+                            {category.items.length} {t('common.items')} &bull; {formatSize(category.size)}
+                          </span>
+                        </div>
                       </div>
-                      <div className="text-left flex-1">
-                        <h3 className="text-sm font-bold text-slate-900 dark:text-white">
-                          {category.name}
-                        </h3>
-                        <p className="text-xs text-slate-400 dark:text-neutral-400">
-                          {category.items.length} items
-                        </p>
-                      </div>
-                      <span className="text-xs font-bold text-slate-600 dark:text-neutral-300 mr-2">
-                        {formatSize(category.size)}
-                      </span>
-                      {isExpanded ? (
-                        <ChevronDown size={15} className="text-slate-400" />
-                      ) : (
-                        <ChevronRight size={15} className="text-slate-400" />
-                      )}
-                    </button>
+                    </div>
+
+                    <div className="flex items-center gap-2 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => toggleExpand(category.id)}
+                        className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-neutral-200 hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer"
+                      >
+                        {isExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+                      </button>
+                    </div>
                   </div>
-                </CardHeader>
 
-                {isExpanded && (
-                  <CardBody className="py-2!">
-                    <div className="divide-y divide-black/4 dark:divide-white/6">
+                  {isExpanded && (
+                    <div className="border-t border-black/5 dark:border-white/5 divide-y divide-black/5 dark:divide-white/5 bg-black/[0.01] dark:bg-white/[0.01]">
                       {category.items.map((item) => (
                         <div
                           key={item.id}
-                          className="flex items-center gap-3 py-2.5 hover:bg-black/2 dark:hover:bg-white/3 -mx-2 px-2 rounded-xl transition-colors group"
+                          className="px-4 py-2.5 flex items-center justify-between gap-3 hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors"
                         >
-                          <Checkbox
-                            checked={item.selected}
-                            onChange={() =>
-                              toggleItemSelection('dev', category.id, item.id)
-                            }
-                          />
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2">
-                              <p className="text-xs font-semibold text-slate-800 dark:text-neutral-200 truncate">
+                          <div className="flex items-center gap-3 min-w-0">
+                            <Checkbox
+                              checked={item.selected}
+                              onChange={() => toggleItemSelection('dev', category.id, item.id)}
+                            />
+                            <div className="min-w-0">
+                              <p className="text-xs font-medium text-slate-700 dark:text-neutral-200 truncate">
                                 {item.name}
                               </p>
-                              {item.category === 'node_modules' && (
-                                <span className="inline-block px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
-                                  Inactive &gt; 90 days
-                                </span>
-                              )}
+                              <p className="text-[10px] text-slate-400 font-mono truncate">{item.path}</p>
                             </div>
-                            <p className="text-[11px] text-slate-400 dark:text-neutral-500 truncate">
-                              {item.path}
-                            </p>
                           </div>
+
                           <div className="flex items-center gap-3 shrink-0">
-                            <span className="text-xs font-bold text-slate-600 dark:text-neutral-300">
+                            <span className="text-xs font-mono font-medium text-slate-500 dark:text-neutral-400">
                               {formatSize(item.size)}
                             </span>
                             <button
-                              onClick={(e) => handleReveal(e, item.path)}
+                              type="button"
+                              onClick={() => revealInFinder(item.path)}
                               title={t('common.revealInFinder')}
-                              className="p-1.5 rounded-lg text-slate-400 hover:text-blue-500 hover:bg-black/4 dark:hover:bg-white/6 opacity-60 group-hover:opacity-100 transition-all"
+                              className="p-1 rounded hover:bg-black/5 dark:hover:bg-white/5 text-slate-400 hover:text-slate-600 dark:hover:text-neutral-200 transition-colors cursor-pointer"
                             >
-                              <ExternalLink size={14} />
+                              <ExternalLink size={13} />
                             </button>
                           </div>
                         </div>
                       ))}
                     </div>
-                  </CardBody>
-                )}
-              </Card>
-            );
-          })}
+                  )}
+                </Card>
+              );
+            })}
+          </div>
 
-          {filteredCategories.length === 0 && !isScanning && (
-            <div className="p-12 text-center rounded-2xl glass-panel">
-              <Sparkles size={36} className="text-slate-300 dark:text-neutral-600 mx-auto mb-3" />
-              <p className="text-sm font-semibold text-slate-700 dark:text-neutral-300">
-                {searchQuery || sizeFilter !== 'all'
-                  ? t('devWorkspace.emptySearch')
-                  : t('devWorkspace.emptyClean')}
-              </p>
+          {/* Floating Action Bar */}
+          <FloatingActionBar
+            selectedCount={selectedItems.length}
+            selectedSize={selectedSize}
+            onClean={() => setShowConfirmModal(true)}
+            isCleaning={isCleaning}
+            cleanLabel={deleteToTrash ? t('devWorkspace.cleanToTrash') : t('devWorkspace.cleanSelected')}
+          />
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* TAB 2: ZOMBIE PORT HUNTER & PROCESS KILLER */}
+      {/* ========================================================================= */}
+      {activeTab === 'ports' && (
+        <div className="space-y-4">
+          {portToast && (
+            <div className="p-3 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-700 dark:text-blue-300 text-xs flex items-center justify-between">
+              <span>{portToast}</span>
+              <button type="button" onClick={() => setPortToast(null)} className="cursor-pointer">
+                <X size={12} />
+              </button>
+            </div>
+          )}
+
+          <div className="flex items-center justify-between gap-3 p-3 rounded-2xl bg-white/40 dark:bg-neutral-800/40 border border-black/5 dark:border-white/5 backdrop-blur-md">
+            <div className="relative flex-1 max-w-sm">
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input
+                type="text"
+                placeholder="Cari port (3000, 8080), nama proses, PID..."
+                value={portSearch}
+                onChange={(e) => setPortSearch(e.target.value)}
+                className="w-full pl-9 pr-8 py-1.5 text-xs rounded-xl bg-white/60 dark:bg-neutral-900/60 border border-black/8 dark:border-white/8 focus:border-blue-500 focus:outline-none transition-all placeholder:text-slate-400"
+              />
+              {portSearch && (
+                <button
+                  type="button"
+                  onClick={() => setPortSearch('')}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-neutral-200"
+                >
+                  <X size={12} />
+                </button>
+              )}
+            </div>
+
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={fetchPorts}
+              disabled={isLoadingPorts}
+              className="flex items-center gap-1.5 text-xs"
+            >
+              <RefreshCw size={13} className={isLoadingPorts ? 'animate-spin' : ''} />
+              <span>{t('devWorkspace.portsRefresh', 'Segarkan Port')}</span>
+            </Button>
+          </div>
+
+          {isLoadingPorts && ports.length === 0 ? (
+            <div className="space-y-2">
+              <CardSkeleton />
+              <CardSkeleton />
+            </div>
+          ) : filteredPorts.length === 0 ? (
+            <Card className="p-12 text-center">
+              <div className="flex flex-col items-center justify-center max-w-sm mx-auto space-y-2">
+                <div className="w-10 h-10 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-500">
+                  <Radio size={20} />
+                </div>
+                <h4 className="text-xs font-semibold text-slate-800 dark:text-neutral-200">
+                  {t('devWorkspace.portsEmpty', 'Tidak ada port TCP aktif yang terdeteksi')}
+                </h4>
+              </div>
+            </Card>
+          ) : (
+            <div className="rounded-2xl border border-black/8 dark:border-white/8 overflow-hidden bg-white/40 dark:bg-neutral-800/40 backdrop-blur-md">
+              <table className="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr className="border-b border-black/5 dark:border-white/5 bg-black/[0.02] dark:bg-white/[0.02] text-slate-400 font-medium text-[11px]">
+                    <th className="py-2.5 px-4 font-mono">Port</th>
+                    <th className="py-2.5 px-4">Proses & PID</th>
+                    <th className="py-2.5 px-4">Alamat Binding</th>
+                    <th className="py-2.5 px-4">Pengguna</th>
+                    <th className="py-2.5 px-4 text-right">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-black/5 dark:divide-white/5">
+                  {filteredPorts.map((p) => (
+                    <tr
+                      key={`${p.port}-${p.pid}`}
+                      className="hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors"
+                    >
+                      <td className="py-2.5 px-4 font-mono font-bold text-blue-600 dark:text-blue-400">
+                        :{p.port}
+                      </td>
+                      <td className="py-2.5 px-4">
+                        <div className="flex items-center gap-2">
+                          <span className="font-semibold text-slate-800 dark:text-neutral-200">
+                            {p.process_name}
+                          </span>
+                          <span className="px-1.5 py-0.2 rounded text-[10px] font-mono bg-black/5 dark:bg-white/5 text-slate-500 dark:text-neutral-400">
+                            PID {p.pid}
+                          </span>
+                          {p.memory_bytes > 0 && (
+                            <span className="text-[10px] text-slate-400 font-mono">
+                              ({formatSize(p.memory_bytes)})
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="py-2.5 px-4 font-mono text-[11px] text-slate-500 dark:text-neutral-400">
+                        {p.address}
+                      </td>
+                      <td className="py-2.5 px-4 text-slate-600 dark:text-neutral-300">{p.user}</td>
+                      <td className="py-2.5 px-4 text-right">
+                        <Button
+                          variant="danger"
+                          size="sm"
+                          onClick={() => setKillTarget(p)}
+                          className="text-[11px] py-1 px-2.5 rounded-lg"
+                        >
+                          Hentikan
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {/* Kill Port Modal */}
+          {killTarget && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-fade-in">
+              <div className="w-full max-w-sm p-5 rounded-2xl bg-white dark:bg-neutral-900 border border-black/10 dark:border-white/10 shadow-2xl space-y-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-2xl bg-rose-500/10 text-rose-500 flex items-center justify-center shrink-0">
+                    <ShieldAlert size={20} />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                      Hentikan {killTarget.process_name}?
+                    </h3>
+                    <p className="text-xs text-slate-500 dark:text-neutral-400 font-mono">
+                      PID: {killTarget.pid} &bull; Port :{killTarget.port}
+                    </p>
+                  </div>
+                </div>
+                <p className="text-xs text-slate-600 dark:text-neutral-300">
+                  Aksi ini akan mengirim sinyal terminasi paksa (SIGKILL) untuk membebaskan port :{killTarget.port}. Perubahan yang belum disimpan pada proses ini akan hilang.
+                </p>
+                <div className="flex items-center justify-end gap-2 pt-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setKillTarget(null)}
+                    disabled={isKillingPort}
+                  >
+                    Batal
+                  </Button>
+                  <Button
+                    variant="danger"
+                    size="sm"
+                    onClick={executeKillPort}
+                    disabled={isKillingPort}
+                  >
+                    {isKillingPort ? 'Menghentikan...' : 'Hentikan Proses'}
+                  </Button>
+                </div>
+              </div>
             </div>
           )}
         </div>
       )}
 
-      {/* Floating Action Bar */}
-      <FloatingActionBar
-        selectedCount={selectedItems.length}
-        selectedSize={selectedSize}
-        onClean={handleCleanClick}
-        isCleaning={isCleaning}
-        onDeselect={() => selectAll('dev', false)}
-      />
+      {/* ========================================================================= */}
+      {/* TAB 3: XCODE & SIMULATOR DEEP PURGER */}
+      {/* ========================================================================= */}
+      {activeTab === 'xcode' && (
+        <div className="space-y-4">
+          {xcodeToast && (
+            <div className="p-3 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-700 dark:text-blue-300 text-xs flex items-center justify-between">
+              <span>{xcodeToast}</span>
+              <button type="button" onClick={() => setXcodeToast(null)} className="cursor-pointer">
+                <X size={12} />
+              </button>
+            </div>
+          )}
 
-      {/* Confirmation Modal */}
+          {/* Unavailable Simulators Banner */}
+          {xcodeReport && xcodeReport.unavailable_simulators_count > 0 && (
+            <Card className="p-4! border-rose-500/20 bg-rose-500/[0.04]">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-2xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-500 shrink-0">
+                    <ShieldAlert size={20} />
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-bold text-slate-900 dark:text-white">
+                      {xcodeReport.unavailable_simulators_count} Simulator Tidak Tersedia Terdeteksi
+                    </h4>
+                    <p className="text-[11px] text-slate-500 dark:text-neutral-400 mt-0.5">
+                      Simulator ini mengacu pada runtime iOS/watchOS lama yang sudah dihapus dari Mac. Aman untuk dihapus.
+                    </p>
+                  </div>
+                </div>
+
+                <Button
+                  variant="danger"
+                  size="sm"
+                  disabled={isPurgingSims}
+                  onClick={handlePurgeSimulators}
+                  className="shrink-0 flex items-center gap-1.5"
+                >
+                  <RefreshCw size={13} className={isPurgingSims ? 'animate-spin' : ''} />
+                  <span>{isPurgingSims ? 'Menghapus...' : 'Hapus Simulator Usang'}</span>
+                </Button>
+              </div>
+            </Card>
+          )}
+
+          {/* Target Items Grid */}
+          {isLoadingXcode && !xcodeReport ? (
+            <div className="space-y-3">
+              <CardSkeleton />
+              <CardSkeleton />
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {xcodeReport?.targets.map((target) => (
+                <Card key={target.id} className="p-4 flex flex-col justify-between space-y-3 border-black/8 dark:border-white/8">
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-xs font-bold text-slate-800 dark:text-neutral-200">
+                        {target.title}
+                      </h4>
+                      <span className="text-xs font-mono font-bold text-blue-600 dark:text-blue-400">
+                        {formatSize(target.size_bytes)}
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-slate-500 dark:text-neutral-400 mt-1">
+                      {target.description}
+                    </p>
+                    <p className="text-[10px] text-slate-400 font-mono mt-2 truncate">{target.path}</p>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-2 border-t border-black/5 dark:border-white/5">
+                    <span className="text-[10px] text-slate-400">
+                      {target.is_safe ? 'Sangat aman dibersihkan' : 'Butuh diskresi pengguna'}
+                    </span>
+                    <Button
+                      variant={target.is_safe ? 'secondary' : 'ghost'}
+                      size="sm"
+                      disabled={target.size_bytes === 0 || cleaningXcodeId === target.id}
+                      onClick={() => handleCleanXcodeTarget(target.id)}
+                      className="text-xs"
+                    >
+                      {cleaningXcodeId === target.id ? 'Membersihkan...' : 'Bersihkan Target'}
+                    </Button>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* TAB 4: DORMANT PROJECTS HIBERNATE */}
+      {/* ========================================================================= */}
+      {activeTab === 'hibernate' && (
+        <div className="space-y-4">
+          {hibernateToast && (
+            <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-700 dark:text-amber-300 text-xs flex items-center justify-between">
+              <span>{hibernateToast}</span>
+              <button type="button" onClick={() => setHibernateToast(null)} className="cursor-pointer">
+                <X size={12} />
+              </button>
+            </div>
+          )}
+
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-3 rounded-2xl bg-white/40 dark:bg-neutral-800/40 border border-black/5 dark:border-white/5 backdrop-blur-md">
+            <div className="relative flex-1 max-w-sm">
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input
+                type="text"
+                placeholder="Cari nama repositori dorman..."
+                value={dormantSearch}
+                onChange={(e) => setDormantSearch(e.target.value)}
+                className="w-full pl-9 pr-8 py-1.5 text-xs rounded-xl bg-white/60 dark:bg-neutral-900/60 border border-black/8 dark:border-white/8 focus:border-amber-500 focus:outline-none transition-all placeholder:text-slate-400"
+              />
+              {dormantSearch && (
+                <button
+                  type="button"
+                  onClick={() => setDormantSearch('')}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-neutral-200"
+                >
+                  <X size={12} />
+                </button>
+              )}
+            </div>
+
+            <div className="flex items-center gap-1 p-0.5 rounded-xl bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/5">
+              {[30, 90, 180].map((d) => (
+                <button
+                  key={d}
+                  type="button"
+                  onClick={() => {
+                    setDormantDays(d);
+                    fetchDormant(d);
+                  }}
+                  className={`px-2.5 py-1 text-[11px] rounded-lg font-medium transition-all cursor-pointer ${
+                    dormantDays === d
+                      ? 'bg-white dark:bg-neutral-700 text-slate-900 dark:text-white shadow-2xs font-semibold'
+                      : 'text-slate-500 dark:text-neutral-400 hover:text-slate-800 dark:hover:text-neutral-200'
+                  }`}
+                >
+                  &gt; {d} Hari
+                </button>
+              ))}
+            </div>
+
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => fetchDormant(dormantDays)}
+              disabled={isLoadingDormant}
+              className="flex items-center gap-1.5 text-xs"
+            >
+              <RefreshCw size={13} className={isLoadingDormant ? 'animate-spin' : ''} />
+              <span>Pindai Repositori</span>
+            </Button>
+          </div>
+
+          {isLoadingDormant && dormantProjects.length === 0 ? (
+            <div className="space-y-3">
+              <CardSkeleton />
+              <CardSkeleton />
+            </div>
+          ) : filteredDormant.length === 0 ? (
+            <Card className="p-12 text-center">
+              <div className="flex flex-col items-center justify-center max-w-sm mx-auto space-y-2">
+                <div className="w-10 h-10 rounded-2xl bg-amber-500/10 flex items-center justify-center text-amber-500">
+                  <CheckCircle2 size={20} />
+                </div>
+                <h4 className="text-xs font-semibold text-slate-800 dark:text-neutral-200">
+                  Tidak ada repositori dorman yang menyimpan folder build
+                </h4>
+                <p className="text-[11px] text-slate-500 dark:text-neutral-400">
+                  Semua proyek aktif atau sudah dihibernasi secara rapi.
+                </p>
+              </div>
+            </Card>
+          ) : (
+            <div className="space-y-3">
+              {filteredDormant.map((proj) => (
+                <Card key={proj.path} className="p-4 border-black/8 dark:border-white/8">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <h4 className="text-xs font-bold text-slate-800 dark:text-neutral-100 truncate">
+                          {proj.name}
+                        </h4>
+                        <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-amber-500/10 text-amber-600 dark:text-amber-400">
+                          {proj.inactive_days} hari lalu
+                        </span>
+                      </div>
+                      <p className="text-[10px] text-slate-400 font-mono mt-0.5 truncate">{proj.path}</p>
+                      <p className="text-[11px] text-slate-500 dark:text-neutral-400 mt-1 italic truncate">
+                        "{proj.last_commit_subject}"
+                      </p>
+
+                      <div className="flex items-center gap-1.5 mt-2 flex-wrap">
+                        {proj.artifacts.map((a) => (
+                          <span
+                            key={a.name}
+                            className="px-2 py-0.5 rounded text-[10px] font-mono bg-black/5 dark:bg-white/5 text-slate-600 dark:text-neutral-300 border border-black/5 dark:border-white/5"
+                          >
+                            {a.name} ({formatSize(a.size_bytes)})
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col items-end gap-2 shrink-0 self-end sm:self-center">
+                      <span className="text-xs font-mono font-bold text-amber-600 dark:text-amber-400">
+                        {formatSize(proj.total_reclaimable_bytes)}
+                      </span>
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        disabled={hibernatingPath === proj.path}
+                        onClick={() => handleHibernate(proj)}
+                        className="text-xs flex items-center gap-1.5"
+                      >
+                        <Moon size={12} className={hibernatingPath === proj.path ? 'animate-spin' : ''} />
+                        <span>{hibernatingPath === proj.path ? 'Menghibernasi...' : 'Hibernasi Proyek'}</span>
+                      </Button>
+                    </div>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Confirmation Modal for Artifacts */}
       <ConfirmModal
         isOpen={showConfirmModal}
         onClose={() => setShowConfirmModal(false)}
-        onConfirm={executeClean}
-        isLoading={isCleaning}
-        title={t('devWorkspace.title')}
+        onConfirm={handleClean}
+        title={t('confirmModal.title')}
         itemsCount={selectedItems.length}
         totalBytes={selectedSize}
         paths={selectedItems.map((i) => i.path)}
         useTrash={deleteToTrash}
       />
 
-      {/* Interactive Progress Flow Modal */}
+      {/* Animated Flow Modal */}
       <CleaningFlowModal
         isOpen={showCleaningFlow}
         onClose={() => setShowCleaningFlow(false)}
         isCleaning={isCleaning}
-        isDryRun={false}
-        totalBytes={cleanResult?.freedBytes || selectedSize}
         totalItems={cleanResult?.cleaned || selectedItems.length}
+        totalBytes={cleanResult?.freedBytes || selectedSize}
         paths={selectedItems.map((i) => i.path)}
-        title={t('devWorkspace.title')}
       />
     </div>
   );
