@@ -1,6 +1,9 @@
 use serde::{Deserialize, Serialize};
 use std::process::Command;
+use std::sync::Mutex;
 use sysinfo::System;
+
+static SYSTEM_MONITOR: Mutex<Option<System>> = Mutex::new(None);
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BatteryIntelligence {
@@ -160,9 +163,15 @@ fn read_macos_battery() -> BatteryIntelligence {
 }
 
 fn read_system_and_energy() -> (ThermalIntelligence, Vec<EnergyHogProcess>) {
-    let mut sys = System::new_all();
-    sys.refresh_all();
-    std::thread::sleep(std::time::Duration::from_millis(150));
+    let mut guard = SYSTEM_MONITOR.lock().unwrap_or_else(|e| e.into_inner());
+    let sys = guard.get_or_insert_with(|| {
+        let mut s = System::new();
+        s.refresh_cpu_all();
+        s.refresh_processes(sysinfo::ProcessesToUpdate::All, true);
+        s
+    });
+
+    sys.refresh_cpu_all();
     sys.refresh_processes(sysinfo::ProcessesToUpdate::All, true);
 
     let mut hogs = Vec::new();

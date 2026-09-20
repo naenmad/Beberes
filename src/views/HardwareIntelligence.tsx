@@ -20,11 +20,13 @@ import { formatSize } from '../lib/utils';
 import Button from '../components/ui/Button';
 import PageHeader from '../components/layout/PageHeader';
 import { CardSkeleton } from '../components/ui/SkeletonLoader';
+import { useAppStore } from '../store/appStore';
 
 export default function HardwareIntelligence() {
   const { t } = useTranslation();
-  const [report, setReport] = useState<HardwareReport | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const { currentPage, cachedHardwareReport, setCachedHardwareReport } = useAppStore();
+  const [report, setReport] = useState<HardwareReport | null>(cachedHardwareReport);
+  const [isLoading, setIsLoading] = useState(!cachedHardwareReport);
   const [killingPid, setKillingPid] = useState<number | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
 
@@ -32,6 +34,7 @@ export default function HardwareIntelligence() {
     try {
       const data = await getHardwareIntelligence();
       setReport(data);
+      setCachedHardwareReport(data);
     } catch (e) {
       console.error('Failed to fetch hardware intelligence:', e);
     } finally {
@@ -40,10 +43,13 @@ export default function HardwareIntelligence() {
   };
 
   useEffect(() => {
+    // Only poll when actively viewing Hardware Intelligence
+    if (currentPage !== 'hardware') return;
+
     fetchHardware();
     const interval = setInterval(fetchHardware, 4000);
     return () => clearInterval(interval);
-  }, []);
+  }, [currentPage]);
 
   const handleKill = async (pid: number, name: string) => {
     if (killingPid !== null) return;

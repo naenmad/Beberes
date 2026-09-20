@@ -1,5 +1,13 @@
 import { create } from 'zustand';
-import { getAllDisks, getDiskInfoByMount } from '../lib/commands';
+import {
+  getAllDisks,
+  getDiskInfoByMount,
+  HardwareReport,
+  SimilarMediaScanResult,
+  PluginScanReport,
+  AppItem,
+  OrphanedLeftoverItem,
+} from '../lib/commands';
 import { playSuccessChime } from '../lib/sound';
 import { applyThemeColors } from '../lib/themeColors';
 
@@ -161,6 +169,9 @@ function getStoredPage(): ViewPage {
       'startup-manager',
       'file-shredder',
       'git-sweeper',
+      'hardware',
+      'similar-photos',
+      'plugins',
       'settings',
     ];
     if (val && validPages.includes(val)) return val;
@@ -361,9 +372,33 @@ interface AppState {
   getTotalStagedSize: () => number;
   getStagedItemsList: () => StagedCleanItem[];
   getStagedItemsByPage: () => Record<string, StagedCleanItem[]>;
+
+  // Feature Page Caching (Instant tab switching)
+  cachedHardwareReport: HardwareReport | null;
+  setCachedHardwareReport: (report: HardwareReport | null) => void;
+  cachedSimilarPhotos: SimilarMediaScanResult | null;
+  setCachedSimilarPhotos: (result: SimilarMediaScanResult | null) => void;
+  cachedPluginReport: PluginScanReport | null;
+  setCachedPluginReport: (report: PluginScanReport | null) => void;
+  cachedInstalledApps: AppItem[] | null;
+  setCachedInstalledApps: (apps: AppItem[] | null) => void;
+  cachedOrphanedItems: OrphanedLeftoverItem[] | null;
+  setCachedOrphanedItems: (items: OrphanedLeftoverItem[] | null) => void;
 }
 
 export const useAppStore = create<AppState>((set, get) => ({
+  // Feature Page Caching
+  cachedHardwareReport: null,
+  setCachedHardwareReport: (cachedHardwareReport) => set({ cachedHardwareReport }),
+  cachedSimilarPhotos: null,
+  setCachedSimilarPhotos: (cachedSimilarPhotos) => set({ cachedSimilarPhotos }),
+  cachedPluginReport: null,
+  setCachedPluginReport: (cachedPluginReport) => set({ cachedPluginReport }),
+  cachedInstalledApps: null,
+  setCachedInstalledApps: (cachedInstalledApps) => set({ cachedInstalledApps }),
+  cachedOrphanedItems: null,
+  setCachedOrphanedItems: (cachedOrphanedItems) => set({ cachedOrphanedItems }),
+
   // Navigation
   currentPage: getStoredPage(),
   setCurrentPage: (page) => {

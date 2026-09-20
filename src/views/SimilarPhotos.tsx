@@ -22,12 +22,25 @@ import Button from '../components/ui/Button';
 import Checkbox from '../components/ui/Checkbox';
 import PageHeader from '../components/layout/PageHeader';
 import { CardSkeleton } from '../components/ui/SkeletonLoader';
+import { useAppStore } from '../store/appStore';
 
 export default function SimilarPhotos() {
   const { t } = useTranslation();
-  const [result, setResult] = useState<SimilarMediaScanResult | null>(null);
+  const { cachedSimilarPhotos, setCachedSimilarPhotos } = useAppStore();
+  const [result, setResult] = useState<SimilarMediaScanResult | null>(cachedSimilarPhotos);
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedPaths, setSelectedPaths] = useState<Set<string>>(new Set());
+  const [selectedPaths, setSelectedPaths] = useState<Set<string>>(() => {
+    if (!cachedSimilarPhotos) return new Set();
+    const toSelect = new Set<string>();
+    cachedSimilarPhotos.groups.forEach((g) => {
+      g.items.forEach((item) => {
+        if (!item.is_recommended_keep) {
+          toSelect.add(item.path);
+        }
+      });
+    });
+    return toSelect;
+  });
   const [isDeleting, setIsDeleting] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
 
@@ -37,6 +50,7 @@ export default function SimilarPhotos() {
     try {
       const data = await scanSimilarPhotos();
       setResult(data);
+      setCachedSimilarPhotos(data);
 
       // Auto-select duplicates (non-recommended keep items)
       const toSelect = new Set<string>();
@@ -57,7 +71,9 @@ export default function SimilarPhotos() {
   };
 
   useEffect(() => {
-    startScan();
+    if (!cachedSimilarPhotos) {
+      startScan();
+    }
   }, []);
 
   const toggleSelect = (path: string) => {

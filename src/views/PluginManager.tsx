@@ -27,11 +27,13 @@ import { formatSize } from '../lib/utils';
 import Button from '../components/ui/Button';
 import PageHeader from '../components/layout/PageHeader';
 import { CardSkeleton } from '../components/ui/SkeletonLoader';
+import { useAppStore } from '../store/appStore';
 
 export default function PluginManager() {
   const { t } = useTranslation();
-  const [report, setReport] = useState<PluginScanReport | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const { cachedPluginReport, setCachedPluginReport } = useAppStore();
+  const [report, setReport] = useState<PluginScanReport | null>(cachedPluginReport);
+  const [isLoading, setIsLoading] = useState(!cachedPluginReport);
   const [filterType, setFilterType] = useState<'all' | 'browser' | 'system'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [removingPath, setRemovingPath] = useState<string | null>(null);
@@ -43,6 +45,7 @@ export default function PluginManager() {
     try {
       const data = await scanBrowserAndSystemPlugins();
       setReport(data);
+      setCachedPluginReport(data);
     } catch {
       setFeedback('Failed to scan browser extensions and system plugins.');
     } finally {
@@ -51,7 +54,9 @@ export default function PluginManager() {
   };
 
   useEffect(() => {
-    fetchPlugins();
+    if (!cachedPluginReport) {
+      fetchPlugins();
+    }
   }, []);
 
   const handleOpenFDA = async () => {

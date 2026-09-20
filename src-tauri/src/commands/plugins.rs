@@ -1,3 +1,4 @@
+use rayon::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -26,6 +27,7 @@ pub struct PluginScanReport {
 fn calculate_dir_size(path: &Path) -> u64 {
     WalkDir::new(path)
         .into_iter()
+        .par_bridge()
         .filter_map(|e| e.ok())
         .filter_map(|e| e.metadata().ok())
         .filter(|m| m.is_file())

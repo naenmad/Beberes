@@ -1,3 +1,4 @@
+use rayon::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -183,30 +184,34 @@ pub fn scan_similar_photos(
         }
     }
 
-    // Limit initial candidate list to top 250 most recent to keep scan fast
-    candidate_paths.truncate(250);
+    // Limit initial candidate list to top 200 most relevant to keep scan snappy
+    candidate_paths.truncate(200);
 
-    let mut fingerprints = Vec::new();
-    for (path, size) in candidate_paths {
-        if let Some((hash, width, height)) = compute_dhash_via_sips(&path) {
-            let modified = path
-                .metadata()
-                .and_then(|m| m.modified())
-                .ok()
-                .and_then(|t| t.duration_since(std::time::UNIX_EPOCH).ok())
-                .map(|d| d.as_secs())
-                .unwrap_or(0);
+    let fingerprints: Vec<ImageFingerprint> = candidate_paths
+        .par_iter()
+        .filter_map(|(path, size)| {
+            if let Some((hash, width, height)) = compute_dhash_via_sips(path) {
+                let modified = path
+                    .metadata()
+                    .and_then(|m| m.modified())
+                    .ok()
+                    .and_then(|t| t.duration_since(std::time::UNIX_EPOCH).ok())
+                    .map(|d| d.as_secs())
+                    .unwrap_or(0);
 
-            fingerprints.push(ImageFingerprint {
-                path,
-                size,
-                width,
-                height,
-                modified,
-                hash,
-            });
-        }
-    }
+                Some(ImageFingerprint {
+                    path: path.clone(),
+                    size: *size,
+                    width,
+                    height,
+                    modified,
+                    hash,
+                })
+            } else {
+                None
+            }
+        })
+        .collect();
 
     let mut groups = Vec::new();
     let mut visited = vec![false; fingerprints.len()];

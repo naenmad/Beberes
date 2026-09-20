@@ -52,13 +52,17 @@ export default function AppUninstaller() {
     unstageItem,
     stageMultipleItems,
     unstageMultipleItems,
+    cachedInstalledApps,
+    setCachedInstalledApps,
+    cachedOrphanedItems,
+    setCachedOrphanedItems,
   } = useAppStore();
 
   const [viewMode, setViewMode] = useState<ViewMode>('installed');
 
   // Installed Apps State
-  const [apps, setApps] = useState<AppItem[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [apps, setApps] = useState<AppItem[]>(cachedInstalledApps || []);
+  const [isLoading, setIsLoading] = useState(!cachedInstalledApps);
   const [searchQuery, setSearchQuery] = useState('');
   const [filter, setFilter] = useState<AppFilter>('all');
   const [sortBy, setSortBy] = useState<SortOption>('size');
@@ -66,13 +70,22 @@ export default function AppUninstaller() {
   // Expanded leftovers per app
   const [expandedAppIds, setExpandedAppIds] = useState<Set<string>>(new Set());
   // Selected leftover paths per app (default: all selected)
-  const [selectedLeftoversMap, setSelectedLeftoversMap] = useState<Record<string, Set<string>>>({});
+  const [selectedLeftoversMap, setSelectedLeftoversMap] = useState<Record<string, Set<string>>>(() => {
+    if (!cachedInstalledApps) return {};
+    const map: Record<string, Set<string>> = {};
+    for (const app of cachedInstalledApps) {
+      map[app.id] = new Set(app.leftovers.map((l) => l.path));
+    }
+    return map;
+  });
 
 
   // Orphaned Leftovers State
-  const [orphanedItems, setOrphanedItems] = useState<OrphanedLeftoverItem[]>([]);
+  const [orphanedItems, setOrphanedItems] = useState<OrphanedLeftoverItem[]>(cachedOrphanedItems || []);
   const [isLoadingOrphaned, setIsLoadingOrphaned] = useState(false);
-  const [selectedOrphanedIds, setSelectedOrphanedIds] = useState<Set<string>>(new Set());
+  const [selectedOrphanedIds, setSelectedOrphanedIds] = useState<Set<string>>(() => {
+    return new Set((cachedOrphanedItems || []).map((i) => i.id));
+  });
   const [orphanedSearchQuery, setOrphanedSearchQuery] = useState('');
   const [isCleaningOrphaned, setIsCleaningOrphaned] = useState(false);
   const [showOrphanedConfirm, setShowOrphanedConfirm] = useState(false);
@@ -83,6 +96,7 @@ export default function AppUninstaller() {
     try {
       const data = await scanInstalledApps();
       setApps(data);
+      setCachedInstalledApps(data);
 
       const map: Record<string, Set<string>> = {};
       for (const app of data) {
@@ -101,6 +115,7 @@ export default function AppUninstaller() {
     try {
       const res = await scanOrphanedLeftovers();
       setOrphanedItems(res.items);
+      setCachedOrphanedItems(res.items);
       setSelectedOrphanedIds(new Set(res.items.map((i) => i.id)));
     } catch (err) {
       console.error('Failed to scan orphaned leftovers:', err);
@@ -110,8 +125,12 @@ export default function AppUninstaller() {
   };
 
   useEffect(() => {
-    runScan();
-    runOrphanedScan();
+    if (!cachedInstalledApps) {
+      runScan();
+    }
+    if (!cachedOrphanedItems) {
+      runOrphanedScan();
+    }
   }, [globalRefreshTrigger]);
 
   const toggleExpand = (appId: string) => {

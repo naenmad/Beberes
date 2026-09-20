@@ -109,18 +109,23 @@ export default function Dashboard() {
     setIsScanning(true);
     setQuickCleanResult(null);
     try {
-      const [disk, system, dev, browsers, mem, snapshots] = await Promise.all([
+      // 1. Instant Fast-path: Load drive info & RAM status immediately (<50ms)
+      const [disk, mem] = await Promise.all([
         getDiskInfoByMount(selectedDiskMount),
+        getMemoryStatus(),
+      ]);
+      setDiskInfo(disk);
+      setMemoryStatus(mem);
+
+      // 2. Deep Scanner: Scan system directories, dev workspaces, browser caches, and snapshots
+      const [system, dev, browsers, snapshots] = await Promise.all([
         scanSystemDirectories(),
         scanDevWorkspaces(),
         scanBrowserCaches(),
-        getMemoryStatus(),
         listApfsSnapshots(),
       ]);
-      setDiskInfo(disk);
       setSystemCategories([...system, ...browsers]);
       setDevCategories(dev);
-      setMemoryStatus(mem);
       setApfsResult(snapshots);
     } catch (err) {
       console.error('Scan failed:', err);
