@@ -78,7 +78,7 @@ export default function HardwareIntelligence() {
   const hogs = report?.energy_hogs || [];
 
   return (
-    <div className="space-y-6 pb-20">
+    <div className="space-y-6 animate-fade-in pb-20">
       {/* Standard Beberes PageHeader */}
       <PageHeader
         icon={<Activity size={20} />}

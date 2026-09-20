@@ -18,11 +18,11 @@ import {
 
 export default function DiskVisualizer() {
   const { t } = useTranslation();
-  const { selectedDiskMount, globalRefreshTrigger } = useAppStore();
+  const { selectedDiskMount, globalRefreshTrigger, cachedDiskTree, setCachedDiskTree } = useAppStore();
 
-  const [currentPath, setCurrentPath] = useState<string>('~');
+  const [currentPath, setCurrentPath] = useState<string>(() => cachedDiskTree?.path || '~');
   const [history, setHistory] = useState<string[]>([]);
-  const [rootNode, setRootNode] = useState<DiskTreeNode | null>(null);
+  const [rootNode, setRootNode] = useState<DiskTreeNode | null>(cachedDiskTree);
   const [isLoading, setIsLoading] = useState(false);
 
   const loadTree = useCallback(async (path: string) => {
@@ -32,20 +32,25 @@ export default function DiskVisualizer() {
       setRootNode(tree);
       if (tree && tree.path) {
         setCurrentPath(tree.path);
+        if (path === '~' || path === '/') {
+          setCachedDiskTree(tree);
+        }
       }
     } catch (err) {
       console.error('Failed to scan disk tree:', err);
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [setCachedDiskTree]);
 
   useEffect(() => {
-    // If an external volume is selected, use it, otherwise default to user home
     const initial = (selectedDiskMount && selectedDiskMount !== '/') ? selectedDiskMount : '~';
+    if (cachedDiskTree && (initial === '~' || initial === cachedDiskTree.path)) {
+      return;
+    }
     setHistory([]);
     loadTree(initial);
-  }, [selectedDiskMount, loadTree, globalRefreshTrigger]);
+  }, [selectedDiskMount, loadTree, globalRefreshTrigger, cachedDiskTree]);
 
   const handleNavigateInto = (node: DiskTreeNode) => {
     if (!node.isDir) return;

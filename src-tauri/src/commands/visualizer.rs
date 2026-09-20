@@ -27,6 +27,12 @@ fn should_skip(path: &Path) -> bool {
         || s.ends_with("/.Spotlight-V100")
         || s.ends_with("/.DocumentRevisions-V100")
         || s.ends_with("/.fseventsd")
+        || s.ends_with("/.git")
+        || s.ends_with("/node_modules")
+        || s.contains("/node_modules/")
+        || s.contains("/Library/Caches")
+        || s.contains("/Library/Containers")
+        || s.contains("/Library/Metadata")
 }
 
 fn calculate_allocated_size(path: &Path) -> (u64, usize) {

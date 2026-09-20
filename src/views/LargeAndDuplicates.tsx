@@ -422,7 +422,7 @@ export default function LargeAndDuplicates() {
         /* Large Files List */
         <div className="space-y-2">
           {!data || data.large_files.length === 0 ? (
-            <div className="py-16 text-center rounded-3xl glass-panel max-w-md mx-auto space-y-2">
+            <div className="rounded-2xl glass-panel overflow-hidden py-16 text-center w-full space-y-2">
               <HardDrive size={32} className="mx-auto text-slate-300 dark:text-neutral-600" />
               <p className="text-sm font-semibold text-slate-700 dark:text-neutral-300">
                 {t('largeDuplicates.noLargeFiles', 'No large files found')}
@@ -501,7 +501,7 @@ export default function LargeAndDuplicates() {
         /* Duplicate Groups */
         <div className="space-y-4">
           {!data || data.duplicate_groups.length === 0 ? (
-            <div className="py-16 text-center rounded-3xl glass-panel max-w-md mx-auto space-y-2">
+            <div className="rounded-2xl glass-panel overflow-hidden py-16 text-center w-full space-y-2">
               <Copy size={32} className="mx-auto text-slate-300 dark:text-neutral-600" />
               <p className="text-sm font-semibold text-slate-700 dark:text-neutral-300">
                 {t('largeDuplicates.noDuplicates', 'No duplicate files found')}
@@ -584,7 +584,7 @@ export default function LargeAndDuplicates() {
         /* Old Untouched Files */
         <div className="space-y-2">
           {!data || data.old_files.length === 0 ? (
-            <div className="py-16 text-center rounded-3xl glass-panel max-w-md mx-auto space-y-2">
+            <div className="rounded-2xl glass-panel overflow-hidden py-16 text-center w-full space-y-2">
               <Clock size={32} className="mx-auto text-slate-300 dark:text-neutral-600" />
               <p className="text-sm font-semibold text-slate-700 dark:text-neutral-300">
                 {t('largeDuplicates.noOldFiles', 'No old files found')}

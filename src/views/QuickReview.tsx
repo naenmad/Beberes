@@ -746,7 +746,7 @@ export default function QuickReview() {
         </div>
       ) : items.length === 0 ? (
         /* Empty Directory */
-        <div className="py-20 text-center rounded-3xl glass-panel max-w-md mx-auto">
+        <div className="rounded-2xl glass-panel overflow-hidden py-16 text-center w-full">
           <Eye size={40} className="mx-auto text-slate-300 dark:text-neutral-600 mb-3" />
           <h3 className="text-base font-bold text-slate-800 dark:text-neutral-200">
             {t('quickReview.noFilesFoundTitle')}

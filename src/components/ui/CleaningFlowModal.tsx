@@ -68,7 +68,7 @@ export default function CleaningFlowModal({
 
   const isOrganize = mode === 'organize';
   const stages = isOrganize ? organizeStages : cleanStages;
-  const modalTitle = title || (isOrganize ? t('tidyUp.organizeFiles') : t('systemClean.title'));
+  const modalTitle = title || (isOrganize ? t('tidyUp.organizeFiles', 'Organize Files') : t('systemClean.title'));
 
   const displayBytes = totalBytes > 0 ? totalBytes : frozenStatsRef.current.totalBytes;
   const displayItems = totalItems > 0 ? totalItems : frozenStatsRef.current.totalItems;

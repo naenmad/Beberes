@@ -281,7 +281,7 @@ export default function TrashManager() {
           <CardSkeleton />
         </div>
       ) : data?.permission_denied ? (
-        <div className="py-10 px-6 text-center rounded-3xl glass-panel max-w-xl mx-auto space-y-4 border border-amber-500/20 bg-amber-500/5">
+        <div className="rounded-2xl glass-panel overflow-hidden py-16 px-6 text-center w-full space-y-4 border border-amber-500/20 bg-amber-500/5">
           <div className="w-14 h-14 rounded-3xl bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center mx-auto shadow-sm">
             <ShieldAlert size={30} />
           </div>
@@ -316,7 +316,7 @@ export default function TrashManager() {
           </div>
         </div>
       ) : !data || data.total_items === 0 ? (
-        <div className="py-16 text-center rounded-3xl glass-panel max-w-md mx-auto space-y-3">
+        <div className="rounded-2xl glass-panel overflow-hidden py-16 text-center w-full space-y-3">
           <div className="w-14 h-14 rounded-3xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center mx-auto">
             <FolderCheck size={32} />
           </div>

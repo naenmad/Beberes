@@ -252,7 +252,11 @@
     "ruleScreenshotsBtn": "Consolidate to Pictures",
     "ruleScreenshotsActive": "Moving...",
     "ruleScreenshotsSuccess": "Successfully consolidated {count} screenshots to ~/Pictures/Screenshots",
-    "ruleScreenshotsError": "Failed to consolidate screenshots: {error}"
+    "ruleScreenshotsError": "Failed to consolidate screenshots: {error}",
+    "organizeFiles": "Organize Files",
+    "maintenanceCleanTitle": "Everything is Clean & Tidy!",
+    "maintenanceCleanSubtitle": "No empty folder clutter or dead symlinks found in this folder.",
+    "desc": "Categorize loose clutter files and clean redundant installers automatically"
   },
   "apps": {
     "title": "Applications",

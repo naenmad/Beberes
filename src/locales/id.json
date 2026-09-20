@@ -252,7 +252,11 @@
     "ruleScreenshotsBtn": "Kumpulkan ke Pictures",
     "ruleScreenshotsActive": "Memindahkan...",
     "ruleScreenshotsSuccess": "Berhasil mengumpulkan {count} tangkapan layar ke ~/Pictures/Screenshots",
-    "ruleScreenshotsError": "Gagal mengumpulkan screenshot: {error}"
+    "ruleScreenshotsError": "Gagal mengumpulkan screenshot: {error}",
+    "organizeFiles": "Rapikan Berkas",
+    "maintenanceCleanTitle": "Semua Bersih & Rapi!",
+    "maintenanceCleanSubtitle": "Tidak ada folder kosong atau tautan rusak di folder ini.",
+    "desc": "Kategorikan berkas berantakan dan bersihkan installer berlebih secara otomatis"
   },
   "apps": {
     "title": "Aplikasi",

@@ -7,6 +7,7 @@ import {
   PluginScanReport,
   AppItem,
   OrphanedLeftoverItem,
+  DiskTreeNode,
 } from '../lib/commands';
 import { playSuccessChime } from '../lib/sound';
 import { applyThemeColors } from '../lib/themeColors';
@@ -384,6 +385,8 @@ interface AppState {
   setCachedInstalledApps: (apps: AppItem[] | null) => void;
   cachedOrphanedItems: OrphanedLeftoverItem[] | null;
   setCachedOrphanedItems: (items: OrphanedLeftoverItem[] | null) => void;
+  cachedDiskTree: DiskTreeNode | null;
+  setCachedDiskTree: (tree: DiskTreeNode | null) => void;
 }
 
 export const useAppStore = create<AppState>((set, get) => ({
@@ -398,6 +401,8 @@ export const useAppStore = create<AppState>((set, get) => ({
   setCachedInstalledApps: (cachedInstalledApps) => set({ cachedInstalledApps }),
   cachedOrphanedItems: null,
   setCachedOrphanedItems: (cachedOrphanedItems) => set({ cachedOrphanedItems }),
+  cachedDiskTree: null,
+  setCachedDiskTree: (cachedDiskTree) => set({ cachedDiskTree }),
 
   // Navigation
   currentPage: getStoredPage(),

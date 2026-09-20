@@ -80,7 +80,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
         </div>
 
         {/* Main Content Area */}
-        <main ref={mainRef} className="flex-1 overflow-y-auto px-1 sm:px-2 pb-24 sm:pb-28">
+        <main ref={mainRef} className="flex-1 overflow-y-scroll [scrollbar-gutter:stable] px-1 sm:px-2 pb-24 sm:pb-28">
           <div className="max-w-6xl mx-auto w-full">
             {children}
           </div>

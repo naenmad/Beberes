@@ -66,7 +66,7 @@ export default function ConfirmModal({
   if (!isOpen) return null;
 
   const isOrganize = actionType === 'organize';
-  const modalTitle = title || (isOrganize ? t('tidyUp.organizeFiles') : t('modals.confirmTitle'));
+  const modalTitle = title || (isOrganize ? t('tidyUp.organizeFiles', 'Organize Files') : t('modals.confirmTitle'));
   const displayPaths = showAllPaths ? paths : paths.slice(0, 5);
 
   const modalContent = (
@@ -258,7 +258,7 @@ export default function ConfirmModal({
             {isOrganize
               ? isDryRun
                 ? 'Simulate Organization'
-                : confirmText || `${t('tidyUp.organizeFiles')} (${itemsCount})`
+                : confirmText || `${t('tidyUp.organizeFiles', 'Organize Files')} (${itemsCount})`
               : isDryRun
               ? 'Run Simulation'
               : confirmText ||
