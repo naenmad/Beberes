@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import { useAppStore } from '../../store/appStore';
 import { useTranslation } from '../../lib/i18n';
 import { supportedLanguages } from '../../locales';
@@ -36,7 +37,25 @@ export default function TopBar() {
     refreshDisks,
     updateInfo,
     lowDiskSpaceTriggered,
-  } = useAppStore();
+  } = useAppStore(
+    useShallow((s) => ({
+      currentPage: s.currentPage,
+      diskInfo: s.diskInfo,
+      deleteToTrash: s.deleteToTrash,
+      toggleDeleteToTrash: s.toggleDeleteToTrash,
+      isDarkMode: s.isDarkMode,
+      toggleDarkMode: s.toggleDarkMode,
+      language: s.language,
+      setLanguage: s.setLanguage,
+      openSpotlight: s.openSpotlight,
+      setCurrentPage: s.setCurrentPage,
+      isScanning: s.isScanning,
+      triggerGlobalRefresh: s.triggerGlobalRefresh,
+      refreshDisks: s.refreshDisks,
+      updateInfo: s.updateInfo,
+      lowDiskSpaceTriggered: s.lowDiskSpaceTriggered,
+    }))
+  );
 
   const [showLangMenu, setShowLangMenu] = useState(false);
   const langMenuRef = useRef<HTMLDivElement>(null);

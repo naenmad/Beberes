@@ -73,7 +73,9 @@ const DEFAULT_WIDTH = 220;
 const MAX_WIDTH = 320;
 
 export default function FloatingSidebar() {
-  const { currentPage, setCurrentPage, openAboutModal } = useAppStore();
+  const currentPage = useAppStore((s) => s.currentPage);
+  const setCurrentPage = useAppStore((s) => s.setCurrentPage);
+  const openAboutModal = useAppStore((s) => s.openAboutModal);
   const { t } = useTranslation();
 
   const [width, setWidth] = useState<number>(() => {

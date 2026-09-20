@@ -40,9 +40,38 @@ interface SpotlightItem {
 }
 
 export default function SpotlightModal() {
+  const isSpotlightOpen = useAppStore((s) => s.isSpotlightOpen);
+  const closeSpotlight = useAppStore((s) => s.closeSpotlight);
+  const openSpotlight = useAppStore((s) => s.openSpotlight);
+
+  // Global shortcut: ⌘K or Ctrl+K
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        if (isSpotlightOpen) {
+          closeSpotlight();
+        } else {
+          openSpotlight();
+        }
+      } else if (e.key === 'Escape' && isSpotlightOpen) {
+        e.preventDefault();
+        closeSpotlight();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isSpotlightOpen, closeSpotlight, openSpotlight]);
+
+  if (!isSpotlightOpen) return null;
+
+  return <SpotlightContent />;
+}
+
+function SpotlightContent() {
   const { t } = useTranslation();
   const {
-    isSpotlightOpen,
     closeSpotlight,
     openAboutModal,
     setCurrentPage,
@@ -61,39 +90,15 @@ export default function SpotlightModal() {
 
   // Focus input when opened
   useEffect(() => {
-    if (isSpotlightOpen) {
-      setQuery('');
-      setSelectedIndex(0);
-      setTimeout(() => inputRef.current?.focus(), 50);
+    setQuery('');
+    setSelectedIndex(0);
+    setTimeout(() => inputRef.current?.focus(), 50);
 
-      // Lazy load apps for instant searching
-      if (installedApps.length === 0) {
-        scanInstalledApps()
-          .then((apps) => setInstalledApps(apps))
-          .catch(() => {});
-      }
-    }
-  }, [isSpotlightOpen]);
-
-  // Global shortcut: ⌘K or Ctrl+K
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
-        e.preventDefault();
-        if (isSpotlightOpen) {
-          closeSpotlight();
-        } else {
-          useAppStore.getState().openSpotlight();
-        }
-      } else if (e.key === 'Escape' && isSpotlightOpen) {
-        e.preventDefault();
-        closeSpotlight();
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isSpotlightOpen]);
+    // Lazy load apps for instant searching
+    scanInstalledApps()
+      .then((apps) => setInstalledApps(apps))
+      .catch(() => {});
+  }, []);
 
   const navigateTo = (page: ViewPage) => {
     setCurrentPage(page);
@@ -359,8 +364,6 @@ export default function SpotlightModal() {
       }
     }
   }, [selectedIndex]);
-
-  if (!isSpotlightOpen) return null;
 
   return (
     <div

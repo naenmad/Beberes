@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import FloatingSidebar from './FloatingSidebar';
 import TopBar from './TopBar';
 import SpotlightModal from '../ui/SpotlightModal';
@@ -25,7 +26,16 @@ export default function MainLayout({ children }: MainLayoutProps) {
     clearStagingQueue,
     isReportModalOpen,
     closeReportModal,
-  } = useAppStore();
+  } = useAppStore(
+    useShallow((s) => ({
+      setCurrentPage: s.setCurrentPage,
+      stagedItems: s.stagedItems,
+      openStagedModal: s.openStagedModal,
+      clearStagingQueue: s.clearStagingQueue,
+      isReportModalOpen: s.isReportModalOpen,
+      closeReportModal: s.closeReportModal,
+    }))
+  );
   const [isDraggingOver, setIsDraggingOver] = useState(false);
   const mainRef = useRef<HTMLElement>(null);
 

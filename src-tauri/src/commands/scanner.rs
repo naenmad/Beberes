@@ -58,11 +58,12 @@ pub struct DiskInfo {
     pub disk_name: String,
 }
 
-/// Calculate the total physical size of a directory using parallel traversal.
+/// Calculate the total physical size of a directory using sequential traversal per-thread.
 fn dir_size(path: &Path) -> u64 {
     WalkDir::new(path)
+        .same_file_system(true)
+        .follow_links(false)
         .into_iter()
-        .par_bridge()
         .filter_map(|e| e.ok())
         .filter(|e| e.file_type().is_file())
         .map(|e| e.metadata().map(|m| get_allocated_size(&m)).unwrap_or(0))
@@ -148,93 +149,107 @@ fn scan_directory_entries(dir: &Path, category_id: &str) -> Vec<ScanItem> {
     items
 }
 
-/// Scan system directories: cache, logs, browser cache, trash.
+/// Scan system directories: cache, logs, browser cache, trash (fully parallelized).
 #[tauri::command]
 pub fn scan_system_directories() -> Vec<ScanCategory> {
     let home = dirs_home();
-    let mut categories = vec![];
 
-    // 1. System Cache
-    let cache_dir = PathBuf::from(&home).join("Library/Caches");
-    let cache_items = scan_directory_entries(&cache_dir, "system_cache");
-    let cache_size: u64 = cache_items.iter().map(|i| i.size).sum();
-    categories.push(ScanCategory {
-        id: "system_cache".to_string(),
-        name: "System Cache".to_string(),
-        icon: "folder".to_string(),
-        size: cache_size,
-        items: cache_items,
-        selected: false,
-    });
+    // Parallelize top-level categories across cores
+    let ((cat_cache, cat_logs), (cat_browser, cat_trash)) = rayon::join(
+        || {
+            rayon::join(
+                || {
+                    let cache_dir = PathBuf::from(&home).join("Library/Caches");
+                    let cache_items = scan_directory_entries(&cache_dir, "system_cache");
+                    let cache_size: u64 = cache_items.iter().map(|i| i.size).sum();
+                    ScanCategory {
+                        id: "system_cache".to_string(),
+                        name: "System Cache".to_string(),
+                        icon: "folder".to_string(),
+                        size: cache_size,
+                        items: cache_items,
+                        selected: false,
+                    }
+                },
+                || {
+                    let logs_dir = PathBuf::from(&home).join("Library/Logs");
+                    let log_items = scan_directory_entries(&logs_dir, "user_logs");
+                    let log_size: u64 = log_items.iter().map(|i| i.size).sum();
+                    ScanCategory {
+                        id: "user_logs".to_string(),
+                        name: "User Logs & Diagnostics".to_string(),
+                        icon: "file-text".to_string(),
+                        size: log_size,
+                        items: log_items,
+                        selected: false,
+                    }
+                },
+            )
+        },
+        || {
+            rayon::join(
+                || {
+                    let browser_cache_dirs = [
+                        PathBuf::from(&home).join("Library/Caches/Google/Chrome"),
+                        PathBuf::from(&home).join("Library/Caches/com.apple.Safari"),
+                        PathBuf::from(&home).join("Library/Caches/Firefox"),
+                        PathBuf::from(&home).join("Library/Caches/com.microsoft.edgemac"),
+                        PathBuf::from(&home).join("Library/Caches/company.thebrowser.Browser"),
+                        PathBuf::from(&home).join("Library/Caches/BraveSoftware/Brave-Browser"),
+                    ];
+                    let mut browser_items: Vec<ScanItem> = browser_cache_dirs
+                        .par_iter()
+                        .filter(|dir| dir.exists())
+                        .filter_map(|dir| {
+                            let size = dir_size(dir);
+                            if size > 0 {
+                                Some(ScanItem {
+                                    id: gen_id(),
+                                    path: dir.to_string_lossy().to_string(),
+                                    name: dir
+                                        .file_name()
+                                        .unwrap_or_default()
+                                        .to_string_lossy()
+                                        .to_string(),
+                                    size,
+                                    last_modified: last_modified_str(dir),
+                                    category: "browser_cache".to_string(),
+                                    selected: false,
+                                })
+                            } else {
+                                None
+                            }
+                        })
+                        .collect();
+                    browser_items.sort_by_key(|a| std::cmp::Reverse(a.size));
+                    let browser_size: u64 = browser_items.iter().map(|i| i.size).sum();
+                    ScanCategory {
+                        id: "browser_cache".to_string(),
+                        name: "Browser Cache".to_string(),
+                        icon: "globe".to_string(),
+                        size: browser_size,
+                        items: browser_items,
+                        selected: false,
+                    }
+                },
+                || {
+                    let trash_dir = PathBuf::from(&home).join(".Trash");
+                    let trash_items = scan_directory_entries(&trash_dir, "trash");
+                    let trash_size: u64 = trash_items.iter().map(|i| i.size).sum();
+                    ScanCategory {
+                        id: "trash".to_string(),
+                        name: "Trash Bin".to_string(),
+                        icon: "trash".to_string(),
+                        size: trash_size,
+                        items: trash_items,
+                        selected: false,
+                    }
+                },
+            )
+        },
+    );
 
-    // 2. User Logs & Crash Reports
-    let logs_dir = PathBuf::from(&home).join("Library/Logs");
-    let log_items = scan_directory_entries(&logs_dir, "user_logs");
-    let log_size: u64 = log_items.iter().map(|i| i.size).sum();
-    categories.push(ScanCategory {
-        id: "user_logs".to_string(),
-        name: "User Logs & Diagnostics".to_string(),
-        icon: "file-text".to_string(),
-        size: log_size,
-        items: log_items,
-        selected: false,
-    });
-
-    // 3. Browser Cache (Chrome, Safari, Firefox, Edge, Arc)
-    let browser_cache_dirs = vec![
-        PathBuf::from(&home).join("Library/Caches/Google/Chrome"),
-        PathBuf::from(&home).join("Library/Caches/com.apple.Safari"),
-        PathBuf::from(&home).join("Library/Caches/Firefox"),
-        PathBuf::from(&home).join("Library/Caches/com.microsoft.edgemac"),
-        PathBuf::from(&home).join("Library/Caches/company.thebrowser.Browser"),
-        PathBuf::from(&home).join("Library/Caches/BraveSoftware/Brave-Browser"),
-    ];
-    let mut browser_items: Vec<ScanItem> = vec![];
-    for dir in &browser_cache_dirs {
-        if dir.exists() {
-            let size = dir_size(dir);
-            if size > 0 {
-                browser_items.push(ScanItem {
-                    id: gen_id(),
-                    path: dir.to_string_lossy().to_string(),
-                    name: dir
-                        .file_name()
-                        .unwrap_or_default()
-                        .to_string_lossy()
-                        .to_string(),
-                    size,
-                    last_modified: last_modified_str(dir),
-                    category: "browser_cache".to_string(),
-                    selected: false,
-                });
-            }
-        }
-    }
-    browser_items.sort_by_key(|a| std::cmp::Reverse(a.size));
-    let browser_size: u64 = browser_items.iter().map(|i| i.size).sum();
-    categories.push(ScanCategory {
-        id: "browser_cache".to_string(),
-        name: "Browser Cache".to_string(),
-        icon: "globe".to_string(),
-        size: browser_size,
-        items: browser_items,
-        selected: false,
-    });
-
-    // 4. Trash Bin
-    let trash_dir = PathBuf::from(&home).join(".Trash");
-    let trash_items = scan_directory_entries(&trash_dir, "trash");
-    let trash_size: u64 = trash_items.iter().map(|i| i.size).sum();
-    categories.push(ScanCategory {
-        id: "trash".to_string(),
-        name: "Trash Bin".to_string(),
-        icon: "trash".to_string(),
-        size: trash_size,
-        items: trash_items,
-        selected: false,
-    });
-
-    categories
+    vec![cat_cache, cat_logs, cat_browser, cat_trash]
 }
 
 /// Scan developer workspaces across multiple tech stacks:
@@ -347,12 +362,13 @@ pub fn scan_dev_workspaces() -> Vec<ScanCategory> {
         (PathBuf::from(&home).join(".cache/uv"), "Astral uv Cache"),
         (PathBuf::from(&home).join(".cache/ruff"), "Ruff Cache"),
     ];
-    let mut pm_items: Vec<ScanItem> = vec![];
-    for (dir, label) in &pm_targets {
-        if dir.exists() {
+    let mut pm_items: Vec<ScanItem> = pm_targets
+        .par_iter()
+        .filter(|(dir, _)| dir.exists())
+        .filter_map(|(dir, label)| {
             let size = dir_size(dir);
             if size > 1_000_000 {
-                pm_items.push(ScanItem {
+                Some(ScanItem {
                     id: gen_id(),
                     path: dir.to_string_lossy().to_string(),
                     name: label.to_string(),
@@ -360,22 +376,25 @@ pub fn scan_dev_workspaces() -> Vec<ScanCategory> {
                     last_modified: last_modified_str(dir),
                     category: "package_cache".to_string(),
                     selected: false,
-                });
+                })
+            } else {
+                None
             }
-        }
-    }
+        })
+        .collect();
 
     // 3. Go (Golang) Global Caches
     let go_targets = [
         (PathBuf::from(&home).join("go/pkg/mod/cache"), "Go Module Download Cache"),
         (PathBuf::from(&home).join("Library/Caches/go-build"), "Go Build Cache"),
     ];
-    let mut go_items = vec![];
-    for (dir, label) in &go_targets {
-        if dir.exists() {
+    let mut go_items: Vec<ScanItem> = go_targets
+        .par_iter()
+        .filter(|(dir, _)| dir.exists())
+        .filter_map(|(dir, label)| {
             let size = dir_size(dir);
             if size > 1_000_000 {
-                go_items.push(ScanItem {
+                Some(ScanItem {
                     id: gen_id(),
                     path: dir.to_string_lossy().to_string(),
                     name: label.to_string(),
@@ -383,10 +402,12 @@ pub fn scan_dev_workspaces() -> Vec<ScanCategory> {
                     last_modified: last_modified_str(dir),
                     category: "golang_cache".to_string(),
                     selected: false,
-                });
+                })
+            } else {
+                None
             }
-        }
-    }
+        })
+        .collect();
 
     // 4. Flutter & Dart Global Cache
     let pub_cache = PathBuf::from(&home).join(".pub-cache");
@@ -449,12 +470,13 @@ pub fn scan_dev_workspaces() -> Vec<ScanCategory> {
         (PathBuf::from(&home).join(".cache/torch"), "PyTorch Model Checkpoint Cache"),
         (PathBuf::from(&home).join(".cache/transformers"), "Transformers Weights Cache"),
     ];
-    let mut ai_items = vec![];
-    for (dir, label) in &ai_targets {
-        if dir.exists() {
+    let mut ai_items: Vec<ScanItem> = ai_targets
+        .par_iter()
+        .filter(|(dir, _)| dir.exists())
+        .filter_map(|(dir, label)| {
             let size = dir_size(dir);
             if size > 10_000_000 {
-                ai_items.push(ScanItem {
+                Some(ScanItem {
                     id: gen_id(),
                     path: dir.to_string_lossy().to_string(),
                     name: label.to_string(),
@@ -462,22 +484,25 @@ pub fn scan_dev_workspaces() -> Vec<ScanCategory> {
                     last_modified: last_modified_str(dir),
                     category: "ai_models".to_string(),
                     selected: false,
-                });
+                })
+            } else {
+                None
             }
-        }
-    }
+        })
+        .collect();
 
     // 8. Ruby / Bundler & Gem Caches
     let ruby_targets = [
         (PathBuf::from(&home).join(".bundle/cache"), "Bundler Gem Cache"),
         (PathBuf::from(&home).join(".gem"), "Ruby Gem Directory"),
     ];
-    let mut ruby_items = vec![];
-    for (dir, label) in &ruby_targets {
-        if dir.exists() {
+    let mut ruby_items: Vec<ScanItem> = ruby_targets
+        .par_iter()
+        .filter(|(dir, _)| dir.exists())
+        .filter_map(|(dir, label)| {
             let size = dir_size(dir);
             if size > 2_000_000 {
-                ruby_items.push(ScanItem {
+                Some(ScanItem {
                     id: gen_id(),
                     path: dir.to_string_lossy().to_string(),
                     name: label.to_string(),
@@ -485,10 +510,12 @@ pub fn scan_dev_workspaces() -> Vec<ScanCategory> {
                     last_modified: last_modified_str(dir),
                     category: "ruby_cache".to_string(),
                     selected: false,
-                });
+                })
+            } else {
+                None
             }
-        }
-    }
+        })
+        .collect();
 
     // 9. .NET / NuGet Package Cache
     let nuget_cache = PathBuf::from(&home).join(".nuget/packages");
@@ -552,19 +579,31 @@ pub fn scan_dev_workspaces() -> Vec<ScanCategory> {
         if !dev_dir.exists() {
             continue;
         }
-        for entry in WalkDir::new(dev_dir)
+        let mut it = WalkDir::new(dev_dir)
+            .same_file_system(true)
+            .follow_links(false)
             .max_depth(3)
-            .into_iter()
-            .filter_map(|e| e.ok())
-        {
+            .into_iter();
+
+        while let Some(entry) = it.next() {
+            let entry = match entry {
+                Ok(e) => e,
+                Err(_) => continue,
+            };
+            if !entry.file_type().is_dir() {
+                continue;
+            }
             let name = entry.file_name().to_string_lossy();
             let path = entry.path();
-            if !entry.file_type().is_dir() {
+
+            if name == ".git" || name == ".idea" || name == ".vscode" || name == "dist" || name == ".next" || name == ".nuxt" {
+                it.skip_current_dir();
                 continue;
             }
 
             // Python caches
             if name == "__pycache__" || name == ".pytest_cache" || name == ".ruff_cache" {
+                it.skip_current_dir();
                 let size = dir_size(path);
                 if size > 100_000 {
                     let parent_name = path
@@ -587,6 +626,7 @@ pub fn scan_dev_workspaces() -> Vec<ScanCategory> {
 
             // Node modules (stale > 90 days)
             if name == "node_modules" {
+                it.skip_current_dir();
                 let project_dir = path.parent().unwrap_or(path);
                 let is_stale = fs::metadata(project_dir)
                     .and_then(|m| m.modified())
@@ -623,6 +663,7 @@ pub fn scan_dev_workspaces() -> Vec<ScanCategory> {
 
             // Rust / Cargo target
             if name == "target" {
+                it.skip_current_dir();
                 let project_dir = path.parent().unwrap_or(path);
                 if project_dir.join("Cargo.toml").exists() {
                     let size = dir_size(path);
@@ -649,6 +690,7 @@ pub fn scan_dev_workspaces() -> Vec<ScanCategory> {
 
             // Flutter / Dart project artifacts (.dart_tool, or build/ with pubspec.yaml)
             if name == ".dart_tool" {
+                it.skip_current_dir();
                 let project_dir = path.parent().unwrap_or(path);
                 let size = dir_size(path);
                 if size > 1_000_000 {
@@ -671,6 +713,7 @@ pub fn scan_dev_workspaces() -> Vec<ScanCategory> {
                 continue;
             }
             if name == "build" {
+                it.skip_current_dir();
                 let project_dir = path.parent().unwrap_or(path);
                 if project_dir.join("pubspec.yaml").exists() {
                     let size = dir_size(path);
@@ -716,6 +759,7 @@ pub fn scan_dev_workspaces() -> Vec<ScanCategory> {
 
             // PHP Stale vendor directory (> 90 days)
             if name == "vendor" {
+                it.skip_current_dir();
                 let project_dir = path.parent().unwrap_or(path);
                 if project_dir.join("composer.json").exists() {
                     let is_stale = fs::metadata(project_dir)
@@ -754,6 +798,7 @@ pub fn scan_dev_workspaces() -> Vec<ScanCategory> {
 
             // CMake build outputs
             if name == "cmake-build-debug" || name == "cmake-build-release" {
+                it.skip_current_dir();
                 let project_dir = path.parent().unwrap_or(path);
                 let size = dir_size(path);
                 if size > 2_000_000 {

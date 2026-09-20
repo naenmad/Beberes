@@ -46,16 +46,15 @@ fn calculate_allocated_size(path: &Path) -> (u64, usize) {
 
     WalkDir::new(path)
         .same_file_system(true)
+        .follow_links(false)
         .max_depth(4)
         .min_depth(1)
         .into_iter()
         .filter_entry(|e| !should_skip(e.path()))
-        .par_bridge()
         .filter_map(|e| e.ok())
         .filter(|e| e.file_type().is_file())
         .filter_map(|e| e.metadata().ok())
-        .fold(|| (0u64, 0usize), |(s, c), m| (s + m.len(), c + 1))
-        .reduce(|| (0u64, 0usize), |(s1, c1), (s2, c2)| (s1 + s2, c1 + c2))
+        .fold((0u64, 0usize), |(s, c), m| (s + m.len(), c + 1))
 }
 
 fn build_tree(path: &Path, current_depth: usize, max_depth: usize) -> DiskTreeNode {

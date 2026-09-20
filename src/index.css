@@ -194,7 +194,9 @@
 }
 
 .animate-fade-in {
-  animation: fade-in 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: fade-in 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: opacity, transform;
+  transform: translateZ(0);
 }
 
 @keyframes scale-in {
@@ -209,7 +211,14 @@
 }
 
 .animate-scale-in {
-  animation: scale-in 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: scale-in 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: opacity, transform;
+  transform: translateZ(0);
+}
+
+main {
+  contain: content;
+  -webkit-overflow-scrolling: touch;
 }
 
 @keyframes pulse-glow {
