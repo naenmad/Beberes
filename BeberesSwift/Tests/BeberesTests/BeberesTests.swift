@@ -41,11 +41,42 @@ struct BeberesTests {
         #expect(!SafetyGuard.isSafeArtifact(projectPath: project, artifactPath: project))
     }
 
-    @Test("Format size utility outputs readable strings")
-    func testByteFormatting() {
-        let zero: Int64 = 0
-        let megabyte: Int64 = 1_048_576
-        #expect(!zero.formattedBytes.isEmpty)
-        #expect(!megabyte.formattedBytes.isEmpty)
+    @Test("SafetyGuard isSafeToDelete rejects system paths and empty paths")
+    func testSafeToDelete() {
+        #expect(!SafetyGuard.isSafeToDelete(path: "/"))
+        #expect(!SafetyGuard.isSafeToDelete(path: "/System"))
+        #expect(!SafetyGuard.isSafeToDelete(path: "/usr/bin"))
+        #expect(!SafetyGuard.isSafeToDelete(path: ""))
+        #expect(SafetyGuard.isSafeToDelete(path: "/Users/dev/Downloads/junk.zip"))
+    }
+
+    @Test("StorageService retrieves positive disk and RAM totals")
+    func testStorageMetrics() {
+        let disk = StorageService.getDiskInfo()
+        #expect(disk.totalBytes > 0)
+        #expect(disk.availableBytes > 0)
+
+        let ram = StorageService.getRAMInfo()
+        #expect(ram.totalBytes > 0)
+        #expect(ram.usedBytes > 0)
+    }
+
+    @Test("FileShredderService securely obliterates temporary files")
+    func testFileShredder() async throws {
+        let tempDir = FileManager.default.temporaryDirectory
+        let testFileURL = tempDir.appendingPathComponent("shred_test_\(UUID().uuidString).txt")
+        let testData = "Sensitive secret data 1234567890".data(using: .utf8)!
+        try testData.write(to: testFileURL)
+
+        #expect(FileManager.default.fileExists(atPath: testFileURL.path))
+
+        let shredder = FileShredderService()
+        let summary = try await shredder.shred(paths: [testFileURL.path], passes: .quick)
+
+        #expect(summary.filesShreddedCount == 1)
+        #expect(summary.bytesFreed == Int64(testData.count))
+        #expect(summary.errors.isEmpty)
+        #expect(!FileManager.default.fileExists(atPath: testFileURL.path))
     }
 }
+

@@ -29,6 +29,25 @@ public final class AppState {
     public var isLoadingSystemClean: Bool = false
     public var systemCleanToastMessage: String? = nil
 
+    // App Uninstaller State
+    public var installedApps: [AppItem] = []
+    public var selectedApp: AppItem? = nil
+    public var isLoadingApps: Bool = false
+    public var appSearchText: String = ""
+    public var appUninstallToastMessage: String? = nil
+
+    // Startup Items State
+    public var startupItems: [StartupItem] = []
+    public var isLoadingStartup: Bool = false
+    public var startupSearchText: String = ""
+    public var startupToastMessage: String? = nil
+
+    // File Shredder State
+    public var shredQueue: [String] = []
+    public var shredPass: ShredPassOption = .standard
+    public var isShredding: Bool = false
+    public var shredToastMessage: String? = nil
+
     // Lifetime Stats
     public var lifetimeFreedBytes: Int64 = 0
 
@@ -36,6 +55,9 @@ public final class AppState {
     private let portManager = PortManagerService()
     private let devScanner = DeveloperScannerService()
     private let systemCleaner = SystemCleanerService()
+    private let uninstaller = AppUninstallerService()
+    private let startupManager = StartupManagerService()
+    private let shredder = FileShredderService()
 
     public init() {
         self.lifetimeFreedBytes = Int64(UserDefaults.standard.integer(forKey: "beberes_lifetime_freed"))
@@ -142,4 +164,114 @@ public final class AppState {
             $0.user.lowercased().contains(q)
         }
     }
+
+    // MARK: - App Uninstaller Actions
+    public func fetchInstalledApps() async {
+        isLoadingApps = true
+        defer { isLoadingApps = false }
+        installedApps = await uninstaller.scanInstalledApps()
+        if selectedApp == nil, let first = installedApps.first {
+            selectedApp = first
+        }
+    }
+
+    public func uninstallApp(_ app: AppItem) async {
+        do {
+            let freed = try await uninstaller.uninstall(app: app)
+            recordCleanResult(freedBytes: freed)
+            appUninstallToastMessage = "Uninstalled \(app.name) and freed \(freed.formattedBytes)"
+            if selectedApp?.id == app.id {
+                selectedApp = nil
+            }
+            await fetchInstalledApps()
+            refreshSystemStats()
+        } catch {
+            appUninstallToastMessage = "Uninstall failed: \(error.localizedDescription)"
+        }
+    }
+
+    public var filteredApps: [AppItem] {
+        if appSearchText.trimmingCharacters(in: .whitespaces).isEmpty {
+            return installedApps
+        }
+        let q = appSearchText.lowercased()
+        return installedApps.filter {
+            $0.name.lowercased().contains(q) ||
+            $0.bundleId.lowercased().contains(q)
+        }
+    }
+
+    // MARK: - Startup Items Actions
+    public func fetchStartupItems() async {
+        isLoadingStartup = true
+        defer { isLoadingStartup = false }
+        startupItems = await startupManager.scanStartupItems()
+    }
+
+    public func toggleStartupItem(_ item: StartupItem) async {
+        do {
+            let updated = try startupManager.toggleItem(item)
+            if let idx = startupItems.firstIndex(where: { $0.id == item.id }) {
+                startupItems[idx] = updated
+            }
+            startupToastMessage = "\(updated.name) is now \(updated.isEnabled ? "enabled" : "disabled")"
+        } catch {
+            startupToastMessage = "Toggle failed: \(error.localizedDescription)"
+        }
+    }
+
+    public func removeStartupItem(_ item: StartupItem) async {
+        do {
+            try startupManager.removeItem(item)
+            startupItems.removeAll { $0.id == item.id }
+            startupToastMessage = "Removed \(item.name) from startup items"
+        } catch {
+            startupToastMessage = "Remove failed: \(error.localizedDescription)"
+        }
+    }
+
+    public var filteredStartupItems: [StartupItem] {
+        if startupSearchText.trimmingCharacters(in: .whitespaces).isEmpty {
+            return startupItems
+        }
+        let q = startupSearchText.lowercased()
+        return startupItems.filter {
+            $0.name.lowercased().contains(q) ||
+            $0.label.lowercased().contains(q)
+        }
+    }
+
+    // MARK: - File Shredder Actions
+    public func addToShredQueue(paths: [String]) {
+        for p in paths {
+            if !shredQueue.contains(p) {
+                shredQueue.append(p)
+            }
+        }
+    }
+
+    public func removeFromShredQueue(path: String) {
+        shredQueue.removeAll { $0 == path }
+    }
+
+    public func clearShredQueue() {
+        shredQueue.removeAll()
+    }
+
+    public func executeShred() async {
+        guard !shredQueue.isEmpty else { return }
+        isShredding = true
+        defer { isShredding = false }
+
+        do {
+            let summary = try await shredder.shred(paths: shredQueue, passes: shredPass)
+            recordCleanResult(freedBytes: summary.bytesFreed)
+            shredQueue.removeAll()
+            shredToastMessage = "Shredded \(summary.filesShreddedCount) items permanently (\(summary.bytesFreed.formattedBytes) obliterated)."
+            refreshSystemStats()
+        } catch {
+            shredToastMessage = "Shredding error: \(error.localizedDescription)"
+        }
+    }
 }
+

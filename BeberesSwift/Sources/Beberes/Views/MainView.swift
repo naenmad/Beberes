@@ -20,6 +20,12 @@ public struct MainView: View {
                     ZombiePortsView(state: state)
                 case .systemClean:
                     SystemCleanView(state: state)
+                case .appUninstaller:
+                    AppUninstallerView(appState: state)
+                case .fileShredder:
+                    FileShredderView(appState: state)
+                case .startupItems:
+                    StartupItemsView(appState: state)
                 default:
                     VStack(spacing: 12) {
                         Image(systemName: state.selectedSection.iconName)
@@ -27,7 +33,7 @@ public struct MainView: View {
                             .foregroundStyle(.secondary)
                         Text(state.selectedSection.rawValue)
                             .font(.title2.bold())
-                        Text("Module migration in progress for Beberes v2.0 Native.")
+                        Text("Settings & preferences are being integrated.")
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
                     }

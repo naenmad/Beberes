@@ -48,6 +48,13 @@ public struct SafetyGuard: Sendable {
         return false
     }
 
+    public static func isSafeToDelete(path: String) -> Bool {
+        if path.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || path == "/" {
+            return false
+        }
+        return !isProtectedPath(path)
+    }
+
     public static func isSafeArtifact(projectPath: String, artifactPath: String) -> Bool {
         let standardProject = URL(fileURLWithPath: projectPath).standardized.path
         let standardArtifact = URL(fileURLWithPath: artifactPath).standardized.path

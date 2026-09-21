@@ -26,6 +26,14 @@ public struct SidebarView: View {
 
                 Label(NavigationSection.appUninstaller.rawValue, systemImage: NavigationSection.appUninstaller.iconName)
                     .tag(NavigationSection.appUninstaller)
+
+                Label(NavigationSection.startupItems.rawValue, systemImage: NavigationSection.startupItems.iconName)
+                    .tag(NavigationSection.startupItems)
+            }
+
+            Section("Security & Privacy") {
+                Label(NavigationSection.fileShredder.rawValue, systemImage: NavigationSection.fileShredder.iconName)
+                    .tag(NavigationSection.fileShredder)
             }
         }
         .listStyle(.sidebar)

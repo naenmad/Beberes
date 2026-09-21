@@ -7,6 +7,8 @@ public enum NavigationSection: String, CaseIterable, Identifiable, Hashable, Sen
     case zombiePorts = "Zombie Ports"
     case systemClean = "System Clean"
     case appUninstaller = "App Uninstaller"
+    case fileShredder = "File Shredder"
+    case startupItems = "Startup Items"
     case settings = "Settings"
 
     public var id: String { rawValue }
@@ -18,6 +20,8 @@ public enum NavigationSection: String, CaseIterable, Identifiable, Hashable, Sen
         case .zombiePorts: return "network"
         case .systemClean: return "sparkles"
         case .appUninstaller: return "trash"
+        case .fileShredder: return "flame"
+        case .startupItems: return "bolt.badge.clock"
         case .settings: return "gearshape"
         }
     }
@@ -127,9 +131,130 @@ public struct HibernateResult: Sendable {
     }
 }
 
+// MARK: - App Uninstaller Models
+public struct AppLeftoverItem: Identifiable, Hashable, Sendable {
+    public var id: String { path }
+    public let path: String
+    public let name: String
+    public let category: String
+    public let sizeBytes: Int64
+
+    public init(path: String, name: String, category: String, sizeBytes: Int64) {
+        self.path = path
+        self.name = name
+        self.category = category
+        self.sizeBytes = sizeBytes
+    }
+
+    public var formattedSize: String {
+        sizeBytes.formattedBytes
+    }
+}
+
+public struct AppItem: Identifiable, Hashable, Sendable {
+    public var id: String { path }
+    public let name: String
+    public let bundleId: String
+    public let version: String
+    public let path: String
+    public let appSizeBytes: Int64
+    public let isSystemApp: Bool
+    public let leftovers: [AppLeftoverItem]
+
+    public init(
+        name: String,
+        bundleId: String,
+        version: String,
+        path: String,
+        appSizeBytes: Int64,
+        isSystemApp: Bool,
+        leftovers: [AppLeftoverItem]
+    ) {
+        self.name = name
+        self.bundleId = bundleId
+        self.version = version
+        self.path = path
+        self.appSizeBytes = appSizeBytes
+        self.isSystemApp = isSystemApp
+        self.leftovers = leftovers
+    }
+
+    public var leftoversSizeBytes: Int64 {
+        leftovers.reduce(0) { $0 + $1.sizeBytes }
+    }
+
+    public var totalSizeBytes: Int64 {
+        appSizeBytes + leftoversSizeBytes
+    }
+
+    public var formattedTotalSize: String {
+        totalSizeBytes.formattedBytes
+    }
+}
+
+// MARK: - Startup Items Models
+public struct StartupItem: Identifiable, Hashable, Sendable {
+    public var id: String { path }
+    public let name: String
+    public let label: String
+    public let path: String
+    public let program: String?
+    public let isUser: Bool
+    public var isEnabled: Bool
+    public let kindLabel: String
+
+    public init(
+        name: String,
+        label: String,
+        path: String,
+        program: String?,
+        isUser: Bool,
+        isEnabled: Bool,
+        kindLabel: String
+    ) {
+        self.name = name
+        self.label = label
+        self.path = path
+        self.program = program
+        self.isUser = isUser
+        self.isEnabled = isEnabled
+        self.kindLabel = kindLabel
+    }
+}
+
+// MARK: - File Shredder Models
+public enum ShredPassOption: Int, CaseIterable, Identifiable, Sendable {
+    case quick = 1
+    case standard = 3
+    case dod = 7
+
+    public var id: Int { rawValue }
+
+    public var label: String {
+        switch self {
+        case .quick: return "1 Pass (Quick Zero-Out)"
+        case .standard: return "3 Passes (Standard Secure DoD)"
+        case .dod: return "7 Passes (Military Grade Random)"
+        }
+    }
+}
+
+public struct ShredSummary: Sendable {
+    public let filesShreddedCount: Int
+    public let bytesFreed: Int64
+    public let errors: [String]
+
+    public init(filesShreddedCount: Int, bytesFreed: Int64, errors: [String] = []) {
+        self.filesShreddedCount = filesShreddedCount
+        self.bytesFreed = bytesFreed
+        self.errors = errors
+    }
+}
+
 // MARK: - Format Utilities
 public extension Int64 {
     var formattedBytes: String {
         ByteCountFormatter.string(fromByteCount: self, countStyle: .file)
     }
 }
+
