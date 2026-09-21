@@ -6,7 +6,8 @@ import Dashboard from './views/Dashboard';
 import { CardSkeleton } from './components/ui/SkeletonLoader';
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
 import { listen } from '@tauri-apps/api/event';
-import type { ScanProgressPayload } from './lib/commands';
+import GlobalDropzone from './components/ui/GlobalDropzone';
+import { getDiskInfo, showSystemNotification, type ScanProgressPayload } from './lib/commands';
 
 // Code-split secondary views to keep initial bundle ultra-lean (<150KB)
 const SystemClean = lazy(() => import('./views/SystemClean'));
@@ -73,6 +74,38 @@ export default function App() {
       if (unlisten) unlisten();
     };
   }, []);
+
+  // Background Smart Low-Disk Space Watchdog
+  useEffect(() => {
+    if (isPopoverWindow) return;
+    const checkLowDisk = async () => {
+      try {
+        const info = await getDiskInfo();
+        if (info && info.totalSpace > 0) {
+          const freeGb = info.freeSpace / (1024 * 1024 * 1024);
+          const freePct = (info.freeSpace / info.totalSpace) * 100;
+          if (freeGb < 15 || freePct < 10) {
+            const hasAlerted = sessionStorage.getItem('beberes_low_disk_notified');
+            if (!hasAlerted) {
+              sessionStorage.setItem('beberes_low_disk_notified', 'true');
+              showSystemNotification(
+                'Penyimpanan Mac Menipis',
+                `Sisa ruang penyimpanan Anda tersisa ${freeGb.toFixed(1)} GB (${freePct.toFixed(0)}%). Buka Beberes untuk membersihkan file cache dan duplikat.`,
+                'Ping'
+              ).catch(() => {});
+            }
+          }
+        }
+      } catch {}
+    };
+
+    const initialTimer = setTimeout(checkLowDisk, 4000);
+    const interval = setInterval(checkLowDisk, 30 * 60 * 1000);
+    return () => {
+      clearTimeout(initialTimer);
+      clearInterval(interval);
+    };
+  }, [isPopoverWindow]);
 
   // Track visited pages to lazily mount them and keep them alive for instant tab switching
   useEffect(() => {
@@ -262,6 +295,7 @@ export default function App() {
 
   return (
     <MainLayout>
+      <GlobalDropzone />
       <Suspense fallback={suspenseFallback}>
         <div className={currentPage === 'dashboard' ? 'block animate-fade-in' : 'hidden'}>
           {visitedPages.has('dashboard') && <Dashboard />}

@@ -5,6 +5,9 @@ import {
   scanBrowserCaches,
   cleanSelectedItems,
   revealInFinder,
+  listApfsSnapshots,
+  deleteAllApfsSnapshots,
+  type ApfsSnapshotResult,
 } from '../lib/commands';
 import type { CleanResult } from '../lib/commands';
 import { formatSize } from '../lib/utils';
@@ -33,6 +36,8 @@ import {
   Shield,
   ShieldCheck,
   Flame,
+  HardDrive,
+  Zap,
 } from 'lucide-react';
 import { useState, useMemo, useEffect, useRef } from 'react';
 
@@ -91,6 +96,8 @@ export default function SystemClean() {
   const [sizeFilter, setSizeFilter] = useState<SizeFilter>('all');
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showCleaningFlow, setShowCleaningFlow] = useState(false);
+  const [apfsData, setApfsData] = useState<ApfsSnapshotResult | null>(null);
+  const [isDeletingSnapshots, setIsDeletingSnapshots] = useState(false);
 
   const selectedSize = getSelectedSize('system');
   const selectedItems = getSelectedItems('system');
@@ -107,21 +114,45 @@ export default function SystemClean() {
     });
   };
 
+  const loadSnapshots = async () => {
+    try {
+      const res = await listApfsSnapshots();
+      setApfsData(res);
+    } catch {}
+  };
+
   const runScan = async () => {
     setIsScanning(true);
     setCleanResult(null);
     try {
-      const [sys, browsers] = await Promise.all([
+      const [sys, browsers, snaps] = await Promise.all([
         scanSystemDirectories(),
         scanBrowserCaches(),
+        listApfsSnapshots().catch(() => null),
       ]);
       const results = [...sys, ...browsers];
       setSystemCategories(results);
+      if (snaps) setApfsData(snaps);
       setExpandedCategories(new Set(results.filter((c) => c.items.length > 0).map((c) => c.id)));
     } catch (err) {
       console.error('System scan failed:', err);
     } finally {
       setIsScanning(false);
+    }
+  };
+
+  const handlePruneSnapshots = async () => {
+    if (!apfsData || apfsData.total_snapshots === 0) return;
+    setIsDeletingSnapshots(true);
+    try {
+      const deletedCount = await deleteAllApfsSnapshots();
+      const freedBytes = deletedCount * 1_500_000_000;
+      recordCleanResult(freedBytes, deletedCount, false, ['APFS Local Snapshots']);
+      await loadSnapshots();
+    } catch (e) {
+      console.error('Failed to prune snapshots:', e);
+    } finally {
+      setIsDeletingSnapshots(false);
     }
   };
 
@@ -251,6 +282,42 @@ export default function SystemClean() {
                 : t('systemClean.filter500mb')}
             </button>
           ))}
+        </div>
+      )}
+
+      {/* APFS Local Snapshots & Purgeable Space Reclaim */}
+      {!isScanning && apfsData && apfsData.total_snapshots > 0 && (
+        <div className="p-4 rounded-3xl border border-amber-500/30 bg-amber-500/[0.04] backdrop-blur-md">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-3.5">
+              <div className="w-10 h-10 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500 shrink-0">
+                <HardDrive className="w-5 h-5" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h4 className="text-sm font-bold text-slate-900 dark:text-white">
+                    APFS Time Machine Local Snapshots
+                  </h4>
+                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400">
+                    {apfsData.total_snapshots} snapshots (~{formatSize(apfsData.snapshots.reduce((acc, s) => acc + s.estimated_size, 0))})
+                  </span>
+                </div>
+                <p className="text-xs text-slate-500 dark:text-neutral-400 mt-0.5">
+                  Snapshot lokal mengunci kapasitas drive sebagai &quot;System Data&quot; / &quot;Purgeable Space&quot;. Aman dipangkas jika Anda memiliki cadangan eksternal.
+                </p>
+              </div>
+            </div>
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={handlePruneSnapshots}
+              disabled={isDeletingSnapshots}
+              className="shrink-0 bg-amber-600 hover:bg-amber-700 text-white cursor-pointer"
+            >
+              <Zap size={13} className={isDeletingSnapshots ? 'animate-spin' : ''} />
+              {isDeletingSnapshots ? 'Pruning...' : 'Prune Snapshots'}
+            </Button>
+          </div>
         </div>
       )}
 

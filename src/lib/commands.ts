@@ -976,6 +976,20 @@ export async function showSystemNotification(
   return await invoke('show_system_notification', { title, body, sound });
 }
 
+/**
+ * Trigger native macOS Quick Look preview for a file or folder (Spacebar preview)
+ */
+export async function quickLookPreview(path: string): Promise<void> {
+  return await invoke('quick_look_preview', { path });
+}
+
+/**
+ * Set the badge label on the macOS Dock icon (e.g. '5', '!', or null/empty to clear)
+ */
+export async function setDockBadge(badge?: string | null): Promise<void> {
+  return await invoke('set_dock_badge', { badge: badge || null });
+}
+
 
 
 

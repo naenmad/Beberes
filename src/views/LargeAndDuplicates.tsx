@@ -5,6 +5,7 @@ import {
   scanFinderItems,
   cleanSelectedItems,
   revealInFinder,
+  quickLookPreview,
   type FinderScanResult,
   type FileMetadataItem,
 } from '../lib/commands';
@@ -20,6 +21,7 @@ import {
   HardDrive,
   Clock,
   ExternalLink,
+  Eye,
   Layers,
   FileText,
   Image as ImageIcon,
@@ -52,6 +54,19 @@ export default function LargeAndDuplicates() {
 
   // Selected file IDs for deletion
   const [selectedPaths, setSelectedPaths] = useState<Set<string>>(new Set());
+  const [focusedPath, setFocusedPath] = useState<string | null>(null);
+
+  // Native macOS Quick Look Spacebar handler
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.code === 'Space' && focusedPath && !['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement)?.tagName)) {
+        e.preventDefault();
+        quickLookPreview(focusedPath);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [focusedPath]);
 
   // Confirm modal state
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -442,6 +457,7 @@ export default function LargeAndDuplicates() {
                   <div
                     key={file.id}
                     onClick={() => togglePath(file.path)}
+                    onMouseEnter={() => setFocusedPath(file.path)}
                     className={`flex items-center justify-between gap-3 p-3 mb-2 rounded-2xl glass-panel cursor-pointer transition-all ${
                       isSelected
                         ? 'border-accent/50 bg-accent-subtle/30'
@@ -484,6 +500,17 @@ export default function LargeAndDuplicates() {
                       <span className="text-xs font-mono font-semibold text-accent">
                         {formatSize(file.size)}
                       </span>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          quickLookPreview(file.path);
+                        }}
+                        title="Quick Look (Space)"
+                        className="p-1.5 rounded-lg text-slate-400 hover:text-accent hover:bg-accent/10 transition-colors cursor-pointer"
+                      >
+                        <Eye size={13} />
+                      </button>
                       <button
                         type="button"
                         onClick={(e) => {
@@ -569,6 +596,17 @@ export default function LargeAndDuplicates() {
                             type="button"
                             onClick={(e) => {
                               e.stopPropagation();
+                              quickLookPreview(item.path);
+                            }}
+                            title="Quick Look (Space)"
+                            className="p-1 rounded text-slate-400 hover:text-accent hover:bg-accent/10 transition-colors cursor-pointer"
+                          >
+                            <Eye size={12} />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
                               revealInFinder(item.path);
                             }}
                             title={t('common.revealInFinder')}
@@ -608,6 +646,7 @@ export default function LargeAndDuplicates() {
                   <div
                     key={file.id}
                     onClick={() => togglePath(file.path)}
+                    onMouseEnter={() => setFocusedPath(file.path)}
                     className={`flex items-center justify-between gap-3 p-3 mb-2 rounded-2xl glass-panel cursor-pointer transition-all ${
                       isSelected
                         ? 'border-accent/50 bg-accent-subtle/30'
@@ -636,6 +675,17 @@ export default function LargeAndDuplicates() {
                       <span className="text-xs font-mono font-semibold text-accent">
                         {formatSize(file.size)}
                       </span>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          quickLookPreview(file.path);
+                        }}
+                        title="Quick Look (Space)"
+                        className="p-1.5 rounded-lg text-slate-400 hover:text-accent hover:bg-accent/10 transition-colors cursor-pointer"
+                      >
+                        <Eye size={13} />
+                      </button>
                       <button
                         type="button"
                         onClick={(e) => {

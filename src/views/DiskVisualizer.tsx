@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAppStore } from '../store/appStore';
 import { useTranslation } from '../lib/i18n';
-import { scanDirectoryTree, revealInFinder, type DiskTreeNode } from '../lib/commands';
+import { scanDirectoryTree, revealInFinder, quickLookPreview, type DiskTreeNode } from '../lib/commands';
 import { formatSize } from '../lib/utils';
 import PageHeader from '../components/layout/PageHeader';
 import { CardSkeleton } from '../components/ui/SkeletonLoader';
@@ -13,6 +13,7 @@ import {
   ChevronRight,
   FolderOpen,
   ExternalLink,
+  Eye,
   ArrowUp,
   Disc,
   LayoutGrid,
@@ -21,13 +22,33 @@ import {
 
 export default function DiskVisualizer() {
   const { t } = useTranslation();
-  const { selectedDiskMount, globalRefreshTrigger, cachedDiskTree, setCachedDiskTree } = useAppStore();
+  const {
+    selectedDiskMount,
+    globalRefreshTrigger,
+    cachedDiskTree,
+    setCachedDiskTree,
+    visualizerTargetPath,
+    setVisualizerTargetPath,
+  } = useAppStore();
 
   const [currentPath, setCurrentPath] = useState<string>(() => cachedDiskTree?.path || '~');
   const [history, setHistory] = useState<string[]>([]);
   const [rootNode, setRootNode] = useState<DiskTreeNode | null>(cachedDiskTree);
   const [isLoading, setIsLoading] = useState(false);
   const [viewMode, setViewMode] = useState<'sunburst' | 'treemap' | 'list'>('sunburst');
+  const [focusedPath, setFocusedPath] = useState<string | null>(null);
+
+  // Native macOS Quick Look Spacebar handler
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.code === 'Space' && focusedPath && !['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement)?.tagName)) {
+        e.preventDefault();
+        quickLookPreview(focusedPath);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [focusedPath]);
 
   const loadTree = useCallback(async (path: string) => {
     setIsLoading(true);
@@ -46,6 +67,14 @@ export default function DiskVisualizer() {
       setIsLoading(false);
     }
   }, [setCachedDiskTree]);
+
+  // Consume visualizerTargetPath from GlobalDropzone
+  useEffect(() => {
+    if (visualizerTargetPath) {
+      loadTree(visualizerTargetPath);
+      setVisualizerTargetPath(null);
+    }
+  }, [visualizerTargetPath, loadTree, setVisualizerTargetPath]);
 
   useEffect(() => {
     const initial = (selectedDiskMount && selectedDiskMount !== '/') ? selectedDiskMount : '~';
@@ -321,6 +350,7 @@ export default function DiskVisualizer() {
                 return (
                   <div
                     key={child.id}
+                    onMouseEnter={() => setFocusedPath(child.path)}
                     className="flex items-center justify-between p-2.5 rounded-xl hover:bg-black/2 dark:hover:bg-white/3 transition-colors group"
                   >
                     <div
@@ -353,13 +383,24 @@ export default function DiskVisualizer() {
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-6 shrink-0 text-xs">
+                    <div className="flex items-center gap-4 shrink-0 text-xs">
                       <span className="text-slate-400 font-semibold w-12 text-right">
                         {percent}%
                       </span>
                       <span className="font-bold text-slate-900 dark:text-white w-20 text-right font-mono">
                         {formatSize(child.size)}
                       </span>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          quickLookPreview(child.path);
+                        }}
+                        title="Quick Look (Space)"
+                        className="p-1 rounded-lg hover:bg-black/5 dark:hover:bg-white/8 text-slate-400 hover:text-accent cursor-pointer transition-colors"
+                      >
+                        <Eye size={13} />
+                      </button>
                       <button
                         type="button"
                         onClick={(e) => {

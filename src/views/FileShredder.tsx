@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAppStore } from '../store/appStore';
 import { useTranslation } from '../lib/i18n';
 import {
@@ -25,13 +25,21 @@ import {
 
 export default function FileShredder() {
   const { t } = useTranslation();
-  const { recordCleanResult } = useAppStore();
+  const { recordCleanResult, shredderPreloadedPaths, setShredderPreloadedPaths } = useAppStore();
 
   const [selectedPaths, setSelectedPaths] = useState<string[]>([]);
   const [passes, setPasses] = useState<number>(3);
   const [isShredding, setIsShredding] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [lastResult, setLastResult] = useState<ShredResult | null>(null);
+
+  // Consume preloaded paths from GlobalDropzone
+  useEffect(() => {
+    if (shredderPreloadedPaths && shredderPreloadedPaths.length > 0) {
+      setSelectedPaths((prev) => Array.from(new Set([...prev, ...shredderPreloadedPaths])));
+      setShredderPreloadedPaths([]);
+    }
+  }, [shredderPreloadedPaths, setShredderPreloadedPaths]);
 
   // Pick files
   const handlePickFiles = async () => {

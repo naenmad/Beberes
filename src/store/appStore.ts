@@ -9,6 +9,7 @@ import {
   OrphanedLeftoverItem,
   DiskTreeNode,
   showSystemNotification,
+  setDockBadge,
 } from '../lib/commands';
 import { playSuccessChime } from '../lib/sound';
 import { applyThemeColors } from '../lib/themeColors';
@@ -303,6 +304,12 @@ interface AppState {
   setScanningStage: (stage: string) => void;
   setScanningPath: (path: string) => void;
 
+  // Global Drag & Drop navigation targets
+  shredderPreloadedPaths: string[];
+  setShredderPreloadedPaths: (paths: string[]) => void;
+  visualizerTargetPath: string | null;
+  setVisualizerTargetPath: (path: string | null) => void;
+
   // Results
   systemCategories: ScanCategory[];
   devCategories: ScanCategory[];
@@ -493,6 +500,12 @@ export const useAppStore = create<AppState>((set, get) => ({
   setScanProgress: (progress) => set({ scanProgress: progress }),
   setScanningStage: (stage) => set({ scanningStage: stage }),
   setScanningPath: (path) => set({ scanningPath: path }),
+
+  // Global Drag & Drop navigation targets
+  shredderPreloadedPaths: [],
+  setShredderPreloadedPaths: (paths) => set({ shredderPreloadedPaths: paths }),
+  visualizerTargetPath: null,
+  setVisualizerTargetPath: (path) => set({ visualizerTargetPath: path }),
 
   // Results
   systemCategories: [],
@@ -710,6 +723,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       `Successfully freed ${formatSize(freedBytes)} across ${itemsCount} items.`,
       'Hero'
     ).catch(() => {});
+    setDockBadge(null).catch(() => {});
     const newLifetime = get().lifetimeBytesFreed + freedBytes;
     const newEntry: CleanHistoryEntry = {
       id: `${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,

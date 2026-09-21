@@ -36,7 +36,7 @@ use commands::scheduler::{get_schedule_config, save_schedule_config, trigger_sch
 use commands::similar_media::{delete_similar_photos, scan_similar_photos};
 use commands::plugins::{remove_plugin_or_extension, scan_browser_and_system_plugins};
 use commands::report::export_report_markdown;
-use commands::notification::show_system_notification;
+use commands::notification::{quick_look_preview, set_dock_badge, show_system_notification};
 
 use std::sync::atomic::{AtomicBool, Ordering};
 
@@ -375,6 +375,9 @@ pub fn run() {
             scan_browser_and_system_plugins,
             remove_plugin_or_extension,
             export_report_markdown,
+            show_system_notification,
+            quick_look_preview,
+            set_dock_badge,
         ])
         .build(tauri::generate_context!())
         .expect("error while building tauri application");
