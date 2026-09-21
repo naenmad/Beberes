@@ -266,14 +266,12 @@ export default function PluginManager() {
           <CardSkeleton />
         </div>
       ) : filteredItems.length === 0 ? (
-        <div className="rounded-2xl glass-panel overflow-hidden py-16 text-center w-full space-y-3">
-          <div className="w-14 h-14 rounded-3xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center mx-auto">
-            <FolderCheck size={32} />
-          </div>
-          <h2 className="text-base font-bold text-slate-800 dark:text-neutral-100">
+        <div className="rounded-2xl glass-panel overflow-hidden py-16 text-center w-full">
+          <FolderCheck size={36} className="text-slate-300 dark:text-neutral-600 mx-auto mb-2" />
+          <p className="text-sm font-bold text-slate-700 dark:text-neutral-300">
             {t('pluginsManager.noPlugins', 'No Extensions or Plugins Found')}
-          </h2>
-          <p className="text-xs text-slate-400">
+          </p>
+          <p className="text-xs text-slate-400 dark:text-neutral-500 mt-1">
             {searchQuery
               ? t('pluginsManager.noSearchMatch', 'No items match your search query.')
               : t('pluginsManager.noPluginsDesc', 'No installed plugins found in inspected directories.')}
@@ -289,9 +287,23 @@ export default function PluginManager() {
               <div>
                 <div className="flex items-start justify-between gap-3 mb-2">
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <div className="w-8 h-8 rounded-xl bg-accent-subtle text-accent flex items-center justify-center shrink-0">
-                      {item.is_system_plugin ? <Layers size={16} /> : <Globe size={16} />}
-                    </div>
+                    {item.icon_data_url ? (
+                      <div className="w-9 h-9 rounded-xl bg-white dark:bg-neutral-800 p-1 border border-black/8 dark:border-white/10 flex items-center justify-center shrink-0 shadow-xs">
+                        <img
+                          src={item.icon_data_url}
+                          alt={item.name}
+                          className="w-full h-full object-contain rounded-md"
+                          onError={(e) => {
+                            // Gracefully fallback if image decoding fails
+                            (e.currentTarget as HTMLElement).style.display = 'none';
+                          }}
+                        />
+                      </div>
+                    ) : (
+                      <div className="w-9 h-9 rounded-xl bg-accent-subtle text-accent flex items-center justify-center shrink-0">
+                        {item.is_system_plugin ? <Layers size={17} /> : <Globe size={17} />}
+                      </div>
+                    )}
                     <div className="min-w-0">
                       <h4 className="text-sm font-bold text-slate-900 dark:text-white truncate" title={item.name}>
                         {item.name}

@@ -935,6 +935,7 @@ export interface ExtensionItem {
   path: string;
   size_bytes: number;
   is_system_plugin: boolean;
+  icon_data_url?: string | null;
 }
 
 export interface PluginScanReport {

@@ -14,6 +14,7 @@ pub struct ExtensionItem {
     pub path: String,
     pub size_bytes: u64,
     pub is_system_plugin: bool,
+    pub icon_data_url: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -85,7 +86,94 @@ fn resolve_i18n_message(v_path: &Path, key: &str, default_locale: &str) -> Optio
     None
 }
 
-fn parse_manifest_name(manifest_path: &Path, version_dir: &Path, default_name: &str) -> (String, String, String) {
+fn extract_extension_icon(manifest_json: &serde_json::Value, version_dir: &Path) -> Option<String> {
+    use base64::engine::general_purpose::STANDARD as BASE64;
+    use base64::Engine;
+
+    let mut candidate_rel_paths: Vec<&str> = Vec::new();
+
+    // 1. Check "icons" in manifest
+    if let Some(icons_obj) = manifest_json.get("icons").and_then(|i| i.as_object()) {
+        for size_key in &["128", "96", "64", "48", "32", "16"] {
+            if let Some(path_str) = icons_obj.get(*size_key).and_then(|p| p.as_str()) {
+                candidate_rel_paths.push(path_str);
+            }
+        }
+        for (_k, v) in icons_obj {
+            if let Some(path_str) = v.as_str() {
+                if !candidate_rel_paths.contains(&path_str) {
+                    candidate_rel_paths.push(path_str);
+                }
+            }
+        }
+    } else if let Some(single_icon) = manifest_json.get("icons").and_then(|i| i.as_str()) {
+        candidate_rel_paths.push(single_icon);
+    }
+
+    // 2. Check "action" or "browser_action" default_icon
+    for action_key in &["action", "browser_action", "page_action"] {
+        if let Some(action_obj) = manifest_json.get(action_key) {
+            if let Some(default_icon) = action_obj.get("default_icon") {
+                if let Some(single) = default_icon.as_str() {
+                    candidate_rel_paths.push(single);
+                } else if let Some(obj) = default_icon.as_object() {
+                    for size_key in &["128", "48", "32", "16"] {
+                        if let Some(p) = obj.get(*size_key).and_then(|s| s.as_str()) {
+                            candidate_rel_paths.push(p);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // Try manifest candidates
+    for rel_path in candidate_rel_paths {
+        let clean_rel = rel_path.trim_start_matches('/').trim_start_matches("./");
+        let full_path = version_dir.join(clean_rel);
+        if full_path.is_file() {
+            if let Ok(bytes) = fs::read(&full_path) {
+                if !bytes.is_empty() {
+                    let mime = if clean_rel.ends_with(".svg") {
+                        "image/svg+xml"
+                    } else if clean_rel.ends_with(".webp") {
+                        "image/webp"
+                    } else if clean_rel.ends_with(".jpg") || clean_rel.ends_with(".jpeg") {
+                        "image/jpeg"
+                    } else {
+                        "image/png"
+                    };
+                    return Some(format!("data:{};base64,{}", mime, BASE64.encode(&bytes)));
+                }
+            }
+        }
+    }
+
+    // 3. Common fallback filenames
+    let common_names = [
+        "icon128.png", "icon-128.png", "icon_128.png",
+        "icon48.png", "icon-48.png", "icon_48.png",
+        "icon32.png", "icon.png", "logo.png",
+        "icons/icon128.png", "icons/icon-128.png", "icons/icon48.png", "icons/icon.png",
+        "images/icon128.png", "images/icon-128.png", "images/icon48.png", "images/icon.png",
+        "assets/icon128.png", "assets/icon.png"
+    ];
+
+    for name in &common_names {
+        let p = version_dir.join(name);
+        if p.is_file() {
+            if let Ok(bytes) = fs::read(&p) {
+                if !bytes.is_empty() {
+                    return Some(format!("data:image/png;base64,{}", BASE64.encode(&bytes)));
+                }
+            }
+        }
+    }
+
+    None
+}
+
+fn parse_manifest_name(manifest_path: &Path, version_dir: &Path, default_name: &str) -> (String, String, String, Option<String>) {
     if let Ok(content) = fs::read_to_string(manifest_path) {
         if let Ok(json) = serde_json::from_str::<serde_json::Value>(&content) {
             let mut name = json["name"].as_str().unwrap_or(default_name).to_string();
@@ -119,10 +207,12 @@ fn parse_manifest_name(manifest_path: &Path, version_dir: &Path, default_name: &
                 }
             }
 
-            return (name, version, desc);
+            let icon_data_url = extract_extension_icon(&json, version_dir);
+
+            return (name, version, desc, icon_data_url);
         }
     }
-    (default_name.to_string(), "1.0.0".to_string(), String::new())
+    (default_name.to_string(), "1.0.0".to_string(), String::new(), None)
 }
 
 #[tauri::command]
@@ -202,7 +292,7 @@ pub fn scan_browser_and_system_plugins() -> PluginScanReport {
                                 if v_path.is_dir() {
                                     let manifest = v_path.join("manifest.json");
                                     if manifest.exists() {
-                                        let (name, ver, desc) = parse_manifest_name(&manifest, &v_path, &ext_id);
+                                        let (name, ver, desc, icon_url) = parse_manifest_name(&manifest, &v_path, &ext_id);
                                         let size = calculate_dir_size(&ext_path);
                                         items.push(ExtensionItem {
                                             id: format!("{}_{}", profile_label, ext_id),
@@ -213,6 +303,7 @@ pub fn scan_browser_and_system_plugins() -> PluginScanReport {
                                             path: ext_path.to_string_lossy().to_string(),
                                             size_bytes: size,
                                             is_system_plugin: false,
+                                            icon_data_url: icon_url,
                                         });
                                         break;
                                     }
@@ -247,7 +338,7 @@ pub fn scan_browser_and_system_plugins() -> PluginScanReport {
                                 if ext_path.is_dir() {
                                     let manifest = ext_path.join("manifest.json");
                                     if manifest.exists() {
-                                        let (name, ver, desc) = parse_manifest_name(&manifest, &ext_path, &file_name);
+                                        let (name, ver, desc, icon_url) = parse_manifest_name(&manifest, &ext_path, &file_name);
                                         let size = calculate_dir_size(&ext_path);
                                         items.push(ExtensionItem {
                                             id: format!("{}_{}", browser_name, file_name),
@@ -258,6 +349,7 @@ pub fn scan_browser_and_system_plugins() -> PluginScanReport {
                                             path: ext_path.to_string_lossy().to_string(),
                                             size_bytes: size,
                                             is_system_plugin: false,
+                                            icon_data_url: icon_url,
                                         });
                                     }
                                 } else if file_name.ends_with(".xpi") {
@@ -272,6 +364,7 @@ pub fn scan_browser_and_system_plugins() -> PluginScanReport {
                                         path: ext_path.to_string_lossy().to_string(),
                                         size_bytes: size,
                                         is_system_plugin: false,
+                                        icon_data_url: None,
                                     });
                                 }
                             }
@@ -311,6 +404,7 @@ pub fn scan_browser_and_system_plugins() -> PluginScanReport {
                         path: p.to_string_lossy().to_string(),
                         size_bytes: size,
                         is_system_plugin: true,
+                        icon_data_url: None,
                     });
                 }
             }

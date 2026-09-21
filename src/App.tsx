@@ -7,6 +7,7 @@ import { CardSkeleton } from './components/ui/SkeletonLoader';
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
 import { listen } from '@tauri-apps/api/event';
 import GlobalDropzone from './components/ui/GlobalDropzone';
+import ErrorBoundary from './components/ui/ErrorBoundary';
 import { getDiskInfo, showSystemNotification, type ScanProgressPayload } from './lib/commands';
 
 // Code-split secondary views to keep initial bundle ultra-lean (<150KB)
@@ -278,6 +279,12 @@ export default function App() {
     applyThemeColors(primaryAccent, secondaryAccent);
   }, [primaryAccent, secondaryAccent]);
 
+  useEffect(() => {
+    const handleNavDashboard = () => setCurrentPage('dashboard');
+    window.addEventListener('beberes-navigate-dashboard', handleNavDashboard);
+    return () => window.removeEventListener('beberes-navigate-dashboard', handleNavDashboard);
+  }, [setCurrentPage]);
+
   if (isPopoverWindow) {
     return (
       <Suspense fallback={null}>
@@ -296,56 +303,58 @@ export default function App() {
   return (
     <MainLayout>
       <GlobalDropzone />
-      <Suspense fallback={suspenseFallback}>
-        <div className={currentPage === 'dashboard' ? 'block animate-fade-in' : 'hidden'}>
-          {visitedPages.has('dashboard') && <Dashboard />}
-        </div>
-        <div className={currentPage === 'disk-visualizer' ? 'block animate-fade-in' : 'hidden'}>
-          {visitedPages.has('disk-visualizer') && <DiskVisualizer />}
-        </div>
-        <div className={currentPage === 'quick-review' ? 'block animate-fade-in' : 'hidden'}>
-          {visitedPages.has('quick-review') && <QuickReview />}
-        </div>
-        <div className={currentPage === 'large-duplicates' ? 'block animate-fade-in' : 'hidden'}>
-          {visitedPages.has('large-duplicates') && <LargeAndDuplicates />}
-        </div>
-        <div className={currentPage === 'trash-manager' ? 'block animate-fade-in' : 'hidden'}>
-          {visitedPages.has('trash-manager') && <TrashManager />}
-        </div>
-        <div className={currentPage === 'tidy-up' ? 'block animate-fade-in' : 'hidden'}>
-          {visitedPages.has('tidy-up') && <TidyUp />}
-        </div>
-        <div className={currentPage === 'apps' ? 'block animate-fade-in' : 'hidden'}>
-          {visitedPages.has('apps') && <AppUninstaller />}
-        </div>
-        <div className={currentPage === 'system-clean' ? 'block animate-fade-in' : 'hidden'}>
-          {visitedPages.has('system-clean') && <SystemClean />}
-        </div>
-        <div className={currentPage === 'dev-workspace' ? 'block animate-fade-in' : 'hidden'}>
-          {visitedPages.has('dev-workspace') && <DevWorkspace />}
-        </div>
-        <div className={currentPage === 'startup-manager' ? 'block animate-fade-in' : 'hidden'}>
-          {visitedPages.has('startup-manager') && <StartupManager />}
-        </div>
-        <div className={currentPage === 'file-shredder' ? 'block animate-fade-in' : 'hidden'}>
-          {visitedPages.has('file-shredder') && <FileShredder />}
-        </div>
-        <div className={currentPage === 'git-sweeper' ? 'block animate-fade-in' : 'hidden'}>
-          {visitedPages.has('git-sweeper') && <GitSweeper />}
-        </div>
-        <div className={currentPage === 'hardware' ? 'block animate-fade-in' : 'hidden'}>
-          {visitedPages.has('hardware') && <HardwareIntelligence />}
-        </div>
-        <div className={currentPage === 'similar-photos' ? 'block animate-fade-in' : 'hidden'}>
-          {visitedPages.has('similar-photos') && <SimilarPhotos />}
-        </div>
-        <div className={currentPage === 'plugins' ? 'block animate-fade-in' : 'hidden'}>
-          {visitedPages.has('plugins') && <PluginManager />}
-        </div>
-        <div className={currentPage === 'settings' ? 'block animate-fade-in' : 'hidden'}>
-          {visitedPages.has('settings') && <Settings />}
-        </div>
-      </Suspense>
+      <ErrorBoundary onReset={() => setCurrentPage('dashboard')}>
+        <Suspense fallback={suspenseFallback}>
+          <div className={currentPage === 'dashboard' ? 'block animate-fade-in' : 'hidden'}>
+            {visitedPages.has('dashboard') && <Dashboard />}
+          </div>
+          <div className={currentPage === 'disk-visualizer' ? 'block animate-fade-in' : 'hidden'}>
+            {visitedPages.has('disk-visualizer') && <DiskVisualizer />}
+          </div>
+          <div className={currentPage === 'quick-review' ? 'block animate-fade-in' : 'hidden'}>
+            {visitedPages.has('quick-review') && <QuickReview />}
+          </div>
+          <div className={currentPage === 'large-duplicates' ? 'block animate-fade-in' : 'hidden'}>
+            {visitedPages.has('large-duplicates') && <LargeAndDuplicates />}
+          </div>
+          <div className={currentPage === 'trash-manager' ? 'block animate-fade-in' : 'hidden'}>
+            {visitedPages.has('trash-manager') && <TrashManager />}
+          </div>
+          <div className={currentPage === 'tidy-up' ? 'block animate-fade-in' : 'hidden'}>
+            {visitedPages.has('tidy-up') && <TidyUp />}
+          </div>
+          <div className={currentPage === 'apps' ? 'block animate-fade-in' : 'hidden'}>
+            {visitedPages.has('apps') && <AppUninstaller />}
+          </div>
+          <div className={currentPage === 'system-clean' ? 'block animate-fade-in' : 'hidden'}>
+            {visitedPages.has('system-clean') && <SystemClean />}
+          </div>
+          <div className={currentPage === 'dev-workspace' ? 'block animate-fade-in' : 'hidden'}>
+            {visitedPages.has('dev-workspace') && <DevWorkspace />}
+          </div>
+          <div className={currentPage === 'startup-manager' ? 'block animate-fade-in' : 'hidden'}>
+            {visitedPages.has('startup-manager') && <StartupManager />}
+          </div>
+          <div className={currentPage === 'file-shredder' ? 'block animate-fade-in' : 'hidden'}>
+            {visitedPages.has('file-shredder') && <FileShredder />}
+          </div>
+          <div className={currentPage === 'git-sweeper' ? 'block animate-fade-in' : 'hidden'}>
+            {visitedPages.has('git-sweeper') && <GitSweeper />}
+          </div>
+          <div className={currentPage === 'hardware' ? 'block animate-fade-in' : 'hidden'}>
+            {visitedPages.has('hardware') && <HardwareIntelligence />}
+          </div>
+          <div className={currentPage === 'similar-photos' ? 'block animate-fade-in' : 'hidden'}>
+            {visitedPages.has('similar-photos') && <SimilarPhotos />}
+          </div>
+          <div className={currentPage === 'plugins' ? 'block animate-fade-in' : 'hidden'}>
+            {visitedPages.has('plugins') && <PluginManager />}
+          </div>
+          <div className={currentPage === 'settings' ? 'block animate-fade-in' : 'hidden'}>
+            {visitedPages.has('settings') && <Settings />}
+          </div>
+        </Suspense>
+      </ErrorBoundary>
     </MainLayout>
   );
 }

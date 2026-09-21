@@ -1,4 +1,4 @@
-import { useAppStore, APP_VERSION } from '../../store/appStore';
+import { useAppStore, APP_VERSION, APP_CODENAME } from '../../store/appStore';
 import { useTranslation } from '../../lib/i18n';
 import Button from './Button';
 import {
@@ -48,7 +48,7 @@ export default function AboutModal() {
           <div className="flex items-center justify-center gap-1.5 mt-1">
             <span className="text-xs font-semibold text-accent font-mono">v{APP_VERSION}</span>
             <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-accent-subtle text-accent border border-accent/20">
-              Bayu
+              {APP_CODENAME}
             </span>
           </div>
           <p className="text-xs text-slate-500 dark:text-neutral-400 mt-2 max-w-xs mx-auto leading-relaxed">

@@ -7,7 +7,6 @@ import {
   CheckCircle2,
   RefreshCw,
   FolderOpen,
-  FolderCheck,
   CheckCheck,
 } from 'lucide-react';
 import {
@@ -228,14 +227,12 @@ export default function SimilarPhotos() {
           <CardSkeleton />
         </div>
       ) : !result || result.groups.length === 0 ? (
-        <div className="rounded-2xl glass-panel overflow-hidden py-16 text-center w-full space-y-3">
-          <div className="w-14 h-14 rounded-3xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center mx-auto">
-            <FolderCheck size={32} />
-          </div>
-          <h2 className="text-base font-bold text-slate-800 dark:text-neutral-100">
+        <div className="rounded-2xl glass-panel overflow-hidden py-16 text-center w-full">
+          <Images size={36} className="text-slate-300 dark:text-neutral-600 mx-auto mb-2" />
+          <p className="text-sm font-bold text-slate-700 dark:text-neutral-300">
             {t('similarPhotos.noDuplicates', 'No Similar Photos Found')}
-          </h2>
-          <p className="text-xs text-slate-400">
+          </p>
+          <p className="text-xs text-slate-400 dark:text-neutral-500 mt-1">
             {t(
               'similarPhotos.noDuplicatesDesc',
               'Your photo library has no redundant burst shots or similar photos.'

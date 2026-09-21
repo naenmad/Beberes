@@ -19,13 +19,15 @@
 </p>
 
 <p align="center">
-  <img src="docs/screenshots/dashboard-hero.png" alt="Beberes Dashboard Overview" width="920" style="border-radius: 12px; box-shadow: 0 20px 40px rgba(0,0,0,0.3);" />
+  <img src="docs/screenshots/developer-workspace.png" alt="Beberes Developer Workspace" width="920" style="border-radius: 12px; box-shadow: 0 20px 40px rgba(0,0,0,0.3);" />
 </p>
 
 <p align="center">
   <a href="#why-beberes">Why Beberes?</a> &bull;
   <a href="#key-features">Key Features</a> &bull;
   <a href="#screenshots">Screenshots</a> &bull;
+  <a href="#gui-usage--keyboard-shortcuts">GUI Usage</a> &bull;
+  <a href="#terminal-cli-usage">Terminal CLI</a> &bull;
   <a href="#installation">Installation</a> &bull;
   <a href="#building-from-source">Building from Source</a> &bull;
   <a href="#architecture">Architecture</a> &bull;
@@ -43,7 +45,7 @@ Traditional macOS cleanup utilities often come bundled with proprietary backgrou
 **Beberes** (*Sundanese/Indonesian for "tidying up"*) is built from the ground up to be different:
 - **Blazingly Fast**: Powered by a native Rust core, multi-threaded Rayon directory traversal, and direct POSIX filesystem operations.
 - **100% Local-First & Private**: Zero tracking, zero analytics, zero network beacons, and zero cloud calls.
-- **Developer-Tailored**: Built-in deep cleaners for `node_modules`, Python virtual environments, Xcode DerivedData, Docker/OrbStack VMs, and dangling Git packfiles.
+- **Developer-Tailored**: Built-in deep cleaners for `node_modules`, Python virtual environments, Xcode DerivedData, Docker/OrbStack VMs, zombie dev ports, and dangling Git packfiles.
 - **Safety First**: Protected whitelist prevents accidental damage to core macOS system directories, with native macOS Trash put-back integration.
 - **Apple Design Language**: Frosted glassmorphism interface with fluid animations, keyboard-driven navigation, and Spotlight Search (`Cmd+K`).
 - **macOS Native Polish**: Native Menu Bar status tray, Hold Cmd+Q to quit with radial progress HUD, Close-to-Hide window management, and thermal/battery awareness.
@@ -57,46 +59,122 @@ Beberes comes equipped with specialized modules designed for complete Mac mainte
 | Module | Description | Target Areas |
 | :--- | :--- | :--- |
 | **Storage Dashboard** | Real-time hardware overview, storage utilization, 0-100% **Mac Hygiene Score**, and 1-click **Bereskan Sekaligus** master clean. | System root, RAM memory, and attached volumes |
-| **Orphaned App Leftovers** | Scans and purges abandoned directories left behind in Library by apps that have already been uninstalled. | `~/Library/Application Support`, `~/Library/Caches`, `Containers` |
-| **Smart Automation Rules** | 1-click non-destructive automated filing: auto-archives downloads > 30 days and consolidates desktop screenshots. | `~/Downloads`, `~/Desktop`, `~/Pictures/Screenshots` |
-| **Homebrew & Tooling Pruner** | Purges outdated bottles, temporary downloads, and expired lockfiles via `brew cleanup --prune=all` with live terminal log. | `/opt/homebrew`, `/usr/local/Homebrew`, package caches |
-| **Developer Workspace** | Deep workspace and package manager cleaner across 14 tech stacks: Node.js, Rust, Flutter/Dart, Go, Python, Java Maven, Docker, PHP Composer, AI/Ollama Models, Ruby, .NET NuGet, C/C++ CMake. | `node_modules`, `target/`, `.pub-cache`, `go-build`, `~/.m2`, `~/.ollama` |
-| **APFS Snapshot Purger** | Detects and safely clears local Time Machine snapshots taking up hidden gigabytes in macOS "System Data" / purgeable space. | APFS local snapshot metadata (`tmutil`) |
-| **RAM Inactive Memory Optimizer** | Flushes dormant disk cache memory back to free physical RAM via the native macOS kernel memory manager. | Inactive and purgeable memory pages (`vm_stat`, `purge`) |
-| **Deep Browser Cleaner** | Purges code caches, GPU caches, Service Worker temp files, and HTTP caches across 6 major browsers while preserving cookies and logins. | Safari, Chrome, Arc, Brave, Firefox, Edge |
-| **macOS Menu Bar Status Tray** | Native status bar menu with 1-click Quick Clean, Free RAM, Empty Trash, and direct view jumping. | macOS Menu Bar tray icon |
-| **Disk Space Visualizer** | Interactive hierarchical treemap visualizer with drill-down exploration, breadcrumbs, and proportional storage heatmaps. | Any local or external directory |
-| **Quick Review** | Rapid triage tool for Downloads and Desktop with arrow-key keyboard navigation, file previews, and inline renaming. | `~/Downloads`, `~/Desktop`, `~/Pictures` |
+| **Developer Workspace** | Deep workspace and package manager cleaner across 14 tech stacks, project hibernation, and zombie port killer. | `node_modules`, `target/`, `.pub-cache`, `go-build`, Docker, Xcode |
+| **Git Sweeper** | Aggressive repository compression (`git gc --prune=now`) and merged local branch pruning. | Local developer workspaces (e.g. `~/Developer`) |
+| **System Clean** | Clears user cache, application logs, browser caches, and temporary files without affecting logins. | `~/Library/Caches`, `~/Library/Logs`, browser caches |
+| **Browser Extension Auditor** | Scans and lists installed extensions in Chrome, Brave, Arc, Edge, and Firefox with native extension logos. | User profile extension manifests |
+| **Similar Photos** | Local visual similarity clustering detecting redundant burst shots and exact duplicates. | `~/Pictures`, Photos library |
+| **Disk Space Visualizer** | Interactive hierarchical treemap visualizer with drill-down exploration, breadcrumbs, and context menus. | Any local or external directory |
+| **Quick Review** | Rapid triage tool for Downloads and Desktop with arrow-key keyboard navigation, previews, and inline renaming. | `~/Downloads`, `~/Desktop`, `~/Pictures` |
 | **Large & Duplicate Files** | Fast SHA-256 duplicate content detector and size-ranked large file finder. | User libraries, media collections, archives |
 | **Tidy Up** | Intelligent file organizer categorizing loose files into tidy folders and sweeping redundant `.dmg` / `.pkg` installers. | Desktop, Downloads, custom folders |
 | **App Uninstaller** | Comprehensive uninstaller with leftover inspection, bundle ID detection, and Apple system protection. | `/Applications`, `~/Applications` |
-| **Trash Manager** | Visual macOS Trash inspector with individual item deletion, path inspection, and secure emptying. | `~/.Trash` and external drive trash bins |
-| **Startup Daemons** | Inspect, enable, disable, and clean macOS `LaunchAgents` and `LaunchDaemons`. | `~/Library/LaunchAgents`, `/Library/LaunchAgents` |
+| **Trash Manager** | Visual macOS Trash inspector with auto-pruning files older than 30 days and secure emptying. | `~/.Trash` and external drive trash bins |
+| **Startup Services** | Inspect, enable, disable, and clean macOS `LaunchAgents` and `LaunchDaemons`. | `~/Library/LaunchAgents`, `/Library/LaunchAgents` |
 | **File Shredder** | Multi-pass cryptographic sanitization (1-Pass Zero, 3-Pass DoD 5220.22-M, 7-Pass Gutmann Lite). | Sensitive documents, keys, credentials |
-| **Git Sweeper** | Aggressive repository compression (`git gc --prune=now`) and merged local branch pruning. | Local developer workspaces (e.g. `~/Developer`) |
-
-### Additional Capabilities
-- **Multi-Drive & Flashdisk Detection**: Automatically enumerates external drives and USB flashdisks mounted under `/Volumes/*` with instant live switching.
-- **Global Spotlight Search (`Cmd+K`)**: Navigate anywhere in the application or trigger actions via instant keyboard search.
-- **Full Keyboard Navigation & A11y**: Direct tab switching (`Cmd+1` through `Cmd+9`), global refresh (`Cmd+R`), settings (`Cmd+,`), and Escape modal dismissal.
-- **Finder Drag & Drop**: Drag files, folders, or `.app` bundles directly into Beberes to inspect, tidy, or uninstall immediately.
-- **Thermal & Battery Throttling Awareness**: Dynamically adjusts background scan threads when your MacBook runs on low battery to prevent overheating.
-- **Audio Haptic Feedback**: Native Web Audio API sounds for trash emptying and completion chimes (with settings mute toggle).
-- **Appearance & Scaling**: Full support for native macOS Light and Dark mode, plus adjustable UI scaling (Compact, Normal, Large).
+| **Terminal CLI Companion** | Direct terminal command line interface (`beberes`) executing in under 10 milliseconds. | macOS Terminal, shell automation scripts |
 
 ---
 
 ## Screenshots
 
 <div align="center">
-  <img src="docs/screenshots/developer-workspace.png" alt="Developer Workspace Cleaner" width="700" style="border-radius: 8px; margin-bottom: 12px;" />
-  <p><em>Developer Workspace Deep Cleaner — Reclaiming gigabytes from Cargo target, Docker VMs, and node_modules</em></p>
+  <img src="docs/screenshots/git-sweeper.png" alt="Git Sweeper" width="840" style="border-radius: 8px; margin-bottom: 16px;" />
+  <p><em>Git Repository Sweeper — Aggressive packfile garbage collection and branch pruning across local repos</em></p>
 </div>
 
 <div align="center">
-  <img src="docs/screenshots/confirm-cleanup.png" alt="Safe Confirmation Modal" width="540" style="border-radius: 8px; margin-bottom: 12px;" />
-  <p><em>Smart Whitelist Safeguards — Interactive confirmation modal protecting system directories</em></p>
+  <img src="docs/screenshots/developer-workspace.png" alt="Developer Workspace Cleaner" width="840" style="border-radius: 8px; margin-bottom: 16px;" />
+  <p><em>Developer Workspace Deep Cleaner — Dormant project hibernation, build cache sweeping, and zombie dev port killer</em></p>
 </div>
+
+<div align="center">
+  <img src="docs/screenshots/disk-visualizer.png" alt="Disk Space Visualizer" width="840" style="border-radius: 8px; margin-bottom: 16px;" />
+  <p><em>Interactive Treemap Visualizer — Hierarchical proportional allocation and native right-click context menu</em></p>
+</div>
+
+<div align="center">
+  <img src="docs/screenshots/system-clean.png" alt="System Clean" width="840" style="border-radius: 8px; margin-bottom: 16px;" />
+  <p><em>System Clean — Safe cleanup of user application caches, crash logs, and browser temp data</em></p>
+</div>
+
+---
+
+## GUI Usage & Keyboard Shortcuts
+
+Beberes is built to feel completely native to macOS with extensive keyboard shortcuts and ergonomics:
+
+### Keyboard Shortcuts Reference
+| Shortcut | Action |
+| :--- | :--- |
+| `⌘1` | Open **Dashboard** |
+| `⌘2` | Open **Hardware & Battery Intelligence** |
+| `⌘3` | Open **System Clean** |
+| `⌘4` | Open **App Uninstaller** |
+| `⌘5` | Open **Trash Manager** |
+| `⌘6` | Open **Tidy Up (Desktop & Downloads)** |
+| `⌘7` | Open **Large & Duplicate Files** |
+| `⌘8` | Open **Quick Review** |
+| `⌘9` | Open **Disk Space Visualizer** |
+| `⌘,` | Open **Settings & Preferences** |
+| `⌘K` | Global Spotlight Quick Search |
+| `⌘R` | Global Rescan / Refresh |
+| `Esc` | Dismiss open modals, dialogs, or context menus |
+
+### Context Menu (Right-Click)
+In **Disk Visualizer** and **Large & Duplicate Files**, right-click any item to trigger the floating glassmorphic context menu:
+- **Quick Look (`Space`)**: Instant macOS native file preview.
+- **Reveal in Finder**: Highlight the file in its enclosing Finder folder.
+- **Copy Path (`⌥⌘C`)**: Copy the full POSIX path to the system clipboard.
+- **Browse Directory Inside**: Drill into the selected directory tree.
+
+### Full Disk Access (Universal Permission)
+To eliminate repetitive per-folder access prompts (Downloads, Desktop, Trash, Browser extensions):
+1. Navigate to **Settings (`⌘,`) > Folders & Security**.
+2. Click **Open Privacy Settings**.
+3. Under **Privacy & Security > Full Disk Access**, enable the toggle for **Beberes**.
+
+---
+
+## Terminal CLI Usage
+
+Beberes includes a blazingly fast native CLI tool (`beberes`) that starts in under **10 milliseconds** and produces clean, colorized terminal output.
+
+### 1. Installing the CLI Symlink
+Open Beberes GUI, go to **Settings > System**, and click **Install CLI**. Alternatively, link it manually in your shell:
+```bash
+sudo ln -sf /Applications/Beberes.app/Contents/MacOS/beberes-app /usr/local/bin/beberes
+```
+
+### 2. Available Commands
+```bash
+# Display quick system telemetry (RAM, storage mounts, battery health, trash count)
+beberes status
+
+# Perform system health check and permission audit
+beberes doctor
+
+# Safe cleanup: user application caches and temporary logs
+beberes clean --system
+
+# Developer cleanup: dormant build caches and old node_modules
+beberes clean --dev
+
+# Empty Trash items
+beberes clean --trash
+
+# Run master clean across all safe targets
+beberes clean --all
+
+# Prune unemptied trash items older than 30 days
+beberes prune-trash
+
+# Launch the Beberes graphical interface
+beberes gui
+
+# Show detailed command reference
+beberes --help
+```
 
 ---
 
@@ -106,8 +184,8 @@ Beberes comes equipped with specialized modules designed for complete Mac mainte
 
 Download the latest release for your Mac architecture from the [GitHub Releases](https://github.com/naenmad/Beberes/releases) page:
 
-- **Apple Silicon (M1/M2/M3/M4)**: Download `Beberes_1.1.0_aarch64.dmg`
-- **Intel Macs (x86_64)**: Download `Beberes_1.1.0_x64.dmg`
+- **Apple Silicon (M1/M2/M3/M4)**: Download `Beberes_1.4.0_aarch64.dmg`
+- **Intel Macs (x86_64)**: Download `Beberes_1.4.0_x64.dmg`
 
 Open the `.dmg` file and drag **Beberes** into your **Applications** folder.
 

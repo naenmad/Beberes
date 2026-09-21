@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useAppStore, APP_VERSION } from '../store/appStore';
+import { useAppStore, APP_VERSION, APP_CODENAME } from '../store/appStore';
 import {
   pickFolder,
   getSystemDetails,
@@ -10,6 +10,7 @@ import {
   triggerScheduledCleanNow,
   checkCliInstalled,
   installCliSymlink,
+  openFullDiskAccessSettings,
 } from '../lib/commands';
 import type { SystemDetails, ScheduleConfig } from '../lib/commands';
 import { formatSize } from '../lib/utils';
@@ -46,8 +47,10 @@ import {
   Palette,
   Clock,
   Terminal,
+  Lock,
+  Bug,
 } from 'lucide-react';
-import { ACCENT_COLORS, ACCENT_PRESETS, getAccentColor } from '../lib/themeColors';
+import { ACCENT_COLORS, getAccentColor } from '../lib/themeColors';
 
 type SettingsTab = 'general' | 'appearance' | 'scheduler' | 'folders' | 'system' | 'data';
 
@@ -58,10 +61,8 @@ export default function Settings() {
     isDarkMode,
     toggleDarkMode,
     primaryAccent,
-    secondaryAccent,
     setPrimaryAccent,
     setSecondaryAccent,
-    setAccentPair,
     uiScale,
     setUiScale,
 
@@ -254,6 +255,12 @@ export default function Settings() {
     setShowResetConfirm(false);
   };
 
+  const [simulateCrash, setSimulateCrash] = useState(false);
+
+  if (simulateCrash) {
+    throw new Error('SIMULATED_TEST_ERROR: Pengujian simulasi crash UI untuk memverifikasi Error Boundary.');
+  }
+
   return (
     <div className="space-y-6 animate-fade-in max-w-4xl pb-16">
       {/* Top Header */}
@@ -388,7 +395,7 @@ export default function Settings() {
                     <div className="flex items-center gap-2">
                       <span className="text-xs font-bold text-slate-900 dark:text-white">Beberes</span>
                       <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full bg-accent-subtle text-accent">
-                        v{APP_VERSION} (Bayu)
+                        v{APP_VERSION} ({APP_CODENAME})
                       </span>
                     </div>
                     <p className="text-[11px] text-slate-500 dark:text-neutral-400 mt-0.5">
@@ -850,7 +857,7 @@ export default function Settings() {
             </CardBody>
           </Card>
 
-          {/* Theme Accent Colors (Primary & Secondary) */}
+          {/* Theme Accent Color */}
           <Card>
             <CardHeader>
               <div className="flex items-center gap-3">
@@ -859,63 +866,24 @@ export default function Settings() {
                 </div>
                 <div>
                   <h3 className="text-sm font-semibold text-slate-800 dark:text-white">
-                    {t('settings.appearance.accentColorsTitle')}
+                    {t('settings.appearance.accentColorsTitle', 'Accent Color')}
                   </h3>
                   <p className="text-xs text-slate-400 dark:text-neutral-500">
-                    {t('settings.appearance.accentColorsDesc')}
+                    {t('settings.appearance.accentColorsDesc', 'Customize the primary accent color across buttons, highlights, and gauges.')}
                   </p>
                 </div>
               </div>
             </CardHeader>
             <CardBody className="space-y-6">
-              {/* Presets Row */}
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-slate-700 dark:text-neutral-300">
-                  {t('settings.appearance.presetsTitle')}
-                </label>
-                <div className="flex flex-wrap gap-2">
-                  {ACCENT_PRESETS.map((preset) => {
-                    const isSelected = primaryAccent === preset.primary && secondaryAccent === preset.secondary;
-                    const primaryObj = getAccentColor(preset.primary);
-                    const secondaryObj = getAccentColor(preset.secondary);
-                    return (
-                      <button
-                        key={preset.id}
-                        type="button"
-                        onClick={() => setAccentPair(preset.primary, preset.secondary)}
-                        className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
-                          isSelected
-                            ? 'border-accent bg-accent-subtle text-slate-900 dark:text-white shadow-xs'
-                            : 'border-slate-200 dark:border-neutral-700/60 hover:bg-slate-50 dark:hover:bg-neutral-800/50 text-slate-600 dark:text-neutral-400'
-                        }`}
-                      >
-                        <div className="flex items-center -space-x-1">
-                          <span
-                            className="w-3.5 h-3.5 rounded-full border border-white dark:border-neutral-900 shadow-xs"
-                            style={{ backgroundColor: primaryObj.hex }}
-                          />
-                          <span
-                            className="w-3.5 h-3.5 rounded-full border border-white dark:border-neutral-900 shadow-xs"
-                            style={{ backgroundColor: secondaryObj.hex }}
-                          />
-                        </div>
-                        <span>{t(preset.nameKey)}</span>
-                        {isSelected && <Check size={12} className="text-accent ml-1" strokeWidth={3} />}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
               {/* Primary Accent Picker */}
               <div className="space-y-2.5">
                 <div className="flex items-center justify-between">
                   <div>
                     <h4 className="text-xs font-bold text-slate-800 dark:text-white">
-                      {t('settings.appearance.primaryAccentTitle')}
+                      {t('settings.appearance.primaryAccentTitle', 'Select Accent')}
                     </h4>
                     <p className="text-[11px] text-slate-400 dark:text-neutral-400">
-                      {t('settings.appearance.primaryAccentDesc')}
+                      {t('settings.appearance.primaryAccentDesc', 'Applied to active tabs, primary actions, and storage charts.')}
                     </p>
                   </div>
                   <span className="text-xs font-semibold uppercase tracking-wider text-accent font-mono">
@@ -930,7 +898,10 @@ export default function Settings() {
                       <button
                         key={`primary-${c.id}`}
                         type="button"
-                        onClick={() => setPrimaryAccent(c.id)}
+                        onClick={() => {
+                          setPrimaryAccent(c.id);
+                          setSecondaryAccent(c.id);
+                        }}
                         className={`group relative flex flex-col items-center gap-1.5 p-2 rounded-xl border transition-all cursor-pointer ${
                           isSelected
                             ? 'border-accent bg-accent-subtle shadow-xs'
@@ -953,70 +924,21 @@ export default function Settings() {
                 </div>
               </div>
 
-              {/* Secondary Accent Picker */}
-              <div className="space-y-2.5">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h4 className="text-xs font-bold text-slate-800 dark:text-white">
-                      {t('settings.appearance.secondaryAccentTitle')}
-                    </h4>
-                    <p className="text-[11px] text-slate-400 dark:text-neutral-400">
-                      {t('settings.appearance.secondaryAccentDesc')}
-                    </p>
-                  </div>
-                  <span className="text-xs font-semibold uppercase tracking-wider text-secondary-accent font-mono">
-                    {t(getAccentColor(secondaryAccent).nameKey)}
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-4 sm:grid-cols-8 gap-2.5">
-                  {ACCENT_COLORS.map((c) => {
-                    const isSelected = secondaryAccent === c.id;
-                    return (
-                      <button
-                        key={`secondary-${c.id}`}
-                        type="button"
-                        onClick={() => setSecondaryAccent(c.id)}
-                        className={`group relative flex flex-col items-center gap-1.5 p-2 rounded-xl border transition-all cursor-pointer ${
-                          isSelected
-                            ? 'border-secondary-accent bg-secondary-subtle shadow-xs'
-                            : 'border-slate-200 dark:border-neutral-700/60 hover:bg-slate-50 dark:hover:bg-neutral-800/40'
-                        }`}
-                        title={t(c.nameKey)}
-                      >
-                        <div
-                          className="w-6 h-6 rounded-full flex items-center justify-center shadow-xs transition-transform group-hover:scale-110"
-                          style={{ backgroundColor: c.hex }}
-                        >
-                          {isSelected && <Check size={13} className="text-white" strokeWidth={3} />}
-                        </div>
-                        <span className="text-[10px] font-medium text-slate-600 dark:text-neutral-300 truncate max-w-full">
-                          {t(c.nameKey)}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
               {/* Live Preview Box */}
               <div className="p-4 rounded-2xl border border-black/5 dark:border-white/10 bg-black/[0.02] dark:bg-white/[0.02] space-y-3">
                 <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-500">
-                  {t('settings.appearance.livePreview')}
+                  {t('settings.appearance.livePreview', 'Live Preview')}
                 </div>
                 <div className="flex flex-wrap items-center gap-3">
                   <Button size="sm" variant="primary">
-                    {t('settings.appearance.primaryPreviewBtn')}
+                    {t('settings.appearance.primaryPreviewBtn', 'Primary Action')}
                   </Button>
                   <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-accent-subtle text-accent border border-accent-subtle">
-                    {t('settings.appearance.primaryBadge')}
-                  </span>
-                  <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-secondary-subtle text-secondary-accent border border-secondary-subtle">
-                    {t('settings.appearance.secondaryBadge')}
+                    {t('settings.appearance.primaryBadge', 'Active Filter')}
                   </span>
                   <div className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-neutral-300">
                     <Sparkles size={14} className="text-accent" />
-                    <span>{t('settings.appearance.activeIconSample')}</span>
+                    <span>{t('settings.appearance.activeIconSample', 'Selected Accent Highlight')}</span>
                   </div>
                 </div>
               </div>
@@ -1298,6 +1220,90 @@ export default function Settings() {
       {/* 3. FOLDERS & WHITELIST */}
       {activeTab === 'folders' && (
         <div className="space-y-6">
+          {/* macOS Full Disk Access & Privacy Hub */}
+          <Card className="border-accent/20 bg-accent-subtle/30">
+            <CardHeader>
+              <div className="flex items-center justify-between w-full">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-xl bg-accent text-white shadow-xs">
+                    <Lock size={20} />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-semibold text-slate-800 dark:text-white">
+                      {t('settings.fda.title', 'macOS Full Disk Access (Universal Permission)')}
+                    </h3>
+                    <p className="text-xs text-slate-500 dark:text-neutral-400">
+                      {t(
+                        'settings.fda.subtitle',
+                        'Grant master access once to eliminate repetitive per-page permission prompts.'
+                      )}
+                    </p>
+                  </div>
+                </div>
+
+                <Button
+                  onClick={openFullDiskAccessSettings}
+                  variant="primary"
+                  size="sm"
+                  icon={<ExternalLink size={13} />}
+                >
+                  {t('settings.fda.openSettings', 'Open Privacy Settings')}
+                </Button>
+              </div>
+            </CardHeader>
+            <CardBody className="space-y-3.5">
+              <div className="p-3.5 rounded-2xl bg-white/60 dark:bg-neutral-900/60 border border-black/5 dark:border-white/8 space-y-2">
+                <div className="flex items-center gap-2 text-xs font-bold text-slate-800 dark:text-white">
+                  <Sparkles size={14} className="text-accent" />
+                  <span>{t('settings.fda.whyTitle', 'Mengapa macOS Meminta Izin Akses Berulang Kali?')}</span>
+                </div>
+                <p className="text-xs text-slate-600 dark:text-neutral-300 leading-relaxed">
+                  {t(
+                    'settings.fda.whyDesc',
+                    'macOS mengidentifikasi aplikasi menggunakan tanda tangan kriptografi (hash biner). Saat proses development atau rebuild ulang binary, macOS menganggap aplikasi telah diperbarui sehingga izin folder (Downloads, Desktop, Trash) harus diverifikasi ulang.'
+                  )}
+                </p>
+                <p className="text-xs text-slate-600 dark:text-neutral-300 leading-relaxed">
+                  <strong className="text-accent font-semibold">{t('settings.fda.solutionHighlight', 'Solusi 1 Kali:')} </strong>
+                  {t(
+                    'settings.fda.solutionDesc',
+                    'Dengan menyalakan Akses Disk Penuh (Full Disk Access) untuk Beberes di macOS System Settings, Anda memberikan izin induk (master permission) sehingga semua halaman (Tidy Up, Trash, Ekstensi Browser) langsung aktif tanpa pernah meminta izin per folder lagi. Pada versi rilis stabil di /Applications, izin ini tersimpan permanen.'
+                  )}
+                </p>
+              </div>
+
+              {/* Quick Guide Steps */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1">
+                <div className="p-3 rounded-2xl bg-black/2 dark:bg-white/4 border border-black/4 dark:border-white/6 flex items-start gap-2.5">
+                  <span className="w-5 h-5 rounded-full bg-accent/20 text-accent text-[11px] font-bold flex items-center justify-center shrink-0">
+                    1
+                  </span>
+                  <div className="text-[11px] text-slate-600 dark:text-neutral-300 leading-tight">
+                    Klik tombol <strong>Buka Pengaturan Privasi</strong> di atas
+                  </div>
+                </div>
+
+                <div className="p-3 rounded-2xl bg-black/2 dark:bg-white/4 border border-black/4 dark:border-white/6 flex items-start gap-2.5">
+                  <span className="w-5 h-5 rounded-full bg-accent/20 text-accent text-[11px] font-bold flex items-center justify-center shrink-0">
+                    2
+                  </span>
+                  <div className="text-[11px] text-slate-600 dark:text-neutral-300 leading-tight">
+                    Cari <strong>Beberes</strong> pada daftar Full Disk Access
+                  </div>
+                </div>
+
+                <div className="p-3 rounded-2xl bg-black/2 dark:bg-white/4 border border-black/4 dark:border-white/6 flex items-start gap-2.5">
+                  <span className="w-5 h-5 rounded-full bg-accent/20 text-accent text-[11px] font-bold flex items-center justify-center shrink-0">
+                    3
+                  </span>
+                  <div className="text-[11px] text-slate-600 dark:text-neutral-300 leading-tight">
+                    Aktifkan sakelar ke posisi <strong>ON / Centang</strong>
+                  </div>
+                </div>
+              </div>
+            </CardBody>
+          </Card>
+
           {/* Whitelist Card */}
           <Card>
             <CardHeader>
@@ -1686,6 +1692,44 @@ export default function Settings() {
                   <p><span className="text-cyan-400">beberes doctor</span> <span className="text-slate-500"># Run health & permission check</span></p>
                 </div>
               </div>
+            </CardBody>
+          </Card>
+
+          {/* Diagnostic & Error Boundary Test Card */}
+          <Card className="border-amber-500/20 bg-amber-500/5">
+            <CardHeader>
+              <div className="flex items-center justify-between flex-wrap gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-xl bg-amber-500/10 text-amber-500">
+                    <Bug size={20} />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-semibold text-slate-800 dark:text-white">
+                      {t('settings.crashTest.title', 'Simulasi & Pengujian Error Boundary')}
+                    </h3>
+                    <p className="text-xs text-slate-400 dark:text-neutral-500">
+                      {t('settings.crashTest.desc', 'Uji tampilan penanganan error yang ramah pengguna dan integrasi pelaporan issue ke GitHub.')}
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  onClick={() => setSimulateCrash(true)}
+                  className="text-amber-600 dark:text-amber-400 hover:bg-amber-500/10 border-amber-500/30"
+                  icon={<Bug size={13} />}
+                >
+                  {t('settings.crashTest.button', 'Uji Tampilan Error (Crash Test)')}
+                </Button>
+              </div>
+            </CardHeader>
+            <CardBody>
+              <p className="text-xs text-slate-600 dark:text-neutral-400 leading-relaxed">
+                {t(
+                  'settings.crashTest.explanation',
+                  'Fitur ini sengaja memicu pengecualian UI untuk mendemonstrasikan bagaimana Beberes melindungi pengguna: menyembunyikan stack trace teknis, menampilkan kode error yang jelas, menyediakan opsi pemulihan satu klik, dan tombol langsung untuk membuat laporan bug di GitHub.'
+                )}
+              </p>
             </CardBody>
           </Card>
         </div>
