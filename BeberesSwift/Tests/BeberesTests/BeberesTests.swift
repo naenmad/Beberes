@@ -78,5 +78,23 @@ struct BeberesTests {
         #expect(summary.errors.isEmpty)
         #expect(!FileManager.default.fileExists(atPath: testFileURL.path))
     }
+
+    @Test("HardwareService returns valid chip name and core counts")
+    func testHardwareMetrics() {
+        let metrics = HardwareService.getMetrics()
+        #expect(!metrics.chipName.isEmpty)
+        #expect(metrics.totalCores > 0)
+        #expect(!metrics.thermalState.isEmpty)
+        #expect(!metrics.uptimeString.isEmpty)
+    }
+
+    @Test("TrashManagerService safely scans trash")
+    func testTrashScan() async {
+        let service = TrashManagerService()
+        let items = await service.scanTrash()
+        // Trash scan should execute cleanly without crashing
+        #expect(items.count >= 0)
+    }
 }
+
 

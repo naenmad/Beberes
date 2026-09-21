@@ -20,12 +20,18 @@ public struct MainView: View {
                     ZombiePortsView(state: state)
                 case .systemClean:
                     SystemCleanView(state: state)
+                case .largeFiles:
+                    LargeFilesView(appState: state)
                 case .appUninstaller:
                     AppUninstallerView(appState: state)
-                case .fileShredder:
-                    FileShredderView(appState: state)
+                case .trashManager:
+                    TrashManagerView(appState: state)
                 case .startupItems:
                     StartupItemsView(appState: state)
+                case .hardware:
+                    HardwareView(appState: state)
+                case .fileShredder:
+                    FileShredderView(appState: state)
                 default:
                     VStack(spacing: 12) {
                         Image(systemName: state.selectedSection.iconName)

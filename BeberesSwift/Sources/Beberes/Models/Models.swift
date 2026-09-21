@@ -6,9 +6,12 @@ public enum NavigationSection: String, CaseIterable, Identifiable, Hashable, Sen
     case devWorkspace = "Developer Workspace"
     case zombiePorts = "Zombie Ports"
     case systemClean = "System Clean"
+    case largeFiles = "Large & Duplicates"
     case appUninstaller = "App Uninstaller"
-    case fileShredder = "File Shredder"
+    case trashManager = "Trash Manager"
     case startupItems = "Startup Items"
+    case hardware = "Hardware Info"
+    case fileShredder = "File Shredder"
     case settings = "Settings"
 
     public var id: String { rawValue }
@@ -19,9 +22,12 @@ public enum NavigationSection: String, CaseIterable, Identifiable, Hashable, Sen
         case .devWorkspace: return "hammer"
         case .zombiePorts: return "network"
         case .systemClean: return "sparkles"
+        case .largeFiles: return "doc.on.doc"
         case .appUninstaller: return "trash"
-        case .fileShredder: return "flame"
+        case .trashManager: return "trash.circle"
         case .startupItems: return "bolt.badge.clock"
+        case .hardware: return "cpu"
+        case .fileShredder: return "flame"
         case .settings: return "gearshape"
         }
     }
@@ -251,10 +257,145 @@ public struct ShredSummary: Sendable {
     }
 }
 
+// MARK: - Large & Duplicate Files Models
+public enum FileCategory: String, CaseIterable, Identifiable, Sendable {
+    case all = "All"
+    case videos = "Videos"
+    case archives = "Archives"
+    case installers = "Installers"
+    case images = "Images"
+    case audio = "Audio"
+    case documents = "Documents"
+    case other = "Other"
+
+    public var id: String { rawValue }
+
+    public var icon: String {
+        switch self {
+        case .all: return "square.grid.2x2"
+        case .videos: return "film"
+        case .archives: return "archivebox"
+        case .installers: return "shippingbox"
+        case .images: return "photo"
+        case .audio: return "music.note"
+        case .documents: return "doc.text"
+        case .other: return "doc"
+        }
+    }
+}
+
+public struct LargeFileItem: Identifiable, Hashable, Sendable {
+    public var id: String { path }
+    public let name: String
+    public let path: String
+    public let sizeBytes: Int64
+    public let extensionName: String
+    public let category: FileCategory
+    public let lastModified: Date
+
+    public init(
+        name: String,
+        path: String,
+        sizeBytes: Int64,
+        extensionName: String,
+        category: FileCategory,
+        lastModified: Date
+    ) {
+        self.name = name
+        self.path = path
+        self.sizeBytes = sizeBytes
+        self.extensionName = extensionName
+        self.category = category
+        self.lastModified = lastModified
+    }
+
+    public var formattedSize: String {
+        sizeBytes.formattedBytes
+    }
+}
+
+public struct DuplicateGroup: Identifiable, Hashable, Sendable {
+    public let id: String
+    public let fileSizeBytes: Int64
+    public let items: [LargeFileItem]
+
+    public init(id: String, fileSizeBytes: Int64, items: [LargeFileItem]) {
+        self.id = id
+        self.fileSizeBytes = fileSizeBytes
+        self.items = items
+    }
+
+    public var wastedBytes: Int64 {
+        max(0, Int64(items.count - 1) * fileSizeBytes)
+    }
+
+    public var formattedWastedSize: String {
+        wastedBytes.formattedBytes
+    }
+}
+
+// MARK: - Hardware Intelligence Models
+public struct HardwareMetrics: Sendable {
+    public let chipName: String
+    public let totalCores: Int
+    public let thermalState: String
+    public let osVersion: String
+    public let uptimeString: String
+    public let batteryLevel: Int?
+    public let isCharging: Bool?
+
+    public init(
+        chipName: String,
+        totalCores: Int,
+        thermalState: String,
+        osVersion: String,
+        uptimeString: String,
+        batteryLevel: Int? = nil,
+        isCharging: Bool? = nil
+    ) {
+        self.chipName = chipName
+        self.totalCores = totalCores
+        self.thermalState = thermalState
+        self.osVersion = osVersion
+        self.uptimeString = uptimeString
+        self.batteryLevel = batteryLevel
+        self.isCharging = isCharging
+    }
+}
+
+// MARK: - Trash Manager Models
+public struct TrashItem: Identifiable, Hashable, Sendable {
+    public var id: String { path }
+    public let name: String
+    public let path: String
+    public let sizeBytes: Int64
+    public let isDirectory: Bool
+    public let dateDeleted: Date?
+
+    public init(
+        name: String,
+        path: String,
+        sizeBytes: Int64,
+        isDirectory: Bool,
+        dateDeleted: Date?
+    ) {
+        self.name = name
+        self.path = path
+        self.sizeBytes = sizeBytes
+        self.isDirectory = isDirectory
+        self.dateDeleted = dateDeleted
+    }
+
+    public var formattedSize: String {
+        sizeBytes.formattedBytes
+    }
+}
+
 // MARK: - Format Utilities
 public extension Int64 {
     var formattedBytes: String {
         ByteCountFormatter.string(fromByteCount: self, countStyle: .file)
     }
 }
+
 

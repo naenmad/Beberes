@@ -62,6 +62,13 @@ public struct SidebarView: View {
                         color: .blue,
                         badge: nil
                     )
+
+                    NavigationRow(
+                        section: .hardware,
+                        icon: "cpu.fill",
+                        color: .indigo,
+                        badge: nil
+                    )
                 }
 
                 Section("Developer Tools") {
@@ -89,10 +96,24 @@ public struct SidebarView: View {
                     )
 
                     NavigationRow(
+                        section: .largeFiles,
+                        icon: "doc.on.doc.fill",
+                        color: .blue,
+                        badge: state.largeFiles.isEmpty ? nil : "\(state.largeFiles.count)"
+                    )
+
+                    NavigationRow(
                         section: .appUninstaller,
                         icon: "trash.fill",
                         color: .red,
                         badge: state.installedApps.isEmpty ? nil : "\(state.installedApps.count)"
+                    )
+
+                    NavigationRow(
+                        section: .trashManager,
+                        icon: "trash.circle.fill",
+                        color: .orange,
+                        badge: state.trashItems.isEmpty ? nil : "\(state.trashItems.count)"
                     )
 
                     NavigationRow(

@@ -48,6 +48,21 @@ public final class AppState {
     public var isShredding: Bool = false
     public var shredToastMessage: String? = nil
 
+    // Large & Duplicate Files State
+    public var largeFiles: [LargeFileItem] = []
+    public var duplicateGroups: [DuplicateGroup] = []
+    public var selectedLargeCategory: FileCategory = .all
+    public var isLoadingLargeFiles: Bool = false
+    public var largeFilesToastMessage: String? = nil
+
+    // Hardware Metrics State
+    public var hardwareMetrics: HardwareMetrics = HardwareService.getMetrics()
+
+    // Trash Manager State
+    public var trashItems: [TrashItem] = []
+    public var isLoadingTrash: Bool = false
+    public var trashToastMessage: String? = nil
+
     // Lifetime Stats
     public var lifetimeFreedBytes: Int64 = 0
 
@@ -58,6 +73,8 @@ public final class AppState {
     private let uninstaller = AppUninstallerService()
     private let startupManager = StartupManagerService()
     private let shredder = FileShredderService()
+    private let largeFilesService = LargeFilesService()
+    private let trashManagerService = TrashManagerService()
 
     public init() {
         self.lifetimeFreedBytes = Int64(UserDefaults.standard.integer(forKey: "beberes_lifetime_freed"))
@@ -272,6 +289,81 @@ public final class AppState {
         } catch {
             shredToastMessage = "Shredding error: \(error.localizedDescription)"
         }
+    }
+
+    // MARK: - Large & Duplicate Files Actions
+    public func fetchLargeFiles() async {
+        isLoadingLargeFiles = true
+        defer { isLoadingLargeFiles = false }
+        let (files, dupes) = await largeFilesService.scan()
+        largeFiles = files
+        duplicateGroups = dupes
+    }
+
+    public func trashLargeFile(_ item: LargeFileItem) async {
+        do {
+            try largeFilesService.trashFile(path: item.path)
+            largeFiles.removeAll { $0.id == item.id }
+            recordCleanResult(freedBytes: item.sizeBytes)
+            largeFilesToastMessage = "Moved \(item.name) to Trash (\(item.formattedSize))"
+            refreshSystemStats()
+        } catch {
+            largeFilesToastMessage = "Failed: \(error.localizedDescription)"
+        }
+    }
+
+    public func revealLargeFile(_ item: LargeFileItem) {
+        largeFilesService.revealInFinder(path: item.path)
+    }
+
+    public var filteredLargeFiles: [LargeFileItem] {
+        if selectedLargeCategory == .all {
+            return largeFiles
+        }
+        return largeFiles.filter { $0.category == selectedLargeCategory }
+    }
+
+    // MARK: - Hardware Metrics Actions
+    public func refreshHardware() {
+        hardwareMetrics = HardwareService.getMetrics()
+    }
+
+    // MARK: - Trash Manager Actions
+    public func fetchTrashItems() async {
+        isLoadingTrash = true
+        defer { isLoadingTrash = false }
+        trashItems = await trashManagerService.scanTrash()
+    }
+
+    public func emptyAllTrash() async {
+        isLoadingTrash = true
+        defer { isLoadingTrash = false }
+
+        do {
+            let freed = try await trashManagerService.emptyTrash()
+            recordCleanResult(freedBytes: freed)
+            trashItems.removeAll()
+            trashToastMessage = "Emptied Trash and permanently freed \(freed.formattedBytes)."
+            refreshSystemStats()
+        } catch {
+            trashToastMessage = "Empty Trash failed: \(error.localizedDescription)"
+        }
+    }
+
+    public func deleteTrashItemPermanently(_ item: TrashItem) async {
+        do {
+            try trashManagerService.deletePermanently(item: item)
+            trashItems.removeAll { $0.id == item.id }
+            recordCleanResult(freedBytes: item.sizeBytes)
+            trashToastMessage = "Permanently deleted \(item.name)"
+            refreshSystemStats()
+        } catch {
+            trashToastMessage = "Delete failed: \(error.localizedDescription)"
+        }
+    }
+
+    public func revealTrashItem(_ item: TrashItem) {
+        trashManagerService.revealInFinder(path: item.path)
     }
 }
 
