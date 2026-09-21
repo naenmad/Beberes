@@ -5,6 +5,44 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.0] - 2026-09-21 (Codename: Chandra)
+
+### Added
+- **Browser Extension Real Logos**:
+  - Automatically parse manifest icons (`icons`, `action.default_icon`) from Chrome, Brave, Arc, Edge, Firefox, and Zen Browser into base64 data URIs.
+- **macOS Full Disk Access Hub**:
+  - Unified permissions center in Settings with one-click opening of macOS System Settings.
+  - Transparent documentation of development TCC binary signature resets vs stable release persistence.
+- **Human-Friendly Error Boundary & Recovery**:
+  - Replaced technical stack traces with calm glassmorphic error panels and structured error codes.
+  - One-click GitHub issue reporting with pre-filled diagnostics.
+  - Interactive Error Simulation / Crash Test in Settings > System.
+- **Comprehensive Documentation**:
+  - Complete GUI & CLI User Manual added in `docs/USAGE.md`.
+
+### Changed
+- **Streamlined Accent Colors**:
+  - Removed redundant secondary accent in Settings to ensure an uncluttered, focused primary accent theme.
+- **Monochromatic Empty States**:
+  - Harmonized empty states across Similar Photos, Trash Manager, and Plugin Manager to match the clean aesthetic of Tidy Up.
+
+## [1.3.0] - 2026-09-20
+
+### Added
+- Native macOS Menu Bar Popover companion view.
+- Deep battery telemetry: battery temperature in Celsius, nominal capacity, and cycle health.
+- Terminal CLI companion (`beberes`) executing in under 10ms.
+- Smart Trash Auto-Prune detecting unemptied items older than 30 days.
+- Floating glassmorphic context menu (right-click) in Disk Visualizer and Large Files.
+
+## [1.2.0] - 2026-09-20
+
+### Added
+- Native macOS Quick Look integration (`Space`).
+- Dynamic dock badges reflecting real-time cleanable items.
+- Finder drag-and-drop global overlay.
+- Low disk space watchdog monitoring storage thresholds.
+
 ## [1.1.1] - 2026-09-19 (Codename: Bayu Patch 1)
 
 ### Fixed

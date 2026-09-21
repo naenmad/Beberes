@@ -46,8 +46,14 @@ jobs:
           if gh release view "$TAG" >/dev/null 2>&1; then
             echo "Release $TAG already exists."
           else
+            CODENAME=$(grep 'export const APP_CODENAME' src/store/appStore.ts | sed -E "s/.*'([^']+)'.*/\1/" || true)
+            if [ -n "$CODENAME" ]; then
+              TITLE="Beberes $TAG ($CODENAME)"
+            else
+              TITLE="Beberes $TAG"
+            fi
             NOTES="See [CHANGELOG.md](https://github.com/naenmad/Beberes/blob/main/CHANGELOG.md) for full release notes and list of changes."
-            gh release create "$TAG" --title "Beberes $TAG (Apex)" --notes "$NOTES"
+            gh release create "$TAG" --title "$TITLE" --notes "$NOTES"
           fi
 
   build-tauri:
