@@ -221,6 +221,11 @@ main {
   -webkit-overflow-scrolling: touch;
 }
 
+.content-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: 0 84px;
+}
+
 @keyframes pulse-glow {
   0%, 100% {
     opacity: 0.6;

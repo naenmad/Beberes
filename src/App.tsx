@@ -5,6 +5,8 @@ import MainLayout from './components/layout/MainLayout';
 import Dashboard from './views/Dashboard';
 import { CardSkeleton } from './components/ui/SkeletonLoader';
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
+import { listen } from '@tauri-apps/api/event';
+import type { ScanProgressPayload } from './lib/commands';
 
 // Code-split secondary views to keep initial bundle ultra-lean (<150KB)
 const SystemClean = lazy(() => import('./views/SystemClean'));
@@ -54,6 +56,23 @@ export default function App() {
     checkForUpdates,
   } = useAppStore();
   const [visitedPages, setVisitedPages] = useState<Set<string>>(new Set([currentPage]));
+
+  // Listen to native scanner progress streaming
+  useEffect(() => {
+    let unlisten: (() => void) | undefined;
+    listen<ScanProgressPayload>('scan-progress', (event) => {
+      const payload = event.payload;
+      useAppStore.setState({
+        scanningStage: payload.stage,
+        scanningPath: payload.current_path,
+      });
+    }).then((fn) => {
+      unlisten = fn;
+    });
+    return () => {
+      if (unlisten) unlisten();
+    };
+  }, []);
 
   // Track visited pages to lazily mount them and keep them alive for instant tab switching
   useEffect(() => {

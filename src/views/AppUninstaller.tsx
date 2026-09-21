@@ -626,7 +626,7 @@ export default function AppUninstaller() {
                 return (
                   <Card
                     key={app.id}
-                    className={`overflow-hidden transition-all ${
+                    className={`content-auto overflow-hidden transition-all ${
                       isStaged
                         ? 'border-accent/50 bg-accent-subtle'
                         : ''
@@ -910,7 +910,7 @@ export default function AppUninstaller() {
                 return (
                   <Card
                     key={item.id}
-                    className={`transition-all ${
+                    className={`content-auto transition-all ${
                       isSelected
                         ? 'border-amber-500/30 bg-amber-500/[0.02]'
                         : 'opacity-80 hover:opacity-100'

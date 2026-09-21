@@ -10,10 +10,11 @@ import {
 } from '../lib/commands';
 import { formatSize } from '../lib/utils';
 import Button from '../components/ui/Button';
-import Checkbox from '../components/ui/Checkbox';
 import PageHeader from '../components/layout/PageHeader';
-import ConfirmModal from '../components/ui/ConfirmModal';
 import { CardSkeleton } from '../components/ui/SkeletonLoader';
+import Checkbox from '../components/ui/Checkbox';
+import ConfirmModal from '../components/ui/ConfirmModal';
+import VirtualList from '../components/ui/VirtualList';
 import {
   Copy,
   HardDrive,
@@ -432,73 +433,77 @@ export default function LargeAndDuplicates() {
               </p>
             </div>
           ) : (
-            data.large_files.map((file) => {
-              const isSelected = selectedPaths.has(file.path);
-              return (
-                <div
-                  key={file.id}
-                  onClick={() => togglePath(file.path)}
-                  className={`flex items-center justify-between gap-3 p-3 rounded-2xl glass-panel cursor-pointer transition-all ${
-                    isSelected
-                      ? 'border-accent/50 bg-accent-subtle/30'
-                      : 'hover:border-black/10 dark:hover:border-white/10'
-                  }`}
-                >
-                  <div className="flex items-center gap-3 min-w-0">
-                    <Checkbox
-                      checked={isSelected}
-                      onChange={() => togglePath(file.path)}
-                    />
-                    <div className="w-8 h-8 rounded-xl bg-black/3 dark:bg-white/5 flex items-center justify-center shrink-0">
-                      {getKindIcon(file.kind)}
+            <VirtualList
+              items={data.large_files}
+              itemHeight={68}
+              renderItem={(file) => {
+                const isSelected = selectedPaths.has(file.path);
+                return (
+                  <div
+                    key={file.id}
+                    onClick={() => togglePath(file.path)}
+                    className={`flex items-center justify-between gap-3 p-3 mb-2 rounded-2xl glass-panel cursor-pointer transition-all ${
+                      isSelected
+                        ? 'border-accent/50 bg-accent-subtle/30'
+                        : 'hover:border-black/10 dark:hover:border-white/10'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <Checkbox
+                        checked={isSelected}
+                        onChange={() => togglePath(file.path)}
+                      />
+                      <div className="w-8 h-8 rounded-xl bg-black/3 dark:bg-white/5 flex items-center justify-center shrink-0">
+                        {getKindIcon(file.kind)}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-xs font-semibold text-slate-800 dark:text-neutral-100 truncate">
+                          {file.name}
+                        </p>
+                        <p className="text-[11px] text-slate-400 truncate mt-0.5">
+                          {file.path}
+                        </p>
+                      </div>
                     </div>
-                    <div className="min-w-0">
-                      <p className="text-xs font-semibold text-slate-800 dark:text-neutral-100 truncate">
-                        {file.name}
-                      </p>
-                      <p className="text-[11px] text-slate-400 truncate mt-0.5">
-                        {file.path}
-                      </p>
-                    </div>
-                  </div>
 
-                  <div className="flex items-center gap-2 shrink-0">
-                    {file.size >= 5 * 1024 * 1024 * 1024 && (
-                      <span className="hidden sm:inline-flex text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
-                        {t('safety.criticalBadge', 'Critical (> 5 GB)')}
+                    <div className="flex items-center gap-2 shrink-0">
+                      {file.size >= 5 * 1024 * 1024 * 1024 && (
+                        <span className="hidden sm:inline-flex text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                          {t('safety.criticalBadge', 'Critical (> 5 GB)')}
+                        </span>
+                      )}
+                      {(file.days_old !== undefined
+                        ? file.days_old <= 1
+                        : file.last_modified
+                        ? Date.now() - new Date(file.last_modified).getTime() <= 24 * 60 * 60 * 1000
+                        : false) && (
+                        <span className="hidden sm:inline-flex text-[10px] font-semibold px-2 py-0.5 rounded-full bg-accent-subtle text-accent border border-accent/20">
+                          {t('safety.recentBadge', 'Recent (< 24h)')}
+                        </span>
+                      )}
+                      <span className="text-xs font-mono font-semibold text-accent">
+                        {formatSize(file.size)}
                       </span>
-                    )}
-                    {(file.days_old !== undefined
-                      ? file.days_old <= 1
-                      : file.last_modified
-                      ? Date.now() - new Date(file.last_modified).getTime() <= 24 * 60 * 60 * 1000
-                      : false) && (
-                      <span className="hidden sm:inline-flex text-[10px] font-semibold px-2 py-0.5 rounded-full bg-accent-subtle text-accent border border-accent/20">
-                        {t('safety.recentBadge', 'Recent (< 24h)')}
-                      </span>
-                    )}
-                    <span className="text-xs font-mono font-semibold text-accent">
-                      {formatSize(file.size)}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        revealInFinder(file.path);
-                      }}
-                      title={t('common.revealInFinder')}
-                      className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-neutral-200 hover:bg-black/4 dark:hover:bg-white/6 transition-colors cursor-pointer"
-                    >
-                      <ExternalLink size={13} />
-                    </button>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          revealInFinder(file.path);
+                        }}
+                        title={t('common.revealInFinder')}
+                        className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-neutral-200 hover:bg-black/4 dark:hover:bg-white/6 transition-colors cursor-pointer"
+                      >
+                        <ExternalLink size={13} />
+                      </button>
+                    </div>
                   </div>
-                </div>
-              );
-            })
+                );
+              }}
+            />
           )}
         </div>
       ) : activeTab === 'duplicates' ? (
-        /* Duplicate Groups */
+        /* Duplicate File Groups */
         <div className="space-y-4">
           {!data || data.duplicate_groups.length === 0 ? (
             <div className="rounded-2xl glass-panel overflow-hidden py-16 text-center w-full space-y-2">
@@ -594,55 +599,59 @@ export default function LargeAndDuplicates() {
               </p>
             </div>
           ) : (
-            data.old_files.map((file) => {
-              const isSelected = selectedPaths.has(file.path);
-              return (
-                <div
-                  key={file.id}
-                  onClick={() => togglePath(file.path)}
-                  className={`flex items-center justify-between gap-3 p-3 rounded-2xl glass-panel cursor-pointer transition-all ${
-                    isSelected
-                      ? 'border-accent/50 bg-accent-subtle/30'
-                      : 'hover:border-black/10 dark:hover:border-white/10'
-                  }`}
-                >
-                  <div className="flex items-center gap-3 min-w-0">
-                    <Checkbox
-                      checked={isSelected}
-                      onChange={() => togglePath(file.path)}
-                    />
-                    <div className="w-8 h-8 rounded-xl bg-black/3 dark:bg-white/5 flex items-center justify-center shrink-0">
-                      {getKindIcon(file.kind)}
+            <VirtualList
+              items={data.old_files}
+              itemHeight={68}
+              renderItem={(file) => {
+                const isSelected = selectedPaths.has(file.path);
+                return (
+                  <div
+                    key={file.id}
+                    onClick={() => togglePath(file.path)}
+                    className={`flex items-center justify-between gap-3 p-3 mb-2 rounded-2xl glass-panel cursor-pointer transition-all ${
+                      isSelected
+                        ? 'border-accent/50 bg-accent-subtle/30'
+                        : 'hover:border-black/10 dark:hover:border-white/10'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <Checkbox
+                        checked={isSelected}
+                        onChange={() => togglePath(file.path)}
+                      />
+                      <div className="w-8 h-8 rounded-xl bg-black/3 dark:bg-white/5 flex items-center justify-center shrink-0">
+                        {getKindIcon(file.kind)}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-xs font-semibold text-slate-800 dark:text-neutral-100 truncate">
+                          {file.name}
+                        </p>
+                        <p className="text-[11px] text-slate-400 truncate mt-0.5">
+                          {file.path} • {file.days_old} {t('largeDuplicates.daysAgo', 'days untouched')}
+                        </p>
+                      </div>
                     </div>
-                    <div className="min-w-0">
-                      <p className="text-xs font-semibold text-slate-800 dark:text-neutral-100 truncate">
-                        {file.name}
-                      </p>
-                      <p className="text-[11px] text-slate-400 truncate mt-0.5">
-                        {file.path} • {file.days_old} {t('largeDuplicates.daysAgo', 'days untouched')}
-                      </p>
-                    </div>
-                  </div>
 
-                  <div className="flex items-center gap-3 shrink-0">
-                    <span className="text-xs font-mono font-semibold text-accent">
-                      {formatSize(file.size)}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        revealInFinder(file.path);
-                      }}
-                      title={t('common.revealInFinder')}
-                      className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-neutral-200 hover:bg-black/4 dark:hover:bg-white/6 transition-colors cursor-pointer"
-                    >
-                      <ExternalLink size={13} />
-                    </button>
+                    <div className="flex items-center gap-3 shrink-0">
+                      <span className="text-xs font-mono font-semibold text-accent">
+                        {formatSize(file.size)}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          revealInFinder(file.path);
+                        }}
+                        title={t('common.revealInFinder')}
+                        className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-neutral-200 hover:bg-black/4 dark:hover:bg-white/6 transition-colors cursor-pointer"
+                      >
+                        <ExternalLink size={13} />
+                      </button>
+                    </div>
                   </div>
-                </div>
-              );
-            })
+                );
+              }}
+            />
           )}
         </div>
       )}

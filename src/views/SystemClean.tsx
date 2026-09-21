@@ -28,6 +28,7 @@ import {
   CheckSquare,
   Square,
   Filter,
+  Loader2,
   Compass,
   Shield,
   ShieldCheck,
@@ -70,6 +71,8 @@ export default function SystemClean() {
     setSystemCategories,
     isScanning,
     setIsScanning,
+    scanningStage,
+    scanningPath,
     isCleaning,
     setIsCleaning,
     deleteToTrash,
@@ -254,6 +257,19 @@ export default function SystemClean() {
       {/* Category list */}
       {isScanning ? (
         <div className="space-y-4">
+          <div className="p-4 rounded-2xl bg-accent/5 border border-accent/20 flex items-center gap-3.5 backdrop-blur-md">
+            <Loader2 className="w-5 h-5 text-accent animate-spin shrink-0" />
+            <div className="min-w-0 flex-1">
+              <div className="text-xs font-semibold text-accent uppercase tracking-wider">
+                {scanningStage || 'Scanning System Directories...'}
+              </div>
+              {scanningPath && (
+                <div className="text-xs text-slate-500 dark:text-slate-400 font-mono truncate mt-0.5">
+                  {scanningPath}
+                </div>
+              )}
+            </div>
+          </div>
           <CardSkeleton />
           <CardSkeleton />
           <CardSkeleton />

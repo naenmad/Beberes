@@ -5,6 +5,7 @@ import { scanDirectoryTree, revealInFinder, type DiskTreeNode } from '../lib/com
 import { formatSize } from '../lib/utils';
 import PageHeader from '../components/layout/PageHeader';
 import { CardSkeleton } from '../components/ui/SkeletonLoader';
+import SunburstChart from '../components/charts/SunburstChart';
 import {
   PieChart,
   Folder,
@@ -13,8 +14,10 @@ import {
   FolderOpen,
   ExternalLink,
   ArrowUp,
+  Disc,
+  LayoutGrid,
+  List,
 } from 'lucide-react';
-
 
 export default function DiskVisualizer() {
   const { t } = useTranslation();
@@ -24,6 +27,7 @@ export default function DiskVisualizer() {
   const [history, setHistory] = useState<string[]>([]);
   const [rootNode, setRootNode] = useState<DiskTreeNode | null>(cachedDiskTree);
   const [isLoading, setIsLoading] = useState(false);
+  const [viewMode, setViewMode] = useState<'sunburst' | 'treemap' | 'list'>('sunburst');
 
   const loadTree = useCallback(async (path: string) => {
     setIsLoading(true);
@@ -180,14 +184,59 @@ export default function DiskVisualizer() {
           })}
         </div>
 
-        <button
-          type="button"
-          onClick={() => revealInFinder(currentPath)}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold glass-pill text-slate-600 dark:text-neutral-300 hover:text-accent shrink-0 cursor-pointer"
-        >
-          <ExternalLink size={12} />
-          <span>Finder</span>
-        </button>
+        <div className="flex items-center gap-2 shrink-0">
+          {/* Segmented View Mode Toggle */}
+          <div className="flex items-center p-0.5 rounded-xl bg-black/4 dark:bg-white/6 border border-black/5 dark:border-white/8 text-xs font-semibold">
+            <button
+              type="button"
+              onClick={() => setViewMode('sunburst')}
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
+                viewMode === 'sunburst'
+                  ? 'bg-accent text-white shadow-xs'
+                  : 'text-slate-500 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white'
+              }`}
+              title="Sunburst Chart (DaisyDisk style)"
+            >
+              <Disc size={13} />
+              <span className="hidden sm:inline">Sunburst</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode('treemap')}
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
+                viewMode === 'treemap'
+                  ? 'bg-accent text-white shadow-xs'
+                  : 'text-slate-500 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white'
+              }`}
+              title="Treemap Grid"
+            >
+              <LayoutGrid size={13} />
+              <span className="hidden sm:inline">Treemap</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode('list')}
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
+                viewMode === 'list'
+                  ? 'bg-accent text-white shadow-xs'
+                  : 'text-slate-500 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white'
+              }`}
+              title="Ranked List"
+            >
+              <List size={13} />
+              <span className="hidden sm:inline">List</span>
+            </button>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => revealInFinder(currentPath)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold glass-pill text-slate-600 dark:text-neutral-300 hover:text-accent shrink-0 cursor-pointer"
+          >
+            <ExternalLink size={12} />
+            <span>Finder</span>
+          </button>
+        </div>
       </div>
 
       {/* Loading state */}
@@ -198,50 +247,62 @@ export default function DiskVisualizer() {
         </div>
       ) : rootNode && rootNode.children.length > 0 ? (
         <div className="space-y-6">
+          {/* Sunburst Multi-Ring Chart (DaisyDisk Mode) */}
+          {viewMode === 'sunburst' && (
+            <SunburstChart
+              rootNode={rootNode}
+              onNavigateInto={handleNavigateInto}
+              onNavigateBack={handleNavigateBack}
+              canNavigateBack={history.length > 0}
+            />
+          )}
+
           {/* Treemap Visual Grid */}
-          <div>
-            <div className="flex items-center justify-between mb-3 text-xs">
-              <span className="font-bold text-slate-600 dark:text-neutral-400 uppercase tracking-wider text-[11px]">
-                {t('diskVisualizer.treemap', 'Proportional Space Allocation')}
-              </span>
-              <span className="text-slate-400 text-[11px]">
-                {t('diskVisualizer.clickToExplore', 'Click any folder tile to dive in')}
-              </span>
-            </div>
+          {viewMode === 'treemap' && (
+            <div>
+              <div className="flex items-center justify-between mb-3 text-xs">
+                <span className="font-bold text-slate-600 dark:text-neutral-400 uppercase tracking-wider text-[11px]">
+                  {t('diskVisualizer.treemap', 'Proportional Space Allocation')}
+                </span>
+                <span className="text-slate-400 text-[11px]">
+                  {t('diskVisualizer.clickToExplore', 'Click any folder tile to dive in')}
+                </span>
+              </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
-              {rootNode.children.slice(0, 12).map((child) => {
-                const percent = Math.max(1, Math.round((child.size / totalSize) * 100));
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                {rootNode.children.slice(0, 12).map((child) => {
+                  const percent = Math.max(1, Math.round((child.size / totalSize) * 100));
 
-                return (
-                  <button
-                    key={child.id}
-                    type="button"
-                    onClick={() => child.isDir ? handleNavigateInto(child) : revealInFinder(child.path)}
-                    className="group relative p-3.5 rounded-2xl glass-panel border border-black/6 dark:border-white/8 hover:border-accent/40 text-left cursor-pointer transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] flex flex-col justify-between min-h-27.5 shadow-2xs"
-                  >
-                    <div className="flex items-start justify-between w-full gap-2">
-                      <div className="p-1.5 rounded-xl bg-black/5 dark:bg-white/6 text-slate-500 dark:text-neutral-400 group-hover:text-accent transition-colors shrink-0">
-                        {child.isDir ? <Folder size={16} /> : <File size={16} />}
+                  return (
+                    <button
+                      key={child.id}
+                      type="button"
+                      onClick={() => child.isDir ? handleNavigateInto(child) : revealInFinder(child.path)}
+                      className="group relative p-3.5 rounded-2xl glass-panel border border-black/6 dark:border-white/8 hover:border-accent/40 text-left cursor-pointer transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] flex flex-col justify-between min-h-27.5 shadow-2xs"
+                    >
+                      <div className="flex items-start justify-between w-full gap-2">
+                        <div className="p-1.5 rounded-xl bg-black/5 dark:bg-white/6 text-slate-500 dark:text-neutral-400 group-hover:text-accent transition-colors shrink-0">
+                          {child.isDir ? <Folder size={16} /> : <File size={16} />}
+                        </div>
+                        <span className="text-xs font-black px-1.5 py-0.5 rounded-md bg-accent-subtle text-accent border border-accent/15">
+                          {percent}%
+                        </span>
                       </div>
-                      <span className="text-xs font-black px-1.5 py-0.5 rounded-md bg-accent-subtle text-accent border border-accent/15">
-                        {percent}%
-                      </span>
-                    </div>
 
-                    <div className="min-w-0 mt-2">
-                      <p className="text-xs font-bold text-slate-800 dark:text-neutral-100 truncate group-hover:text-accent transition-colors">
-                        {child.name}
-                      </p>
-                      <p className="text-[11px] text-slate-400 dark:text-neutral-400 mt-0.5 font-mono">
-                        {formatSize(child.size)}
-                      </p>
-                    </div>
-                  </button>
-                );
-              })}
+                      <div className="min-w-0 mt-2">
+                        <p className="text-xs font-bold text-slate-800 dark:text-neutral-100 truncate group-hover:text-accent transition-colors">
+                          {child.name}
+                        </p>
+                        <p className="text-[11px] text-slate-400 dark:text-neutral-400 mt-0.5 font-mono">
+                          {formatSize(child.size)}
+                        </p>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Ranked Table / List Breakdown */}
           <div className="p-4 rounded-3xl glass-panel border border-black/4 dark:border-white/6 space-y-2">

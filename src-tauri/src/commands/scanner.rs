@@ -4,7 +4,27 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::time::{Duration, SystemTime};
 use sysinfo::Disks;
+use tauri::Emitter;
 use walkdir::WalkDir;
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ScanProgressPayload {
+    pub stage: String,
+    pub current_path: String,
+    pub count: usize,
+    pub total_bytes: u64,
+}
+
+pub fn emit_progress(app: Option<&tauri::AppHandle>, stage: &str, current_path: &str, count: usize, total_bytes: u64) {
+    if let Some(app) = app {
+        let _ = app.emit("scan-progress", ScanProgressPayload {
+            stage: stage.to_string(),
+            current_path: current_path.to_string(),
+            count,
+            total_bytes,
+        });
+    }
+}
 
 #[cfg(unix)]
 use std::os::unix::fs::MetadataExt;
@@ -150,9 +170,9 @@ fn scan_directory_entries(dir: &Path, category_id: &str) -> Vec<ScanItem> {
 }
 
 /// Scan system directories: cache, logs, browser cache, trash (fully parallelized).
-#[tauri::command]
-pub fn scan_system_directories() -> Vec<ScanCategory> {
+pub fn scan_system_directories_inner(app: Option<&tauri::AppHandle>) -> Vec<ScanCategory> {
     let home = dirs_home();
+    emit_progress(app, "Scanning System Caches & Logs...", &format!("{}/Library/Caches", home), 0, 0);
 
     // Parallelize top-level categories across cores
     let ((cat_cache, cat_logs), (cat_browser, cat_trash)) = rayon::join(
@@ -249,15 +269,24 @@ pub fn scan_system_directories() -> Vec<ScanCategory> {
         },
     );
 
-    vec![cat_cache, cat_logs, cat_browser, cat_trash]
+    let result = vec![cat_cache, cat_logs, cat_browser, cat_trash];
+    let total_count: usize = result.iter().map(|c| c.items.len()).sum();
+    let total_bytes: u64 = result.iter().map(|c| c.size).sum();
+    emit_progress(app, "System scan completed", "", total_count, total_bytes);
+    result
+}
+
+#[tauri::command]
+pub fn scan_system_directories(app: tauri::AppHandle) -> Vec<ScanCategory> {
+    scan_system_directories_inner(Some(&app))
 }
 
 /// Scan developer workspaces across multiple tech stacks:
 /// Xcode, Package managers, Flutter/Dart, Go, Rust, Docker, Python, Java/Maven,
 /// PHP/Composer, AI/Local LLMs, Ruby, .NET/NuGet, C/C++ CMake.
-#[tauri::command]
-pub fn scan_dev_workspaces() -> Vec<ScanCategory> {
+pub fn scan_dev_workspaces_inner(app: Option<&tauri::AppHandle>) -> Vec<ScanCategory> {
     let home = dirs_home();
+    emit_progress(app, "Scanning Xcode & Simulator Caches...", &format!("{}/Library/Developer", home), 0, 0);
     let dev_dirs = vec![
         PathBuf::from(&home).join("Developer"),
         PathBuf::from(&home).join("Projects"),
@@ -1010,7 +1039,16 @@ pub fn scan_dev_workspaces() -> Vec<ScanCategory> {
         });
     }
 
+    let total_count: usize = categories.iter().map(|c| c.items.len()).sum();
+    let total_bytes: u64 = categories.iter().map(|c| c.size).sum();
+    emit_progress(app, "Developer workspaces scan completed", "", total_count, total_bytes);
+
     categories
+}
+
+#[tauri::command]
+pub fn scan_dev_workspaces(app: tauri::AppHandle) -> Vec<ScanCategory> {
+    scan_dev_workspaces_inner(Some(&app))
 }
 
 /// Scan custom paths provided by the user.
@@ -1316,7 +1354,7 @@ mod tests {
 
     #[test]
     fn test_scan_dev_workspaces_runs_cleanly() {
-        let categories = scan_dev_workspaces();
+        let categories = scan_dev_workspaces_inner(None);
         // Verifies the scanner runs without panics across all tech stacks
         for cat in &categories {
             assert!(!cat.id.is_empty());

@@ -955,6 +955,27 @@ export async function exportReportMarkdown(
   });
 }
 
+// ==========================================
+// 23. Native Notifications & Scan Streaming
+// ==========================================
+export interface ScanProgressPayload {
+  stage: string;
+  current_path: string;
+  count: number;
+  total_bytes: number;
+}
+
+/**
+ * Show a native macOS system notification using osascript (Bypasses web notification limits)
+ */
+export async function showSystemNotification(
+  title: string,
+  body: string,
+  sound: string = 'default'
+): Promise<void> {
+  return await invoke('show_system_notification', { title, body, sound });
+}
+
 
 
 

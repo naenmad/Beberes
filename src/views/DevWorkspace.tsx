@@ -42,6 +42,7 @@ import {
   Moon,
   ShieldAlert,
   CheckCircle2,
+  Loader2,
 } from 'lucide-react';
 import {
   RustIcon,
@@ -88,6 +89,8 @@ export default function DevWorkspace() {
     setDevCategories,
     isScanning,
     setIsScanning,
+    scanningStage,
+    scanningPath,
     isCleaning,
     setIsCleaning,
     deleteToTrash,
@@ -615,12 +618,29 @@ export default function DevWorkspace() {
             </div>
           )}
 
-          {/* Skeleton Loaders */}
-          {isScanning && devCategories.length === 0 && (
-            <div className="space-y-4">
-              <CardSkeleton />
-              <CardSkeleton />
-              <CardSkeleton />
+          {/* Skeleton Loaders & Progress Ticker */}
+          {isScanning && (
+            <div className="space-y-4 mb-4">
+              <div className="p-4 rounded-2xl bg-accent/5 border border-accent/20 flex items-center gap-3.5 backdrop-blur-md">
+                <Loader2 className="w-5 h-5 text-accent animate-spin shrink-0" />
+                <div className="min-w-0 flex-1">
+                  <div className="text-xs font-semibold text-accent uppercase tracking-wider">
+                    {scanningStage || 'Scanning Developer Workspaces...'}
+                  </div>
+                  {scanningPath && (
+                    <div className="text-xs text-slate-500 dark:text-slate-400 font-mono truncate mt-0.5">
+                      {scanningPath}
+                    </div>
+                  )}
+                </div>
+              </div>
+              {devCategories.length === 0 && (
+                <>
+                  <CardSkeleton />
+                  <CardSkeleton />
+                  <CardSkeleton />
+                </>
+              )}
             </div>
           )}
 

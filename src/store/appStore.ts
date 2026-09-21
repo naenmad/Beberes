@@ -8,9 +8,11 @@ import {
   AppItem,
   OrphanedLeftoverItem,
   DiskTreeNode,
+  showSystemNotification,
 } from '../lib/commands';
 import { playSuccessChime } from '../lib/sound';
 import { applyThemeColors } from '../lib/themeColors';
+import { formatSize } from '../lib/utils';
 
 // Types
 export interface ScanCategory {
@@ -293,11 +295,13 @@ interface AppState {
   isScanning: boolean;
   scanProgress: number;
   scanningStage: string;
+  scanningPath: string;
   globalRefreshTrigger: number;
   triggerGlobalRefresh: () => void;
   setIsScanning: (scanning: boolean) => void;
   setScanProgress: (progress: number) => void;
   setScanningStage: (stage: string) => void;
+  setScanningPath: (path: string) => void;
 
   // Results
   systemCategories: ScanCategory[];
@@ -482,11 +486,13 @@ export const useAppStore = create<AppState>((set, get) => ({
   isScanning: false,
   scanProgress: 0,
   scanningStage: '',
+  scanningPath: '',
   globalRefreshTrigger: 0,
   triggerGlobalRefresh: () => set((state) => ({ globalRefreshTrigger: state.globalRefreshTrigger + 1 })),
   setIsScanning: (scanning) => set({ isScanning: scanning }),
   setScanProgress: (progress) => set({ scanProgress: progress }),
   setScanningStage: (stage) => set({ scanningStage: stage }),
+  setScanningPath: (path) => set({ scanningPath: path }),
 
   // Results
   systemCategories: [],
@@ -699,6 +705,11 @@ export const useAppStore = create<AppState>((set, get) => ({
   recordCleanResult: (freedBytes, itemsCount, isSimulation, categoryNames = []) => {
     if (isSimulation || freedBytes <= 0) return;
     playSuccessChime();
+    showSystemNotification(
+      'Beberes — Clean Complete',
+      `Successfully freed ${formatSize(freedBytes)} across ${itemsCount} items.`,
+      'Hero'
+    ).catch(() => {});
     const newLifetime = get().lifetimeBytesFreed + freedBytes;
     const newEntry: CleanHistoryEntry = {
       id: `${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,

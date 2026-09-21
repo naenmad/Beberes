@@ -36,6 +36,7 @@ use commands::scheduler::{get_schedule_config, save_schedule_config, trigger_sch
 use commands::similar_media::{delete_similar_photos, scan_similar_photos};
 use commands::plugins::{remove_plugin_or_extension, scan_browser_and_system_plugins};
 use commands::report::export_report_markdown;
+use commands::notification::show_system_notification;
 
 use std::sync::atomic::{AtomicBool, Ordering};
 
@@ -289,10 +290,23 @@ pub fn run() {
                 })
                 .build(app)?;
 
+            #[cfg(target_os = "macos")]
+            {
+                if let Some(main_window) = app.get_webview_window("main") {
+                    let _ = window_vibrancy::apply_vibrancy(
+                        &main_window,
+                        window_vibrancy::NSVisualEffectMaterial::UnderWindowBackground,
+                        None,
+                        None,
+                    );
+                }
+            }
+
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
             exit_app,
+            show_system_notification,
             get_system_power_status,
             scan_system_directories,
             scan_dev_workspaces,
