@@ -1,0 +1,89 @@
+---
+const rows = [
+  {
+    feature: 'License & Source Code',
+    beberes: 'GPL-3.0 (100% Free & Open Source)',
+    commercial: 'Proprietary ($39.95/yr subscription)',
+    manual: 'Manual terminal scripts',
+  },
+  {
+    feature: 'Core Architecture',
+    beberes: 'Rust + Tauri v2 (Native speed)',
+    commercial: 'Electron / Heavy Cocoa framework',
+    manual: 'Bash / Zsh scripts',
+  },
+  {
+    feature: 'Idle Memory Usage (RAM)',
+    beberes: '~35 MB – 50 MB',
+    commercial: '350 MB – 800 MB',
+    manual: 'N/A',
+  },
+  {
+    feature: 'Developer Workspace Cleaner',
+    beberes: 'Built-in (node_modules, target, .venv, .dart_tool)',
+    commercial: 'No (Ignores developer artifacts)',
+    manual: 'Manual rm -rf (Risk of typo)',
+  },
+  {
+    feature: 'Xcode Simulator Purger',
+    beberes: 'Built-in (Unavailable runtimes & caches)',
+    commercial: 'Basic DerivedData only',
+    manual: 'xcrun simctl delete unavailable',
+  },
+  {
+    feature: 'Zombie Port Killer',
+    beberes: 'Built-in (lsof with system PID safety)',
+    commercial: 'None',
+    manual: 'Manual lsof & kill -9',
+  },
+  {
+    feature: 'Telemetry & Tracking',
+    beberes: 'Zero analytics, zero network tracking',
+    commercial: 'Heavy analytics & marketing trackers',
+    manual: 'Zero',
+  },
+  {
+    feature: 'Safety Boundaries',
+    beberes: 'Move to Trash default + System whitelist',
+    commercial: 'Varies',
+    manual: 'No safety net (rm is permanent)',
+  },
+];
+---
+
+<section class="py-20 border-t border-zinc-200/80 bg-zinc-50/50 dark:border-zinc-800/80 dark:bg-zinc-950/50">
+  <div class="mx-auto max-w-7xl px-4 sm:px-6">
+    <div class="text-center max-w-3xl mx-auto">
+      <span class="text-xs font-semibold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Honest Comparison</span>
+      <h2 class="mt-2 text-3xl font-bold tracking-tight text-zinc-950 sm:text-4xl dark:text-white">
+        Built for engineers who care about what runs on their Mac
+      </h2>
+      <p class="mt-4 text-base text-zinc-600 dark:text-zinc-400">
+        Comparing Beberes with commercial closed-source cleaners and manual terminal maintenance.
+      </p>
+    </div>
+
+    <div class="mt-12 overflow-x-auto">
+      <table class="w-full text-left border-collapse min-w-[640px]">
+        <thead>
+          <tr class="border-b border-zinc-200 dark:border-zinc-800">
+            <th class="py-4 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Capability</th>
+            <th class="py-4 px-4 text-sm font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-500/5 rounded-t-xl">Beberes</th>
+            <th class="py-4 px-4 text-sm font-semibold text-zinc-500 dark:text-zinc-400">Commercial Cleaners</th>
+            <th class="py-4 px-4 text-sm font-semibold text-zinc-500 dark:text-zinc-400">Manual Scripts</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-zinc-200/70 dark:divide-zinc-800/70 text-sm">
+          {rows.map((r) => (
+            <tr class="hover:bg-zinc-100/50 dark:hover:bg-zinc-900/30 transition">
+              <td class="py-3.5 px-4 font-medium text-zinc-800 dark:text-zinc-200">{r.feature}</td>
+              <td class="py-3.5 px-4 font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-500/5">{r.beberes}</td>
+              <td class="py-3.5 px-4 text-zinc-600 dark:text-zinc-400">{r.commercial}</td>
+              <td class="py-3.5 px-4 text-zinc-500 dark:text-zinc-500">{r.manual}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>

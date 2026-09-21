@@ -1,0 +1,75 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+---
+
+<DocsLayout
+  title="Architecture & Safety Boundaries"
+  description="Technical design, safety guardrails, and memory architecture of Beberes."
+>
+  <div class="prose prose-zinc dark:prose-invert max-w-none">
+    <div class="border-b border-zinc-200 dark:border-zinc-800 pb-6 mb-8">
+      <span class="text-xs font-semibold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Security & Engineering</span>
+      <h1 class="text-3xl font-bold tracking-tight text-zinc-900 dark:text-white mt-1">
+        Architecture & Safety Boundaries
+      </h1>
+      <p class="text-base text-zinc-600 dark:text-zinc-400 mt-2">
+        How Beberes protects your system from accidental data loss while maximizing cleanup throughput.
+      </p>
+    </div>
+
+    <!-- Tech Stack -->
+    <section class="mb-10">
+      <h2 class="text-xl font-bold text-zinc-900 dark:text-zinc-100">Core Tech Stack</h2>
+      <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/40 p-4">
+          <h3 class="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Backend: Safe Rust</h3>
+          <p class="mt-1 text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed">
+            All disk traversal, process enumeration, and hash algorithms are written in Safe Rust with Rayon multithreading. Zero garbage-collection pauses and a ~35MB idle memory footprint.
+          </p>
+        </div>
+        <div class="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/40 p-4">
+          <h3 class="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Frontend: React 19 & Tauri v2</h3>
+          <p class="mt-1 text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed">
+            Utilizes macOS native WebKit via Tauri v2. No bundled Chromium browser engine, ensuring lightning-fast window startup and minimal resource consumption.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Safety Boundaries -->
+    <section class="mb-10">
+      <h2 class="text-xl font-bold text-zinc-900 dark:text-zinc-100">Three-Tier Safety Guardrails</h2>
+
+      <div class="mt-4 space-y-4 text-sm text-zinc-600 dark:text-zinc-300">
+        <div class="rounded-xl border border-zinc-200 dark:border-zinc-800 p-4 bg-zinc-50/50 dark:bg-zinc-900/20">
+          <h3 class="font-semibold text-zinc-900 dark:text-zinc-100">1. Strict Path Whitelist</h3>
+          <p class="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+            Critical system paths (<code class="font-mono">/System</code>, <code class="font-mono">/bin</code>, <code class="font-mono">/sbin</code>, <code class="font-mono">/usr/bin</code>, and protected macOS daemons) are hard-whitelisted in the Rust binary. The cleaning engine will immediately return an error if a deletion target matches a protected pattern.
+          </p>
+        </div>
+
+        <div class="rounded-xl border border-zinc-200 dark:border-zinc-800 p-4 bg-zinc-50/50 dark:bg-zinc-900/20">
+          <h3 class="font-semibold text-zinc-900 dark:text-zinc-100">2. Boundary Checks on Project Hibernate</h3>
+          <p class="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+            Before removing any dependency directory during project hibernation, Beberes verifies that the canonical path is strictly a child of the selected project directory. It explicitly refuses to delete <code class="font-mono">.git</code> or any files outside the project root.
+          </p>
+        </div>
+
+        <div class="rounded-xl border border-zinc-200 dark:border-zinc-800 p-4 bg-zinc-50/50 dark:bg-zinc-900/20">
+          <h3 class="font-semibold text-zinc-900 dark:text-zinc-100">3. Apple Trash Integration</h3>
+          <p class="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+            By default, all deletion operations route through AppleScript/Finder to move items to the macOS Trash. Nothing is unlinked irreversibly unless the user explicitly switches the global deletion mode in the top bar.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Error Boundaries -->
+    <section class="mb-10">
+      <h2 class="text-xl font-bold text-zinc-900 dark:text-zinc-100">Client Resilience</h2>
+      <p class="text-sm text-zinc-600 dark:text-zinc-400 mt-2">
+        The user interface incorporates React Error Boundaries around every primary view. In the event of an unexpected state mismatch or corrupt local storage data, the interface falls back to a recovery view with a reset button rather than showing an unhandled white screen.
+      </p>
+    </section>
+  </div>
+</DocsLayout>

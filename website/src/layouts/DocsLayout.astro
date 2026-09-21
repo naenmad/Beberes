@@ -1,0 +1,86 @@
+---
+import Layout from './Layout.astro';
+
+interface Props {
+  title: string;
+  description?: string;
+}
+
+const { title, description } = Astro.props;
+
+const docsNav = [
+  {
+    category: 'Overview',
+    links: [
+      { name: 'Getting Started & Install', href: '/docs' },
+      { name: 'Feature Guide', href: '/docs/features' },
+    ],
+  },
+  {
+    category: 'Advanced & Tooling',
+    links: [
+      { name: 'Terminal CLI Reference', href: '/docs/cli' },
+      { name: 'Architecture & Safety', href: '/docs/architecture' },
+    ],
+  },
+  {
+    category: 'Releases',
+    links: [
+      { name: 'Changelog', href: '/changelog' },
+    ],
+  },
+];
+
+const currentPath = Astro.url.pathname;
+---
+
+<Layout title={`${title} — Beberes Documentation`} description={description}>
+  <div class="mx-auto max-w-7xl px-4 sm:px-6 py-10">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+      <!-- Sidebar Navigation -->
+      <aside class="lg:col-span-3">
+        <div class="sticky top-24 space-y-6">
+          <div class="pb-4 border-b border-zinc-200 dark:border-zinc-800">
+            <h2 class="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Documentation</h2>
+            <p class="text-xs text-zinc-500 mt-0.5">Guides and technical reference</p>
+          </div>
+
+          <nav class="space-y-6">
+            {docsNav.map((group) => (
+              <div>
+                <h3 class="text-xs font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500 mb-2">
+                  {group.category}
+                </h3>
+                <ul class="space-y-1">
+                  {group.links.map((link) => {
+                    const isActive = currentPath === link.href || (link.href !== '/docs' && currentPath.startsWith(link.href));
+                    return (
+                      <li>
+                        <a
+                          href={link.href}
+                          class:list={[
+                            'block rounded-lg px-3 py-1.5 text-sm transition',
+                            isActive
+                              ? 'bg-emerald-500/10 text-emerald-600 font-medium dark:bg-emerald-500/15 dark:text-emerald-400'
+                              : 'text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-zinc-200',
+                          ]}
+                        >
+                          {link.name}
+                        </a>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            ))}
+          </nav>
+        </div>
+      </aside>
+
+      <!-- Main Document Content -->
+      <article class="lg:col-span-9 max-w-3xl">
+        <slot />
+      </article>
+    </div>
+  </div>
+</Layout>

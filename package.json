@@ -10,7 +10,9 @@
     "preview": "vite preview",
     "tauri": "tauri",
     "build:app": "tauri build --bundles app",
-    "build:dmg": "./scripts/build-dmg.sh"
+    "build:dmg": "./scripts/build-dmg.sh",
+    "website:dev": "cd website && bun run dev",
+    "website:build": "cd website && bun run build"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.3.3",

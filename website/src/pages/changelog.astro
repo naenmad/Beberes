@@ -1,0 +1,79 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { APP_CONFIG } from '../config';
+
+const releases = [
+  {
+    version: 'v1.4.0',
+    date: 'September 2026',
+    tag: 'Latest',
+    highlights: [
+      'Native Apple Silicon fix: Resolved an EXC_BAD_ACCESS memory misalignment in the macOS dock tile badge handler.',
+      'Developer Workspace: Automatic detection of inactive Git repositories (30+ days) and one-click build artifact hibernation (node_modules, target, .venv, .dart_tool).',
+      'Xcode & Simulator Stripper: Comprehensive scanning and removal of unavailable iOS simulators, DerivedData, and old archives.',
+      'Zombie Port Killer: Built-in TCP/UDP port listener with PID safety whitelisting.',
+      'APFS Local Snapshots: Purge hidden Time Machine shadow snapshots to instantly free locked disk storage.',
+      'Multi-Pass File Shredder: 1-pass zero-fill, 3-pass DoD 5220.22-M, and 7-pass Gutmann file sanitization.',
+      'UI Overhaul: Floating sidebar, keyboard navigation (Cmd+1..9, Cmd+K), and responsive glassmorphism theme.',
+    ],
+  },
+  {
+    version: 'v1.3.0',
+    date: 'August 2026',
+    highlights: [
+      'Git Sweeper: Cleanup for merged branches, stale git caches, and dangling objects.',
+      'App Uninstaller: Added deep scan for ~/Library/Application Support and sandbox container leftovers.',
+      'Multilingual support: Added Indonesian, Spanish, Japanese, and Chinese localization.',
+      'Interactive Sunburst and Treemap disk visualization.',
+    ],
+  },
+  {
+    version: 'v1.0.0',
+    date: 'July 2026',
+    highlights: [
+      'Initial public release of Beberes for macOS.',
+      'Core Rust scanning engine with Rayon multithreaded directory traversal.',
+      'System cache cleaning and Apple Trash safety integration.',
+      'Menu bar companion popover window.',
+    ],
+  },
+];
+---
+
+<Layout title="Changelog — Beberes Release History">
+  <div class="mx-auto max-w-4xl px-4 sm:px-6 py-16">
+    <div class="border-b border-zinc-200 dark:border-zinc-800 pb-6 mb-12">
+      <span class="text-xs font-semibold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Release Notes</span>
+      <h1 class="text-3xl font-bold tracking-tight text-zinc-900 dark:text-white mt-1">
+        Changelog
+      </h1>
+      <p class="text-base text-zinc-600 dark:text-zinc-400 mt-2">
+        Track every update, performance enhancement, and bug fix across Beberes releases.
+      </p>
+    </div>
+
+    <div class="space-y-12">
+      {releases.map((rel) => (
+        <div class="relative pl-6 border-l-2 border-zinc-200 dark:border-zinc-800">
+          <div class="absolute -left-[9px] top-1 h-4 w-4 rounded-full border-2 border-white bg-emerald-500 dark:border-zinc-950"></div>
+          
+          <div class="flex items-center gap-3">
+            <h2 class="text-xl font-bold text-zinc-900 dark:text-white">{rel.version}</h2>
+            {rel.tag && (
+              <span class="rounded-full bg-emerald-500/10 px-2 py-0.5 text-xs font-medium text-emerald-600 dark:text-emerald-400">
+                {rel.tag}
+              </span>
+            )}
+            <span class="text-xs text-zinc-500">{rel.date}</span>
+          </div>
+
+          <ul class="mt-4 space-y-2 text-sm text-zinc-600 dark:text-zinc-300 list-disc pl-5">
+            {rel.highlights.map((item) => (
+              <li class="leading-relaxed">{item}</li>
+            ))}
+          </ul>
+        </div>
+      ))}
+    </div>
+  </div>
+</Layout>

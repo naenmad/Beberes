@@ -1,0 +1,97 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+import { APP_CONFIG } from '../../config';
+---
+
+<DocsLayout
+  title="Getting Started & Installation"
+  description="How to install, configure, and run Beberes on macOS."
+>
+  <div class="prose prose-zinc dark:prose-invert max-w-none">
+    <div class="border-b border-zinc-200 dark:border-zinc-800 pb-6 mb-8">
+      <span class="text-xs font-semibold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Installation</span>
+      <h1 class="text-3xl font-bold tracking-tight text-zinc-900 dark:text-white mt-1">
+        Getting Started with Beberes
+      </h1>
+      <p class="text-base text-zinc-600 dark:text-zinc-400 mt-2">
+        Beberes is distributed as a universal binary DMG for macOS (supporting Apple Silicon M1/M2/M3/M4 and Intel Macs).
+      </p>
+    </div>
+
+    <!-- System Requirements -->
+    <section class="mb-10">
+      <h2 class="text-xl font-bold text-zinc-900 dark:text-zinc-100">System Requirements</h2>
+      <div class="mt-4 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50 p-4">
+        <ul class="space-y-2 text-sm text-zinc-600 dark:text-zinc-300 list-disc pl-5">
+          <li><strong>Operating System:</strong> macOS 11.0 (Big Sur) or newer. Fully tested on macOS 14 Sonoma and macOS 15 Sequoia.</li>
+          <li><strong>Architecture:</strong> Apple Silicon (ARM64) and Intel (x86_64).</li>
+          <li><strong>Permissions:</strong> Standard user permissions. Full Disk Access is recommended for cleaning system caches and APFS snapshots.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- Method 1: DMG Download -->
+    <section class="mb-10">
+      <h2 class="text-xl font-bold text-zinc-900 dark:text-zinc-100">Method 1: Direct DMG (Recommended)</h2>
+      <ol class="mt-4 space-y-3 text-sm text-zinc-600 dark:text-zinc-300 list-decimal pl-5">
+        <li>
+          Download the latest installer package:
+          <div class="mt-2">
+            <a
+              href={APP_CONFIG.downloadDmgUrl}
+              class="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-500 transition"
+            >
+              Download Beberes.dmg ({APP_CONFIG.version})
+            </a>
+          </div>
+        </li>
+        <li>Open the downloaded <code class="bg-zinc-100 dark:bg-zinc-800 px-1 py-0.5 rounded font-mono">Beberes.dmg</code> file.</li>
+        <li>Drag the <strong>Beberes</strong> icon into your <code class="bg-zinc-100 dark:bg-zinc-800 px-1 py-0.5 rounded font-mono">/Applications</code> folder.</li>
+        <li>Launch Beberes from Spotlight (<kbd class="px-1.5 py-0.5 rounded bg-zinc-200 dark:bg-zinc-800 text-xs">Cmd</kbd> + <kbd class="px-1.5 py-0.5 rounded bg-zinc-200 dark:bg-zinc-800 text-xs">Space</kbd>) or Launchpad.</li>
+      </ol>
+    </section>
+
+    <!-- Method 2: Homebrew Cask -->
+    <section class="mb-10">
+      <h2 class="text-xl font-bold text-zinc-900 dark:text-zinc-100">Method 2: Homebrew</h2>
+      <p class="text-sm text-zinc-600 dark:text-zinc-400 mt-2">
+        If you manage your macOS apps using Homebrew, install via the local cask:
+      </p>
+      <div class="mt-3 rounded-lg bg-zinc-950 p-4 font-mono text-xs text-zinc-200 border border-zinc-800 overflow-x-auto">
+        brew install --cask docs/Cask/beberes.rb
+      </div>
+    </section>
+
+    <!-- Method 3: Build from Source -->
+    <section class="mb-10">
+      <h2 class="text-xl font-bold text-zinc-900 dark:text-zinc-100">Method 3: Build from Source</h2>
+      <p class="text-sm text-zinc-600 dark:text-zinc-400 mt-2">
+        Requirements: Node.js 18+, Rust toolchain (<code class="bg-zinc-100 dark:bg-zinc-800 px-1 py-0.5 rounded font-mono">rustup</code>), and Xcode Command Line Tools.
+      </p>
+      <div class="mt-3 rounded-lg bg-zinc-950 p-4 font-mono text-xs text-zinc-200 border border-zinc-800 overflow-x-auto space-y-2">
+        <div class="text-zinc-500"># 1. Clone the repository</div>
+        <div>git clone https://github.com/naenmad/Beberes.git && cd Beberes</div>
+        <div class="text-zinc-500 mt-2"># 2. Install dependencies</div>
+        <div>npm install</div>
+        <div class="text-zinc-500 mt-2"># 3. Compile release bundle</div>
+        <div>npm run build:app</div>
+      </div>
+      <p class="text-xs text-zinc-500 mt-2">
+        The resulting bundle will be generated in <code class="bg-zinc-100 dark:bg-zinc-800 px-1 py-0.5 rounded font-mono">src-tauri/target/release/bundle/macos/Beberes.app</code>.
+      </p>
+    </section>
+
+    <!-- Initial Permissions Setup -->
+    <section class="mb-10">
+      <h2 class="text-xl font-bold text-zinc-900 dark:text-zinc-100">Full Disk Access (Optional but Recommended)</h2>
+      <p class="text-sm text-zinc-600 dark:text-zinc-400 mt-2">
+        Due to macOS sandboxing, system log inspection and APFS snapshot deletion require Full Disk Access:
+      </p>
+      <ol class="mt-3 space-y-2 text-sm text-zinc-600 dark:text-zinc-300 list-decimal pl-5">
+        <li>Open <strong>System Settings &gt; Privacy & Security &gt; Full Disk Access</strong>.</li>
+        <li>Click the <strong>+</strong> button and add <strong>Beberes</strong> from your Applications folder.</li>
+        <li>Toggle the switch to enabled.</li>
+      </ol>
+    </section>
+  </div>
+</DocsLayout>

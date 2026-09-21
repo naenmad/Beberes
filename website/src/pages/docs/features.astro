@@ -1,0 +1,111 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+---
+
+<DocsLayout
+  title="Feature Guide"
+  description="In-depth walkthrough of all features and cleanup capabilities in Beberes."
+>
+  <div class="prose prose-zinc dark:prose-invert max-w-none">
+    <div class="border-b border-zinc-200 dark:border-zinc-800 pb-6 mb-8">
+      <span class="text-xs font-semibold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Reference</span>
+      <h1 class="text-3xl font-bold tracking-tight text-zinc-900 dark:text-white mt-1">
+        Feature Guide
+      </h1>
+      <p class="text-base text-zinc-600 dark:text-zinc-400 mt-2">
+        A complete guide to the cleaning modules, analysis tools, and productivity features in Beberes.
+      </p>
+    </div>
+
+    <!-- 1. Developer Workspace -->
+    <section class="mb-12">
+      <h2 class="text-2xl font-bold text-zinc-900 dark:text-zinc-100">1. Developer Workspace & Project Hibernate</h2>
+      <p class="text-sm text-zinc-600 dark:text-zinc-400 mt-2">
+        Software projects accumulate massive build artifacts over time. Beberes inspects local repositories, checks the last commit date, and identifies dormant repositories that have been untouched for 30, 60, or 90 days.
+      </p>
+      <div class="mt-4 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50 p-4">
+        <h3 class="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Supported Build Artifacts:</h3>
+        <ul class="mt-2 grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs font-mono text-zinc-600 dark:text-zinc-300">
+          <li>• node_modules</li>
+          <li>• target (Rust)</li>
+          <li>• .venv / venv (Python)</li>
+          <li>• .next / .nuxt (JS)</li>
+          <li>• .dart_tool (Flutter)</li>
+          <li>• build / dist</li>
+          <li>• .pytest_cache</li>
+          <li>• __pycache__</li>
+          <li>• .turbo</li>
+        </ul>
+      </div>
+      <p class="text-xs text-zinc-500 mt-3">
+        <strong>Safety Guarantee:</strong> Beberes strictly validates that targets are within the project folder and will never touch <code class="font-mono">.git</code> or project source files.
+      </p>
+    </section>
+
+    <!-- 2. Xcode & Simulators -->
+    <section class="mb-12">
+      <h2 class="text-2xl font-bold text-zinc-900 dark:text-zinc-100">2. Xcode & Simulator Purger</h2>
+      <p class="text-sm text-zinc-600 dark:text-zinc-400 mt-2">
+        iOS and macOS developers regularly lose 30 to 80 GB to old runtime caches and orphaned simulator containers:
+      </p>
+      <ul class="mt-3 space-y-2 text-sm text-zinc-600 dark:text-zinc-300 list-disc pl-5">
+        <li><strong>DerivedData:</strong> Incremental compilation caches and index databases.</li>
+        <li><strong>Unavailable Simulators:</strong> Simulator containers associated with older iOS versions that are no longer installed in your Xcode toolchain.</li>
+        <li><strong>Xcode Archives:</strong> Old dSYM debug symbol bundles and app archives from previous releases.</li>
+        <li><strong>DeviceSupport:</strong> Symbols downloaded from connected physical testing iPhones and iPads.</li>
+      </ul>
+    </section>
+
+    <!-- 3. Zombie Port Killer -->
+    <section class="mb-12">
+      <h2 class="text-2xl font-bold text-zinc-900 dark:text-zinc-100">3. Zombie Port & Process Killer</h2>
+      <p class="text-sm text-zinc-600 dark:text-zinc-400 mt-2">
+        When a node, python, or docker development server crashes without unbinding its socket, the port remains locked. Beberes runs a native <code class="bg-zinc-100 dark:bg-zinc-800 px-1 py-0.5 rounded font-mono">lsof -iTCP -sTCP:LISTEN</code> query to show every bound port with its PID and process name.
+      </p>
+      <p class="text-sm text-zinc-600 dark:text-zinc-400 mt-2">
+        A built-in protected list prevents terminating essential system processes (such as <code class="font-mono">launchd</code>, <code class="font-mono">WindowServer</code>, or <code class="font-mono">mDNSResponder</code>).
+      </p>
+    </section>
+
+    <!-- 4. System Clean & APFS Snapshots -->
+    <section class="mb-12">
+      <h2 class="text-2xl font-bold text-zinc-900 dark:text-zinc-100">4. System Clean & APFS Local Snapshots</h2>
+      <p class="text-sm text-zinc-600 dark:text-zinc-400 mt-2">
+        Targeted cleanup of purgeable system caches:
+      </p>
+      <ul class="mt-3 space-y-2 text-sm text-zinc-600 dark:text-zinc-300 list-disc pl-5">
+        <li><strong>APFS Snapshots:</strong> Time Machine shadow copies created before OS updates that prevent free space from being released.</li>
+        <li><strong>Browser Caches:</strong> Safari, Chrome, and Brave temporary shader caches and web asset caches (passwords and session cookies are never touched).</li>
+        <li><strong>System Diagnostic Logs:</strong> Diagnostic reports and ASL log archives in <code class="font-mono">/Library/Logs</code> and <code class="font-mono">~/Library/Logs</code>.</li>
+      </ul>
+    </section>
+
+    <!-- 5. App Uninstaller & Leftover Hunter -->
+    <section class="mb-12">
+      <h2 class="text-2xl font-bold text-zinc-900 dark:text-zinc-100">5. App Uninstaller & Leftover Hunter</h2>
+      <p class="text-sm text-zinc-600 dark:text-zinc-400 mt-2">
+        Standard app removal leaves behind orphaned application support files. Beberes performs bundle ID heuristic matching across:
+      </p>
+      <ul class="mt-2 space-y-1 text-xs font-mono text-zinc-600 dark:text-zinc-400 list-disc pl-5">
+        <li>~/Library/Application Support/&lt;BundleId&gt;</li>
+        <li>~/Library/Caches/&lt;BundleId&gt;</li>
+        <li>~/Library/Preferences/&lt;BundleId&gt;.plist</li>
+        <li>~/Library/Containers/&lt;BundleId&gt;</li>
+        <li>~/Library/Saved Application State/&lt;BundleId&gt;.savedState</li>
+      </ul>
+    </section>
+
+    <!-- 6. File Shredder -->
+    <section class="mb-12">
+      <h2 class="text-2xl font-bold text-zinc-900 dark:text-zinc-100">6. File Shredder</h2>
+      <p class="text-sm text-zinc-600 dark:text-zinc-400 mt-2">
+        For sensitive files that must be irrecoverable. Overwrites files with random byte sequences and truncates metadata prior to filesystem unlinking:
+      </p>
+      <div class="mt-3 rounded-lg border border-zinc-200 dark:border-zinc-800 p-3 text-xs space-y-1 text-zinc-600 dark:text-zinc-400">
+        <div><strong>1-Pass:</strong> Zero-fill overwrite (Fast, standard wipe).</div>
+        <div><strong>3-Pass DoD 5220.22-M:</strong> Compliant with US Department of Defense data sanitization standard.</div>
+        <div><strong>7-Pass Gutmann:</strong> High-security multi-pattern cryptographic overwrite.</div>
+      </div>
+    </section>
+  </div>
+</DocsLayout>

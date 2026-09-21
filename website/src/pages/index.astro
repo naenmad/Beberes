@@ -1,0 +1,50 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Hero from '../components/Hero.astro';
+import FeaturesGrid from '../components/FeaturesGrid.astro';
+import FeatureDeepDive from '../components/FeatureDeepDive.astro';
+import TerminalGuide from '../components/TerminalGuide.astro';
+import SpecsComparison from '../components/SpecsComparison.astro';
+import FAQ from '../components/FAQ.astro';
+import { APP_CONFIG } from '../config';
+---
+
+<Layout>
+  <Hero />
+  <FeaturesGrid />
+  <FeatureDeepDive />
+  <TerminalGuide />
+  <SpecsComparison />
+  <FAQ />
+
+  <!-- Bottom CTA Banner -->
+  <section class="py-20 border-t border-zinc-200/80 bg-zinc-100/60 dark:border-zinc-800/80 dark:bg-zinc-900/60">
+    <div class="mx-auto max-w-4xl px-4 sm:px-6 text-center">
+      <h2 class="text-3xl font-bold tracking-tight text-zinc-900 sm:text-4xl dark:text-white">
+        Ready to reclaim your Mac's storage?
+      </h2>
+      <p class="mt-4 text-base text-zinc-600 dark:text-zinc-400 max-w-xl mx-auto">
+        Download Beberes today. Free, open source, and built to keep your system performing at its best.
+      </p>
+
+      <div class="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
+        <a
+          href={APP_CONFIG.downloadDmgUrl}
+          class="inline-flex items-center gap-2.5 rounded-xl bg-emerald-600 px-6 py-3.5 text-base font-semibold text-white shadow-sm hover:bg-emerald-500 transition active:scale-95"
+        >
+          <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+          </svg>
+          <span>Download Beberes <span class="dynamic-version-badge">{APP_CONFIG.version}</span></span>
+        </a>
+
+        <a
+          href="/docs"
+          class="inline-flex items-center gap-2 rounded-xl border border-zinc-300 bg-white px-6 py-3.5 text-base font-semibold text-zinc-700 hover:bg-zinc-50 transition active:scale-95 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700"
+        >
+          <span>Explore Documentation</span>
+        </a>
+      </div>
+    </div>
+  </section>
+</Layout>
