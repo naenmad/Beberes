@@ -12,7 +12,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { openExternalUrl } from '../../lib/commands';
-import { APP_VERSION, APP_CODENAME } from '../../store/appStore';
+import { APP_VERSION, APP_CODENAME, useAppStore } from '../../store/appStore';
 
 interface Props {
   children: ReactNode;
@@ -26,6 +26,15 @@ interface State {
   errorInfo: ErrorInfo | null;
   showDetails: boolean;
   copied: boolean;
+}
+
+function isCurrentLocaleId(): boolean {
+  try {
+    const lang = useAppStore.getState().language;
+    return lang === 'id';
+  } catch {
+    return false;
+  }
 }
 
 /**
@@ -61,23 +70,28 @@ function getErrorCode(error: Error | null): string {
 /**
  * Generate a human-friendly description of what happened.
  */
-function getFriendlyExplanation(error: Error | null): string {
-  if (!error) {
-    return 'Aplikasi mengalami kendala yang tidak terduga. Semua file dan data di Mac Anda tetap aman.';
-  }
+function getFriendlyExplanation(error: Error | null, isId: boolean): string {
+  const msg = error?.message || '';
 
-  const msg = error.message || '';
   if (msg.includes('SIMULATED_TEST_ERROR')) {
-    return 'Ini adalah simulasi pengujian error. Fitur penanganan kendala (Error Boundary) berfungsi sempurna dan siap melindungi aplikasi.';
+    return isId
+      ? 'Ini adalah simulasi pengujian error. Fitur penanganan kendala (Error Boundary) berfungsi sempurna dan siap melindungi aplikasi.'
+      : 'This is an intentional error simulation. The Error Boundary is active, healthy, and protecting your application.';
   }
   if (msg.includes('Permission denied') || msg.includes('os error 1')) {
-    return 'Aplikasi tidak memiliki izin yang cukup untuk mengakses folder ini. Anda dapat memberikan Full Disk Access di Pengaturan macOS.';
+    return isId
+      ? 'Aplikasi tidak memiliki izin yang cukup untuk mengakses folder ini. Anda dapat memberikan Full Disk Access di Pengaturan macOS.'
+      : 'The application lacks sufficient permissions to access this folder. You can grant Full Disk Access in macOS System Settings.';
   }
   if (msg.includes('Failed to fetch') || msg.includes('NetworkError')) {
-    return 'Koneksi jaringan terputus saat mencoba menghubungi server atau memeriksa pembaruan GitHub.';
+    return isId
+      ? 'Koneksi jaringan terputus saat mencoba menghubungi server atau memeriksa pembaruan GitHub.'
+      : 'Network connection was lost while attempting to contact the server or check for GitHub updates.';
   }
 
-  return 'Aplikasi mengalami kendala teknis saat memproses antarmuka. Tidak ada file sistem yang diubah atau rusak.';
+  return isId
+    ? 'Aplikasi mengalami kendala teknis saat memproses antarmuka. Semua file dan data di Mac Anda tetap aman dan tidak terpengaruh.'
+    : 'An unexpected technical issue occurred while processing the interface. Your Mac files and storage remain completely safe and unaffected.';
 }
 
 export default class ErrorBoundary extends Component<Props, State> {
@@ -130,22 +144,22 @@ export default class ErrorBoundary extends Component<Props, State> {
     const errorTitle = encodeURIComponent(`[Bug Report]: ${errorCode} - ${error?.message?.slice(0, 60) || 'Unexpected Error'}`);
     
     const bodyContent = [
-      `### Deskripsi Masalah`,
-      `Jelaskan apa yang sedang Anda lakukan sebelum pesan ini muncul.`,
+      `### Problem Description`,
+      `Please describe what you were doing right before this error occurred.`,
       ``,
-      `### Lingkungan Sistem`,
-      `- **Versi Beberes**: \`v${APP_VERSION} (${APP_CODENAME})\``,
-      `- **Kode Error**: \`${errorCode}\``,
-      `- **Sistem Operasi**: macOS`,
+      `### Environment Information`,
+      `- **Beberes Version**: \`v${APP_VERSION} (${APP_CODENAME})\``,
+      `- **Error Code**: \`${errorCode}\``,
+      `- **Operating System**: macOS`,
       ``,
-      `### Pesan Kendala`,
+      `### Error Message`,
       `\`\`\``,
       error?.message || 'No error message provided',
       `\`\`\``,
       ``,
-      `### Stack Trace (Opsional)`,
+      `### Technical Stack Trace`,
       `<details>`,
-      `<summary>Lihat Stack Trace</summary>`,
+      `<summary>Click to expand Stack Trace</summary>`,
       ``,
       `\`\`\`text`,
       error?.stack?.slice(0, 800) || 'N/A',
@@ -185,7 +199,8 @@ export default class ErrorBoundary extends Component<Props, State> {
 
     const { error, errorInfo, showDetails, copied } = this.state;
     const errorCode = getErrorCode(error);
-    const friendlyDesc = getFriendlyExplanation(error);
+    const isId = isCurrentLocaleId();
+    const friendlyDesc = getFriendlyExplanation(error, isId);
     const isSimulated = errorCode === 'ERR_TEST_SIMULATION_SUCCESS';
 
     return (
@@ -220,8 +235,8 @@ export default class ErrorBoundary extends Component<Props, State> {
 
             <h2 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">
               {isSimulated
-                ? 'Simulasi Error Boundary Berhasil'
-                : 'Terjadi Kendala pada Halaman Ini'}
+                ? (isId ? 'Simulasi Error Boundary Berhasil' : 'Error Boundary Simulation Successful')
+                : (isId ? 'Terjadi Kendala pada Halaman Ini' : 'An Unexpected Error Occurred')}
             </h2>
 
             <p className="text-xs sm:text-sm text-slate-600 dark:text-neutral-300 max-w-md leading-relaxed">
@@ -238,7 +253,7 @@ export default class ErrorBoundary extends Component<Props, State> {
             >
               <span className="flex items-center gap-2">
                 <Bug size={13} className="text-slate-400" />
-                Detail Teknis (Untuk Pengembang)
+                {isId ? 'Detail Teknis (Untuk Pengembang)' : 'Technical Details (For Developers)'}
               </span>
               {showDetails ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
             </button>
@@ -266,7 +281,9 @@ export default class ErrorBoundary extends Component<Props, State> {
                     className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-xl bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/15 text-slate-700 dark:text-neutral-200 transition-colors cursor-pointer"
                   >
                     {copied ? <Check size={12} className="text-emerald-500" /> : <Copy size={12} />}
-                    {copied ? 'Tersalin ke Clipboard!' : 'Salin Laporan Error'}
+                    {copied
+                      ? (isId ? 'Tersalin ke Clipboard!' : 'Copied to Clipboard!')
+                      : (isId ? 'Salin Laporan Error' : 'Copy Error Report')}
                   </button>
                 </div>
               </div>
@@ -281,7 +298,7 @@ export default class ErrorBoundary extends Component<Props, State> {
               className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-accent text-white font-semibold text-xs flex items-center justify-center gap-2 hover:opacity-95 shadow-md shadow-accent/20 transition-all cursor-pointer"
             >
               <RefreshCw size={13} />
-              <span>Coba Muat Ulang</span>
+              <span>{isId ? 'Coba Muat Ulang' : 'Try Reloading'}</span>
             </button>
 
             <button
@@ -290,7 +307,7 @@ export default class ErrorBoundary extends Component<Props, State> {
               className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-black/5 dark:bg-white/8 hover:bg-black/10 dark:hover:bg-white/12 text-slate-700 dark:text-neutral-200 font-semibold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer"
             >
               <Home size={13} />
-              <span>Ke Dashboard</span>
+              <span>{isId ? 'Ke Dashboard' : 'Go to Dashboard'}</span>
             </button>
 
             <button
@@ -299,7 +316,7 @@ export default class ErrorBoundary extends Component<Props, State> {
               className="w-full sm:w-auto px-4 py-2.5 rounded-xl border border-black/10 dark:border-white/15 hover:border-accent text-slate-700 dark:text-neutral-200 hover:text-accent font-semibold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer"
             >
               <ExternalLink size={13} />
-              <span>Laporkan ke GitHub</span>
+              <span>{isId ? 'Laporkan ke GitHub' : 'Report to GitHub'}</span>
             </button>
           </div>
         </div>
