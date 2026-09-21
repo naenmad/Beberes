@@ -64,7 +64,7 @@ fn secure_shred_file(path: &Path, passes: u8) -> Result<u64, String> {
 
     // Rename to scramble metadata trace before removing
     let parent = path.parent().unwrap_or_else(|| Path::new("/"));
-    let scrambled_name = format!("shred_{:x}", std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_nanos());
+    let scrambled_name = format!("shred_{:x}", std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_nanos()).unwrap_or(0));
     let scrambled_path = parent.join(scrambled_name);
 
     let final_path = match fs::rename(path, &scrambled_path) {
