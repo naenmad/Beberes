@@ -48,37 +48,59 @@ pub fn set_dock_badge(badge: Option<String>) -> Result<(), String> {
         extern "C" {
             fn objc_getClass(name: *const libc::c_char) -> *mut libc::c_void;
             fn sel_registerName(name: *const libc::c_char) -> *mut libc::c_void;
-            fn objc_msgSend(receiver: *mut libc::c_void, sel: *mut libc::c_void, ...) -> *mut libc::c_void;
+            fn objc_msgSend();
         }
 
         unsafe {
+            type MsgSendNoArgs = unsafe extern "C" fn(*mut libc::c_void, *mut libc::c_void) -> *mut libc::c_void;
+            type MsgSendOnePtr = unsafe extern "C" fn(*mut libc::c_void, *mut libc::c_void, *const libc::c_char) -> *mut libc::c_void;
+            type MsgSendOneIdVoid = unsafe extern "C" fn(*mut libc::c_void, *mut libc::c_void, *mut libc::c_void);
+
+            let msg_send_noargs: MsgSendNoArgs = std::mem::transmute(objc_msgSend as *const ());
+            let msg_send_one_ptr: MsgSendOnePtr = std::mem::transmute(objc_msgSend as *const ());
+            let msg_send_one_id_void: MsgSendOneIdVoid = std::mem::transmute(objc_msgSend as *const ());
+
             let cls_nsapp = objc_getClass(b"NSApplication\0".as_ptr() as _);
             if cls_nsapp.is_null() {
                 return Ok(());
             }
             let sel_shared = sel_registerName(b"sharedApplication\0".as_ptr() as _);
-            let app: *mut libc::c_void = objc_msgSend(cls_nsapp, sel_shared);
+            let app = msg_send_noargs(cls_nsapp, sel_shared);
             if app.is_null() {
                 return Ok(());
             }
             let sel_dock = sel_registerName(b"dockTile\0".as_ptr() as _);
-            let dock_tile: *mut libc::c_void = objc_msgSend(app, sel_dock);
+            let dock_tile = msg_send_noargs(app, sel_dock);
             if dock_tile.is_null() {
                 return Ok(());
             }
             let sel_set_badge = sel_registerName(b"setBadgeLabel:\0".as_ptr() as _);
 
-            let label_obj = match badge {
-                Some(b) if !b.is_empty() => {
+            match badge {
+                Some(ref b) if !b.trim().is_empty() => {
                     let cls_nsstr = objc_getClass(b"NSString\0".as_ptr() as _);
-                    let sel_str_with_utf8 = sel_registerName(b"stringWithUTF8String:\0".as_ptr() as _);
-                    let c_str = std::ffi::CString::new(b).unwrap_or_default();
-                    objc_msgSend(cls_nsstr, sel_str_with_utf8, c_str.as_ptr())
-                }
-                _ => std::ptr::null_mut(),
-            };
+                    let sel_alloc = sel_registerName(b"alloc\0".as_ptr() as _);
+                    let sel_init = sel_registerName(b"initWithUTF8String:\0".as_ptr() as _);
+                    let sel_release = sel_registerName(b"release\0".as_ptr() as _);
 
-            let _: *mut libc::c_void = objc_msgSend(dock_tile, sel_set_badge, label_obj);
+                    let c_str = std::ffi::CString::new(b.as_str()).unwrap_or_default();
+                    let allocated = msg_send_noargs(cls_nsstr, sel_alloc);
+                    if !allocated.is_null() {
+                        let ns_str = msg_send_one_ptr(allocated, sel_init, c_str.as_ptr());
+                        if !ns_str.is_null() {
+                            msg_send_one_id_void(dock_tile, sel_set_badge, ns_str);
+                            let msg_send_release: MsgSendNoArgs = std::mem::transmute(objc_msgSend as *const ());
+                            msg_send_release(ns_str, sel_release);
+                        } else {
+                            msg_send_one_id_void(dock_tile, sel_set_badge, std::ptr::null_mut());
+                        }
+                    }
+                }
+                _ => {
+                    // Pass nil to clear the badge
+                    msg_send_one_id_void(dock_tile, sel_set_badge, std::ptr::null_mut());
+                }
+            }
         }
         Ok(())
     }
@@ -88,3 +110,17 @@ pub fn set_dock_badge(badge: Option<String>) -> Result<(), String> {
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_set_dock_badge_safety() {
+        assert!(set_dock_badge(None).is_ok());
+        assert!(set_dock_badge(Some("".to_string())).is_ok());
+        assert!(set_dock_badge(Some("42".to_string())).is_ok());
+        assert!(set_dock_badge(None).is_ok());
+    }
+}
+
