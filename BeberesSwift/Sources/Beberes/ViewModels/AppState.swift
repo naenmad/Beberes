@@ -19,16 +19,27 @@ public final class AppState {
     public var hibernatingPath: String? = nil
     public var hibernateToastMessage: String? = nil
 
+    // Dashboard Storage & RAM State
+    public var diskInfo: DiskVolumeInfo = DiskVolumeInfo(totalBytes: 0, availableBytes: 0, purgeableBytes: 0)
+    public var ramInfo: RAMUsageInfo = RAMUsageInfo(totalBytes: 0, usedBytes: 0, freeBytes: 0, inactiveBytes: 0)
+
+    // System Clean State
+    public var cleanCategories: [CleanCategory] = []
+    public var selectedCategoryIDs: Set<String> = []
+    public var isLoadingSystemClean: Bool = false
+    public var systemCleanToastMessage: String? = nil
+
     // Lifetime Stats
     public var lifetimeFreedBytes: Int64 = 0
 
     // Core Services
     private let portManager = PortManagerService()
     private let devScanner = DeveloperScannerService()
+    private let systemCleaner = SystemCleanerService()
 
     public init() {
-        // Load stored lifetime if available
         self.lifetimeFreedBytes = Int64(UserDefaults.standard.integer(forKey: "beberes_lifetime_freed"))
+        refreshSystemStats()
     }
 
     // MARK: - Port Actions
@@ -74,6 +85,50 @@ public final class AppState {
         guard freedBytes > 0 else { return }
         lifetimeFreedBytes += freedBytes
         UserDefaults.standard.set(lifetimeFreedBytes, forKey: "beberes_lifetime_freed")
+    }
+
+    // MARK: - Storage & System Clean Actions
+    public func refreshSystemStats() {
+        diskInfo = StorageService.getDiskInfo()
+        ramInfo = StorageService.getRAMInfo()
+    }
+
+    public func purgeRAM() async {
+        let res = await StorageService.purgeInactiveMemory()
+        switch res {
+        case .success:
+            refreshSystemStats()
+        case .failure:
+            break
+        }
+    }
+
+    public func scanSystemCategories() async {
+        isLoadingSystemClean = true
+        defer { isLoadingSystemClean = false }
+        cleanCategories = await systemCleaner.scanCategories()
+        // By default select all safe categories
+        selectedCategoryIDs = Set(cleanCategories.filter { $0.isSafe }.map(\.id))
+    }
+
+    public func cleanSelectedCategories() async {
+        isLoadingSystemClean = true
+        defer { isLoadingSystemClean = false }
+
+        var totalFreed: Int64 = 0
+        for cat in cleanCategories where selectedCategoryIDs.contains(cat.id) {
+            do {
+                let freed = try await systemCleaner.clean(category: cat)
+                totalFreed += freed
+            } catch {
+                // Continue with remaining
+            }
+        }
+
+        recordCleanResult(freedBytes: totalFreed)
+        systemCleanToastMessage = "Clean complete! Freed \(totalFreed.formattedBytes)."
+        await scanSystemCategories()
+        refreshSystemStats()
     }
 
     public var filteredPorts: [ZombiePort] {

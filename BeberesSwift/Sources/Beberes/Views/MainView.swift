@@ -12,10 +12,14 @@ public struct MainView: View {
         } detail: {
             Group {
                 switch state.selectedSection {
+                case .dashboard:
+                    DashboardView(state: state)
                 case .devWorkspace:
                     DevWorkspaceView(state: state)
                 case .zombiePorts:
                     ZombiePortsView(state: state)
+                case .systemClean:
+                    SystemCleanView(state: state)
                 default:
                     VStack(spacing: 12) {
                         Image(systemName: state.selectedSection.iconName)
