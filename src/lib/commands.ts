@@ -364,6 +364,7 @@ export interface TrashItem {
   kind: string;
   is_dir: boolean;
   date_deleted: string;
+  days_old?: number;
 }
 
 export interface TrashScanResult {
@@ -386,6 +387,14 @@ export async function scanTrashContents(): Promise<TrashScanResult> {
  */
 export async function emptyMacTrash(): Promise<number> {
   return await invoke<number>('empty_mac_trash');
+}
+
+/**
+ * Permanently delete items in Trash older than specified days.
+ * Returns [itemsDeleted, bytesFreed].
+ */
+export async function emptyTrashOlderThan(days: number): Promise<[number, number]> {
+  return await invoke<[number, number]>('empty_trash_older_than', { days });
 }
 
 /**
@@ -803,6 +812,7 @@ export interface BatteryIntelligence {
   current_percentage: number;
   design_capacity: number;
   nominal_capacity: number;
+  temperature_celsius: number | null;
   is_charging: boolean;
   is_fully_charged: boolean;
   is_plugged_in: boolean;
@@ -989,6 +999,18 @@ export async function quickLookPreview(path: string): Promise<void> {
 export async function setDockBadge(badge?: string | null): Promise<void> {
   return await invoke('set_dock_badge', { badge: badge || null });
 }
+
+// ==========================================
+// 26. Terminal CLI Integration
+// ==========================================
+export async function checkCliInstalled(): Promise<boolean> {
+  return await invoke<boolean>('check_cli_installed');
+}
+
+export async function installCliSymlink(): Promise<string> {
+  return await invoke<string>('install_cli_symlink');
+}
+
 
 
 

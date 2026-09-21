@@ -4,6 +4,7 @@ import { useTranslation } from '../lib/i18n';
 import {
   scanTrashContents,
   emptyMacTrash,
+  emptyTrashOlderThan,
   deleteSpecificTrashItems,
   openFullDiskAccessSettings,
   revealInFinder,
@@ -29,6 +30,7 @@ import {
   Package,
   Sparkles,
   ShieldAlert,
+  Clock,
 } from 'lucide-react';
 
 export default function TrashManager() {
@@ -50,6 +52,7 @@ export default function TrashManager() {
   // Modals
   const [showEmptyModal, setShowEmptyModal] = useState(false);
   const [showDeleteSelectedModal, setShowDeleteSelectedModal] = useState(false);
+  const [showPruneModal, setShowPruneModal] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
 
   const loadData = useCallback(async () => {
@@ -174,6 +177,38 @@ export default function TrashManager() {
     }
   };
 
+  // Items older than 30 days
+  const oldTrashItems = useMemo(() => {
+    if (!data) return [];
+    return data.items.filter((i) => (i.days_old || 0) >= 30);
+  }, [data]);
+
+  const oldTrashSize = useMemo(() => {
+    return oldTrashItems.reduce((sum, i) => sum + i.size, 0);
+  }, [oldTrashItems]);
+
+  // Execute prune items older than 30 days
+  const handleConfirmPruneOld = async () => {
+    if (oldTrashItems.length === 0) return;
+    setIsProcessing(true);
+    try {
+      const [count, freed] = await emptyTrashOlderThan(30);
+      playTrashWhoosh();
+      recordCleanResult(
+        freed > 0 ? freed : oldTrashSize,
+        count > 0 ? count : oldTrashItems.length,
+        false,
+        [t('trashManager.title', 'Trash Manager')]
+      );
+      setShowPruneModal(false);
+      loadData();
+    } catch (err) {
+      console.error('Failed to prune old trash items:', err);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   const getItemIcon = (kind: string) => {
     switch (kind) {
       case 'app':
@@ -200,15 +235,27 @@ export default function TrashManager() {
         title={t('trashManager.title', 'Trash Manager')}
         subtitle={t('trashManager.subtitle', 'Inspect your macOS Trash bin, reclaim storage, or safely empty all contents.')}
         actions={
-          <Button
-            variant="danger"
-            size="sm"
-            disabled={!data || data.total_items === 0}
-            onClick={() => setShowEmptyModal(true)}
-            icon={<Trash size={13} />}
-          >
-            {t('trashManager.emptyAll', 'Empty Trash')}
-          </Button>
+          <div className="flex items-center gap-2">
+            {oldTrashItems.length > 0 && (
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setShowPruneModal(true)}
+                icon={<Clock size={13} className="text-amber-500" />}
+              >
+                Prune &gt; 30d ({formatSize(oldTrashSize)})
+              </Button>
+            )}
+            <Button
+              variant="danger"
+              size="sm"
+              disabled={!data || data.total_items === 0}
+              onClick={() => setShowEmptyModal(true)}
+              icon={<Trash size={13} />}
+            >
+              {t('trashManager.emptyAll', 'Empty Trash')}
+            </Button>
+          </div>
         }
       />
 
@@ -258,6 +305,33 @@ export default function TrashManager() {
               </p>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Smart Auto-Prune Suggestion Banner */}
+      {oldTrashItems.length > 0 && (
+        <div className="p-4 rounded-3xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-between gap-4 animate-fade-in">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+              <Clock size={20} />
+            </div>
+            <div>
+              <h4 className="text-xs font-bold text-slate-800 dark:text-neutral-100">
+                Auto-Prune Eligible ({oldTrashItems.length} items older than 30 days)
+              </h4>
+              <p className="text-[11px] text-slate-500 dark:text-neutral-400">
+                You can safely purge {formatSize(oldTrashSize)} of lingering trash items that haven't been touched in over a month.
+              </p>
+            </div>
+          </div>
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={() => setShowPruneModal(true)}
+            icon={<Clock size={13} />}
+          >
+            Prune Now
+          </Button>
         </div>
       )}
 
@@ -350,9 +424,16 @@ export default function TrashManager() {
                     {getItemIcon(item.kind)}
                   </div>
                   <div className="min-w-0">
-                    <p className="text-xs font-semibold text-slate-800 dark:text-neutral-100 truncate">
-                      {item.name}
-                    </p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-xs font-semibold text-slate-800 dark:text-neutral-100 truncate">
+                        {item.name}
+                      </p>
+                      {item.days_old !== undefined && item.days_old >= 30 && (
+                        <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 shrink-0">
+                          {item.days_old}d in trash
+                        </span>
+                      )}
+                    </div>
                     <p className="text-[11px] text-slate-400 truncate mt-0.5">
                       {item.path} • {t('trashManager.date')}: {item.date_deleted}
                     </p>
@@ -391,6 +472,19 @@ export default function TrashManager() {
         paths={data?.items.map((i) => i.path) || []}
         onConfirm={handleConfirmEmptyTrash}
         onClose={() => setShowEmptyModal(false)}
+        isLoading={isProcessing}
+      />
+
+      {/* Prune Items Older Than 30 Days Modal */}
+      <ConfirmModal
+        isOpen={showPruneModal}
+        title="Prune Trash Items Older Than 30 Days?"
+        itemsCount={oldTrashItems.length}
+        totalBytes={oldTrashSize}
+        useTrash={false}
+        paths={oldTrashItems.map((i) => i.path)}
+        onConfirm={handleConfirmPruneOld}
+        onClose={() => setShowPruneModal(false)}
         isLoading={isProcessing}
       />
 

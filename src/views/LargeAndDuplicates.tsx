@@ -16,6 +16,7 @@ import { CardSkeleton } from '../components/ui/SkeletonLoader';
 import Checkbox from '../components/ui/Checkbox';
 import ConfirmModal from '../components/ui/ConfirmModal';
 import VirtualList from '../components/ui/VirtualList';
+import ContextMenu, { type ContextMenuItem } from '../components/ui/ContextMenu';
 import {
   Copy,
   HardDrive,
@@ -55,6 +56,26 @@ export default function LargeAndDuplicates() {
   // Selected file IDs for deletion
   const [selectedPaths, setSelectedPaths] = useState<Set<string>>(new Set());
   const [focusedPath, setFocusedPath] = useState<string | null>(null);
+
+  // Context Menu state
+  const [contextMenu, setContextMenu] = useState<{
+    x: number;
+    y: number;
+    isOpen: boolean;
+    file: FileMetadataItem | null;
+  }>({ x: 0, y: 0, isOpen: false, file: null });
+
+  const handleContextMenu = (e: React.MouseEvent, file: FileMetadataItem) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setFocusedPath(file.path);
+    setContextMenu({
+      x: e.clientX,
+      y: e.clientY,
+      isOpen: true,
+      file,
+    });
+  };
 
   // Native macOS Quick Look Spacebar handler
   useEffect(() => {
@@ -131,6 +152,52 @@ export default function LargeAndDuplicates() {
       });
     }
   };
+
+  // Context menu items definition
+  const contextMenuItems = useMemo<ContextMenuItem[]>(() => {
+    if (!contextMenu.file) return [];
+    const file = contextMenu.file;
+    const isSelected = selectedPaths.has(file.path);
+    const key = `large_${file.path}`;
+    const isStaged = !!stagedItems[key];
+
+    return [
+      {
+        id: 'quicklook',
+        label: 'Quick Look',
+        icon: <Eye size={14} />,
+        shortcut: 'Space',
+        onClick: () => quickLookPreview(file.path),
+      },
+      {
+        id: 'reveal',
+        label: t('common.revealInFinder', 'Reveal in Finder'),
+        icon: <ExternalLink size={14} />,
+        onClick: () => revealInFinder(file.path),
+      },
+      {
+        id: 'copy-path',
+        label: 'Copy Path',
+        icon: <Copy size={14} />,
+        shortcut: '⌥⌘C',
+        onClick: () => navigator.clipboard.writeText(file.path),
+        separatorAfter: true,
+      },
+      {
+        id: 'stage',
+        label: isStaged ? 'Unstage from Clean List' : 'Stage for Deletion',
+        icon: <Layers size={14} />,
+        onClick: () => togglePath(file.path, { name: file.name, size: file.size }),
+      },
+      {
+        id: 'toggle-select',
+        label: isSelected ? 'Deselect Item' : 'Select Item',
+        icon: <HardDrive size={14} />,
+        onClick: () => togglePath(file.path, { name: file.name, size: file.size }),
+        danger: isSelected,
+      },
+    ];
+  }, [contextMenu.file, selectedPaths, stagedItems, t]);
 
   // Smart duplicate selections
   const handleSelectDuplicates = (strategy: 'keep-newest' | 'keep-oldest' | 'all-copies' | 'none') => {
@@ -458,6 +525,7 @@ export default function LargeAndDuplicates() {
                     key={file.id}
                     onClick={() => togglePath(file.path)}
                     onMouseEnter={() => setFocusedPath(file.path)}
+                    onContextMenu={(e) => handleContextMenu(e, file)}
                     className={`flex items-center justify-between gap-3 p-3 mb-2 rounded-2xl glass-panel cursor-pointer transition-all ${
                       isSelected
                         ? 'border-accent/50 bg-accent-subtle/30'
@@ -569,6 +637,7 @@ export default function LargeAndDuplicates() {
                       <div
                         key={item.id}
                         onClick={() => togglePath(item.path)}
+                        onContextMenu={(e) => handleContextMenu(e, item)}
                         className={`flex items-center justify-between gap-3 p-2.5 rounded-xl cursor-pointer transition-all ${
                           isSelected
                             ? 'bg-accent-subtle text-accent font-medium'
@@ -647,6 +716,7 @@ export default function LargeAndDuplicates() {
                     key={file.id}
                     onClick={() => togglePath(file.path)}
                     onMouseEnter={() => setFocusedPath(file.path)}
+                    onContextMenu={(e) => handleContextMenu(e, file)}
                     className={`flex items-center justify-between gap-3 p-3 mb-2 rounded-2xl glass-panel cursor-pointer transition-all ${
                       isSelected
                         ? 'border-accent/50 bg-accent-subtle/30'
@@ -718,6 +788,15 @@ export default function LargeAndDuplicates() {
         onClose={() => setShowConfirmModal(false)}
         isLoading={isCleaning}
         hasCriticalFiles={hasSelectedCritical}
+      />
+
+      {/* Floating Glassmorphic Context Menu */}
+      <ContextMenu
+        isOpen={contextMenu.isOpen}
+        x={contextMenu.x}
+        y={contextMenu.y}
+        items={contextMenuItems}
+        onClose={() => setContextMenu((prev) => ({ ...prev, isOpen: false }))}
       />
     </div>
   );

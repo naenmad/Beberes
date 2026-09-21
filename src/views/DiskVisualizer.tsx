@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAppStore } from '../store/appStore';
 import { useTranslation } from '../lib/i18n';
 import { scanDirectoryTree, revealInFinder, quickLookPreview, type DiskTreeNode } from '../lib/commands';
@@ -6,6 +6,7 @@ import { formatSize } from '../lib/utils';
 import PageHeader from '../components/layout/PageHeader';
 import { CardSkeleton } from '../components/ui/SkeletonLoader';
 import SunburstChart from '../components/charts/SunburstChart';
+import ContextMenu, { type ContextMenuItem } from '../components/ui/ContextMenu';
 import {
   PieChart,
   Folder,
@@ -18,6 +19,7 @@ import {
   Disc,
   LayoutGrid,
   List,
+  Copy,
 } from 'lucide-react';
 
 export default function DiskVisualizer() {
@@ -37,6 +39,26 @@ export default function DiskVisualizer() {
   const [isLoading, setIsLoading] = useState(false);
   const [viewMode, setViewMode] = useState<'sunburst' | 'treemap' | 'list'>('sunburst');
   const [focusedPath, setFocusedPath] = useState<string | null>(null);
+
+  // Context Menu state
+  const [contextMenu, setContextMenu] = useState<{
+    x: number;
+    y: number;
+    isOpen: boolean;
+    node: DiskTreeNode | null;
+  }>({ x: 0, y: 0, isOpen: false, node: null });
+
+  const handleContextMenu = (e: React.MouseEvent, node: DiskTreeNode) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setFocusedPath(node.path);
+    setContextMenu({
+      x: e.clientX,
+      y: e.clientY,
+      isOpen: true,
+      node,
+    });
+  };
 
   // Native macOS Quick Look Spacebar handler
   useEffect(() => {
@@ -106,6 +128,46 @@ export default function DiskVisualizer() {
     setCurrentPath(targetPath);
     loadTree(targetPath);
   };
+
+  const contextMenuItems = useMemo<ContextMenuItem[]>(() => {
+    if (!contextMenu.node) return [];
+    const node = contextMenu.node;
+
+    const items: ContextMenuItem[] = [
+      {
+        id: 'quicklook',
+        label: 'Quick Look',
+        icon: <Eye size={14} />,
+        shortcut: 'Space',
+        onClick: () => quickLookPreview(node.path),
+      },
+      {
+        id: 'reveal',
+        label: t('common.revealInFinder', 'Reveal in Finder'),
+        icon: <ExternalLink size={14} />,
+        onClick: () => revealInFinder(node.path),
+      },
+      {
+        id: 'copy-path',
+        label: 'Copy Path',
+        icon: <Copy size={14} />,
+        shortcut: '⌥⌘C',
+        onClick: () => navigator.clipboard.writeText(node.path),
+        separatorAfter: node.isDir,
+      },
+    ];
+
+    if (node.isDir) {
+      items.push({
+        id: 'open-dir',
+        label: 'Browse Directory Inside',
+        icon: <FolderOpen size={14} />,
+        onClick: () => handleNavigateInto(node),
+      });
+    }
+
+    return items;
+  }, [contextMenu.node, t]);
 
   // Build breadcrumbs
   const breadcrumbs = currentPath.split('/').filter(Boolean);
@@ -351,7 +413,8 @@ export default function DiskVisualizer() {
                   <div
                     key={child.id}
                     onMouseEnter={() => setFocusedPath(child.path)}
-                    className="flex items-center justify-between p-2.5 rounded-xl hover:bg-black/2 dark:hover:bg-white/3 transition-colors group"
+                    onContextMenu={(e) => handleContextMenu(e, child)}
+                    className="flex items-center justify-between p-2.5 rounded-xl hover:bg-black/2 dark:hover:bg-white/3 transition-colors group cursor-pointer"
                   >
                     <div
                       onClick={() => child.isDir && handleNavigateInto(child)}
@@ -427,6 +490,15 @@ export default function DiskVisualizer() {
           </p>
         </div>
       )}
+
+      {/* Floating Glassmorphic Context Menu */}
+      <ContextMenu
+        isOpen={contextMenu.isOpen}
+        x={contextMenu.x}
+        y={contextMenu.y}
+        items={contextMenuItems}
+        onClose={() => setContextMenu((prev) => ({ ...prev, isOpen: false }))}
+      />
     </div>
   );
 }

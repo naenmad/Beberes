@@ -147,7 +147,7 @@ export default function HardwareIntelligence() {
               </div>
 
               {batt?.has_battery ? (
-                <div className="space-y-2 pt-2 border-t border-black/4 dark:border-white/6 text-xs">
+                <div className="space-y-2.5 pt-2 border-t border-black/4 dark:border-white/6 text-xs">
                   <div className="flex items-center justify-between text-slate-500 dark:text-neutral-400">
                     <span>{t('hardware.cycleCount', 'Cycle Count')}</span>
                     <span className="font-mono font-bold text-slate-800 dark:text-neutral-200">
@@ -160,10 +160,29 @@ export default function HardwareIntelligence() {
                       style={{ width: `${Math.min(100, (batt.cycle_count / 1000) * 100)}%` }}
                     />
                   </div>
-                  <div className="flex items-center justify-between text-slate-500 dark:text-neutral-400 pt-1">
-                    <span>{t('hardware.charger', 'Charger')}</span>
+
+                  {batt.design_capacity > 0 && (
+                    <div className="flex items-center justify-between text-slate-500 dark:text-neutral-400">
+                      <span>{t('hardware.capacity', 'Design Capacity')}</span>
+                      <span className="font-mono font-semibold text-slate-800 dark:text-neutral-200">
+                        {batt.nominal_capacity} / {batt.design_capacity} mAh
+                      </span>
+                    </div>
+                  )}
+
+                  <div className="flex items-center justify-between text-slate-500 dark:text-neutral-400">
+                    <span>{t('hardware.temperature', 'Battery Temp')}</span>
+                    <span className="font-mono font-semibold text-slate-800 dark:text-neutral-200">
+                      {batt.temperature_celsius !== null ? `${batt.temperature_celsius}°C` : 'Normal (Optimal)'}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between text-slate-500 dark:text-neutral-400 pt-0.5">
+                    <span>{t('hardware.charger', 'Power Source')}</span>
                     <span className="font-semibold text-slate-800 dark:text-neutral-200">
-                      {batt.charger_watts ? `${batt.charger_watts}W USB-C Adapter` : 'Battery Power'}
+                      {batt.is_charging
+                        ? batt.charger_watts ? `Charging (${batt.charger_watts}W)` : 'Charging'
+                        : batt.is_plugged_in ? 'Power Adapter (Full)' : 'Battery Power'}
                     </span>
                   </div>
                 </div>

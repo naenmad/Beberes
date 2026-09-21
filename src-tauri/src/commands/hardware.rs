@@ -13,6 +13,7 @@ pub struct BatteryIntelligence {
     pub current_percentage: u32,
     pub design_capacity: u32,
     pub nominal_capacity: u32,
+    pub temperature_celsius: Option<f32>,
     pub is_charging: bool,
     pub is_fully_charged: bool,
     pub is_plugged_in: bool,
@@ -65,6 +66,7 @@ fn read_macos_battery() -> BatteryIntelligence {
         current_percentage: 100,
         design_capacity: 0,
         nominal_capacity: 0,
+        temperature_celsius: None,
         is_charging: false,
         is_fully_charged: false,
         is_plugged_in: true,
@@ -78,6 +80,22 @@ fn read_macos_battery() -> BatteryIntelligence {
             let out_str = String::from_utf8_lossy(&output.stdout);
             if out_str.contains("AppleSmartBattery") {
                 batt.has_battery = true;
+
+                // Temperature (centidegrees C on Intel/some AS models)
+                if let Some(pos) = out_str.find("\"Temperature\" = ") {
+                    let rest = &out_str[pos + 16..];
+                    if let Some(val_str) = rest.split_whitespace().next() {
+                        if let Ok(val) = val_str.parse::<f32>() {
+                            batt.temperature_celsius = Some((val / 100.0 * 10.0).round() / 10.0);
+                        }
+                    }
+                } else if let Some(pos) = out_str.find("\"Temperature\"=") {
+                    let rest = &out_str[pos + 14..];
+                    let digits: String = rest.chars().take_while(|c| c.is_ascii_digit()).collect();
+                    if let Ok(val) = digits.parse::<f32>() {
+                        batt.temperature_celsius = Some((val / 100.0 * 10.0).round() / 10.0);
+                    }
+                }
 
                 // CycleCount
                 if let Some(pos) = out_str.find("\"CycleCount\" = ") {

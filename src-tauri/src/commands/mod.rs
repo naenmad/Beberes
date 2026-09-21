@@ -26,3 +26,4 @@ pub mod similar_media;
 pub mod plugins;
 pub mod report;
 pub mod notification;
+pub mod cli_installer;

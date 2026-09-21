@@ -16,7 +16,7 @@ use commands::scanner::{
 use commands::shredder::shred_paths;
 use commands::startup::{delete_startup_item, scan_startup_items, toggle_startup_item};
 use commands::trash::{
-    delete_specific_trash_items, empty_mac_trash, open_full_disk_access_settings,
+    delete_specific_trash_items, empty_mac_trash, empty_trash_older_than, open_full_disk_access_settings,
     scan_trash_contents,
 };
 use commands::uninstaller::{scan_installed_apps, uninstall_app};
@@ -37,6 +37,7 @@ use commands::similar_media::{delete_similar_photos, scan_similar_photos};
 use commands::plugins::{remove_plugin_or_extension, scan_browser_and_system_plugins};
 use commands::report::export_report_markdown;
 use commands::notification::{quick_look_preview, set_dock_badge, show_system_notification};
+use commands::cli_installer::{check_cli_installed, install_cli_symlink};
 
 use std::sync::atomic::{AtomicBool, Ordering};
 
@@ -332,6 +333,7 @@ pub fn run() {
             scan_finder_items,
             scan_trash_contents,
             empty_mac_trash,
+            empty_trash_older_than,
             delete_specific_trash_items,
             open_full_disk_access_settings,
             scan_directory_tree,
@@ -378,6 +380,8 @@ pub fn run() {
             show_system_notification,
             quick_look_preview,
             set_dock_badge,
+            check_cli_installed,
+            install_cli_symlink,
         ])
         .build(tauri::generate_context!())
         .expect("error while building tauri application");

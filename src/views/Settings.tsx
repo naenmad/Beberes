@@ -8,6 +8,8 @@ import {
   getScheduleConfig,
   saveScheduleConfig,
   triggerScheduledCleanNow,
+  checkCliInstalled,
+  installCliSymlink,
 } from '../lib/commands';
 import type { SystemDetails, ScheduleConfig } from '../lib/commands';
 import { formatSize } from '../lib/utils';
@@ -43,6 +45,7 @@ import {
   ExternalLink,
   Palette,
   Clock,
+  Terminal,
 } from 'lucide-react';
 import { ACCENT_COLORS, ACCENT_PRESETS, getAccentColor } from '../lib/themeColors';
 
@@ -176,6 +179,29 @@ export default function Settings() {
       console.error('Failed to fetch system details:', err);
     } finally {
       setIsLoadingSystem(false);
+    }
+  };
+
+  // Terminal CLI state
+  const [cliInstalled, setCliInstalled] = useState(false);
+  const [isInstallingCli, setIsInstallingCli] = useState(false);
+  const [cliFeedback, setCliFeedback] = useState<string | null>(null);
+
+  useEffect(() => {
+    checkCliInstalled().then(setCliInstalled).catch(() => {});
+  }, []);
+
+  const handleInstallCli = async () => {
+    setIsInstallingCli(true);
+    setCliFeedback(null);
+    try {
+      const res = await installCliSymlink();
+      setCliFeedback(res);
+      setCliInstalled(true);
+    } catch (err: any) {
+      setCliFeedback(typeof err === 'string' ? err : err?.message || 'Failed to install CLI symlink');
+    } finally {
+      setIsInstallingCli(false);
     }
   };
 
@@ -1599,6 +1625,66 @@ export default function Settings() {
                 >
                   {t('settings.systemInfo.clearIconCache')}
                 </Button>
+              </div>
+            </CardBody>
+          </Card>
+
+          {/* Terminal CLI Integration Card */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-xl bg-cyan-50 dark:bg-cyan-500/10 text-cyan-500">
+                    <Terminal size={20} />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-semibold text-slate-800 dark:text-white">
+                      Terminal CLI Integration (`beberes`)
+                    </h3>
+                    <p className="text-xs text-slate-400 dark:text-neutral-500">
+                      Access Beberes directly from your terminal or automation shell scripts.
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  size="sm"
+                  variant={cliInstalled ? 'secondary' : 'primary'}
+                  onClick={handleInstallCli}
+                  loading={isInstallingCli}
+                  icon={<Terminal size={13} />}
+                >
+                  {cliInstalled ? 'Reinstall CLI' : 'Install CLI'}
+                </Button>
+              </div>
+            </CardHeader>
+            <CardBody>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between p-3.5 rounded-2xl bg-slate-50 dark:bg-neutral-900/60 border border-slate-100 dark:border-neutral-700/40">
+                  <div className="flex items-center gap-2.5">
+                    <span className={`w-2.5 h-2.5 rounded-full ${cliInstalled ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-neutral-600'}`} />
+                    <span className="text-xs font-semibold text-slate-800 dark:text-neutral-200">
+                      {cliInstalled ? 'Command `beberes` installed in PATH' : 'CLI tool not yet installed to /usr/local/bin'}
+                    </span>
+                  </div>
+                  <span className="text-[11px] font-mono text-slate-400">
+                    {cliInstalled ? '/usr/local/bin/beberes' : 'Not installed'}
+                  </span>
+                </div>
+
+                {cliFeedback && (
+                  <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium px-1 flex items-center gap-1.5 animate-fade-in">
+                    <CheckCircle2 size={13} />
+                    {cliFeedback}
+                  </p>
+                )}
+
+                <div className="p-3.5 rounded-2xl bg-slate-900 text-slate-200 font-mono text-xs space-y-1.5 overflow-x-auto">
+                  <p className="text-slate-400 text-[11px] mb-2 font-sans font-medium">Quick Command Reference:</p>
+                  <p><span className="text-cyan-400">beberes status</span> <span className="text-slate-500"># Check disk, battery, and memory</span></p>
+                  <p><span className="text-cyan-400">beberes clean --system</span> <span className="text-slate-500"># Clean user caches & logs</span></p>
+                  <p><span className="text-cyan-400">beberes prune-trash</span> <span className="text-slate-500"># Purge trash items &gt; 30 days old</span></p>
+                  <p><span className="text-cyan-400">beberes doctor</span> <span className="text-slate-500"># Run health & permission check</span></p>
+                </div>
               </div>
             </CardBody>
           </Card>

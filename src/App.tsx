@@ -203,35 +203,35 @@ export default function App() {
           break;
         case '2':
           e.preventDefault();
-          setCurrentPage('system-clean');
+          setCurrentPage('hardware');
           break;
         case '3':
           e.preventDefault();
-          setCurrentPage('dev-workspace');
+          setCurrentPage('system-clean');
           break;
         case '4':
           e.preventDefault();
-          setCurrentPage('tidy-up');
+          setCurrentPage('apps');
           break;
         case '5':
           e.preventDefault();
-          setCurrentPage('disk-visualizer');
+          setCurrentPage('trash-manager');
           break;
         case '6':
           e.preventDefault();
-          setCurrentPage('apps');
+          setCurrentPage('tidy-up');
           break;
         case '7':
           e.preventDefault();
-          setCurrentPage('quick-review');
+          setCurrentPage('large-duplicates');
           break;
         case '8':
           e.preventDefault();
-          setCurrentPage('large-duplicates');
+          setCurrentPage('quick-review');
           break;
         case '9':
           e.preventDefault();
-          setCurrentPage('trash-manager');
+          setCurrentPage('disk-visualizer');
           break;
         case ',':
           e.preventDefault();

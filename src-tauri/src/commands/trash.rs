@@ -14,6 +14,7 @@ pub struct TrashItem {
     pub kind: String,
     pub is_dir: bool,
     pub date_deleted: String,
+    pub days_old: u64,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -106,20 +107,24 @@ pub async fn scan_trash_contents() -> Result<TrashScanResult, String> {
         let size = calculate_path_size(&path);
         let kind = classify_kind(&name, is_dir).to_string();
 
-        let formatted_date = match entry.metadata().and_then(|m| m.modified()) {
+        let (formatted_date, days_old) = match entry.metadata().and_then(|m| m.modified()) {
             Ok(modified) => {
+                let age_days = std::time::SystemTime::now()
+                    .duration_since(modified)
+                    .map(|d| d.as_secs() / 86400)
+                    .unwrap_or(0);
                 if let Ok(dur) = modified.duration_since(UNIX_EPOCH) {
                     let secs = dur.as_secs();
                     let days = secs / 86400;
                     let year = 1970 + days / 365;
                     let month = (days % 365) / 30 + 1;
                     let day = (days % 30) + 1;
-                    format!("{:04}-{:02}-{:02}", year, month, day)
+                    (format!("{:04}-{:02}-{:02}", year, month, day), age_days)
                 } else {
-                    "Unknown".to_string()
+                    ("Unknown".to_string(), 0)
                 }
             }
-            Err(_) => "Unknown".to_string(),
+            Err(_) => ("Unknown".to_string(), 0),
         };
 
         total_size += size;
@@ -133,6 +138,7 @@ pub async fn scan_trash_contents() -> Result<TrashScanResult, String> {
             kind,
             is_dir,
             date_deleted: formatted_date,
+            days_old,
         });
     }
 
@@ -196,6 +202,45 @@ pub async fn delete_specific_trash_items(paths: Vec<String>) -> Result<u64, Stri
         }
     }
     Ok(freed)
+}
+
+#[tauri::command]
+pub async fn empty_trash_older_than(days: u64) -> Result<(usize, u64), String> {
+    let trash_dir = get_home_dir().join(".Trash");
+    if !trash_dir.exists() {
+        return Ok((0, 0));
+    }
+
+    let cutoff_duration = std::time::Duration::from_secs(days * 86400);
+    let now = std::time::SystemTime::now();
+
+    let entries = fs::read_dir(&trash_dir).map_err(|e| e.to_string())?;
+    let mut deleted_count = 0usize;
+    let mut freed_bytes = 0u64;
+
+    for entry in entries.filter_map(|e| e.ok()) {
+        let path = entry.path();
+        if let Ok(metadata) = entry.metadata() {
+            if let Ok(modified) = metadata.modified() {
+                if let Ok(age) = now.duration_since(modified) {
+                    if age >= cutoff_duration {
+                        let size = calculate_path_size(&path);
+                        let res = if path.is_dir() {
+                            fs::remove_dir_all(&path)
+                        } else {
+                            fs::remove_file(&path)
+                        };
+                        if res.is_ok() {
+                            deleted_count += 1;
+                            freed_bytes += size;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    Ok((deleted_count, freed_bytes))
 }
 
 fn md5_hash(input: &str) -> u64 {
