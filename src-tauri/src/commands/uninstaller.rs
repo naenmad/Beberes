@@ -286,7 +286,7 @@ fn is_system_application(path: &str, bundle_id: &str) -> bool {
 /// Scan all installed applications on the system
 #[tauri::command]
 pub fn scan_installed_apps() -> Result<Vec<AppItem>, String> {
-    let home = std::env::var("HOME").unwrap_or_else(|_| "/Users/mac".to_string());
+    let home = std::env::var("HOME").unwrap_or_else(|_| "/Users/Shared".to_string());
     let cache_dir = PathBuf::from(&home).join(".cache").join("beberes").join("icons");
 
     let mut search_dirs = vec![

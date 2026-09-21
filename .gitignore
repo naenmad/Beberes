@@ -27,3 +27,25 @@ target/
 *.njsproj
 *.sln
 *.sw?
+
+# Environment & Secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.cert
+*.p12
+*.p8
+*.mobileprovision
+*.keychain
+id_rsa*
+id_ed25519*
+
+# Crash reports & diagnostics
+error.md
+crash.log
+*.crash
+*.ips
+*.diag
+*.dmp

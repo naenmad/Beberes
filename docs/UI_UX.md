@@ -69,7 +69,7 @@ Setiap modul wajib menggunakan komponen `<PageHeader>` di bagian paling atas:
 ### E. Floating Action Bar (`FloatingActionBar.tsx`)
 Pengganti sticky bottom bar lama yang menempel kaku di dalam alur scroll halaman.
 - **Arsitektur Overlay (React Portal):**
-  - Menggunakan `createPortal` yang ditambatkan ke elemen root overlay `#floating-action-bar-root` di [MainLayout.tsx](file:///Users/mac/Developer/Beberes/src/components/layout/MainLayout.tsx).
+  - Menggunakan `createPortal` yang ditambatkan ke elemen root overlay `#floating-action-bar-root` di [MainLayout.tsx](../src/components/layout/MainLayout.tsx).
   - Berada di luar kontainer `<main>` yang memiliki `overflow-y-auto`, sehingga bar benar-benar **terkunci permanen (pakem)** di bagian bawah layar viewport dan tidak ikut tergulung saat halaman di-scroll.
   - Area scroll `<main>` diberikan padding bawah lapang (`pb-24 sm:pb-28`) agar data terbawah tidak terhalang oleh bar.
 - **Gaya Visual:**

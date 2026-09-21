@@ -91,6 +91,6 @@ mod tests {
     fn test_is_whitelisted() {
         assert!(is_whitelisted("/System/Library"));
         assert!(is_whitelisted("/usr/local/bin"));
-        assert!(!is_whitelisted("/Users/mac/Library/Caches"));
+        assert!(!is_whitelisted("/Users/username/Library/Caches"));
     }
 }
