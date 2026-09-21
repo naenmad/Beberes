@@ -4,7 +4,7 @@ import Observation
 @MainActor
 @Observable
 public final class AppState {
-    public var selectedSection: NavigationSection = .devWorkspace
+    public var selectedSection: NavigationSection = .dashboard
 
     // Zombie Ports State
     public var ports: [ZombiePort] = []
