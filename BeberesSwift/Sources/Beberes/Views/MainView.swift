@@ -1,0 +1,36 @@
+import SwiftUI
+
+public struct MainView: View {
+    @State private var state = AppState()
+
+    public init() {}
+
+    public var body: some View {
+        NavigationSplitView {
+            SidebarView(state: state)
+                .navigationSplitViewColumnWidth(min: 200, ideal: 230, max: 280)
+        } detail: {
+            Group {
+                switch state.selectedSection {
+                case .devWorkspace:
+                    DevWorkspaceView(state: state)
+                case .zombiePorts:
+                    ZombiePortsView(state: state)
+                default:
+                    VStack(spacing: 12) {
+                        Image(systemName: state.selectedSection.iconName)
+                            .font(.system(size: 48))
+                            .foregroundStyle(.secondary)
+                        Text(state.selectedSection.rawValue)
+                            .font(.title2.bold())
+                        Text("Module migration in progress for Beberes v2.0 Native.")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                }
+            }
+        }
+        .frame(minWidth: 850, minHeight: 550)
+    }
+}

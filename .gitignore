@@ -18,6 +18,10 @@ src-tauri/target/
 target/
 *.dmg
 
+# Swift Builds
+.build/
+BeberesSwift/.build/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
