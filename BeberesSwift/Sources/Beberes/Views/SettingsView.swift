@@ -13,48 +13,67 @@ public struct SettingsView: View {
     }
 
     public var body: some View {
-        Form {
-            if let note = statusNote {
-                Section {
-                    Label(note, systemImage: "checkmark.circle")
+        VStack(spacing: 0) {
+            // Standard Native Page Header
+            HStack(alignment: .center) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Settings")
+                        .font(.title2.weight(.bold))
+                    Text("Application preferences and safety safeguards.")
+                        .font(.subheadline)
                         .foregroundStyle(.secondary)
                 }
+                Spacer()
             }
+            .padding(.horizontal, 24)
+            .padding(.top, 20)
+            .padding(.bottom, 16)
 
-            Section("General") {
-                Toggle("Launch at Login", isOn: $launchAtLogin)
-                    .onChange(of: launchAtLogin) { _, newValue in
-                        updateLaunchAtLogin(enabled: newValue)
-                    }
+            Divider()
 
-                Toggle("Preserve Native Put-Back Capability", isOn: $putBackEnabled)
-            }
-
-            Section("Developer Workspace") {
-                Picker("Dormancy Threshold", selection: $devInactivityDays) {
-                    Text("30 Days").tag(30)
-                    Text("60 Days").tag(60)
-                    Text("90 Days").tag(90)
-                }
-            }
-
-            Section("Safety Whitelist") {
-                Text("Protected system directories are safeguarded from deletion:")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-
-                ForEach(["/System", "/Library/Apple", "/usr/bin", "/bin", "/sbin", "/private/var/db"], id: \.self) { path in
-                    HStack {
-                        Image(systemName: "lock.shield")
+            Form {
+                if let note = statusNote {
+                    Section {
+                        Label(note, systemImage: "checkmark.circle")
                             .foregroundStyle(.secondary)
-                        Text(path)
-                            .font(.system(.body, design: .monospaced))
+                    }
+                }
+
+                Section("General") {
+                    Toggle("Launch at Login", isOn: $launchAtLogin)
+                        .onChange(of: launchAtLogin) { _, newValue in
+                            updateLaunchAtLogin(enabled: newValue)
+                        }
+
+                    Toggle("Preserve Native Put-Back Capability", isOn: $putBackEnabled)
+                }
+
+                Section("Developer Workspace") {
+                    Picker("Dormancy Threshold", selection: $devInactivityDays) {
+                        Text("30 Days").tag(30)
+                        Text("60 Days").tag(60)
+                        Text("90 Days").tag(90)
+                    }
+                }
+
+                Section("Safety Whitelist") {
+                    Text("Protected system directories are safeguarded from deletion:")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+
+                    ForEach(["/System", "/Library/Apple", "/usr/bin", "/bin", "/sbin", "/private/var/db"], id: \.self) { path in
+                        HStack {
+                            Image(systemName: "lock.shield")
+                                .foregroundStyle(.secondary)
+                            Text(path)
+                                .font(.system(.body, design: .monospaced))
+                        }
                     }
                 }
             }
+            .formStyle(.grouped)
         }
-        .formStyle(.grouped)
-        .navigationTitle("Settings")
+        .background(Color(nsColor: .windowBackgroundColor))
         .onAppear {
             checkLaunchAtLoginStatus()
         }

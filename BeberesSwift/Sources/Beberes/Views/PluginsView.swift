@@ -12,13 +12,13 @@ public struct PluginsView: View {
 
     public var body: some View {
         VStack(spacing: 0) {
-            // Header Bar
-            HStack {
-                VStack(alignment: .leading, spacing: 3) {
-                    Text("Cleanup Plugins")
-                        .font(.system(size: 20, weight: .bold, design: .rounded))
-                    Text("Modular system scripts for specialized developer package managers and runtime caches.")
-                        .font(.system(size: 11))
+            // Standard Native Page Header
+            HStack(alignment: .center) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Plugins")
+                        .font(.title2.weight(.bold))
+                    Text("System scripts for developer package managers and runtime caches.")
+                        .font(.subheadline)
                         .foregroundStyle(.secondary)
                 }
 
@@ -33,80 +33,72 @@ public struct PluginsView: View {
                 .buttonStyle(.bordered)
             }
             .padding(.horizontal, 24)
-            .padding(.top, 18)
-            .padding(.bottom, 14)
+            .padding(.top, 20)
+            .padding(.bottom, 16)
 
             Divider()
 
             if let status = statusMessage {
                 HStack(spacing: 8) {
-                    Image(systemName: "info.circle")
-                        .foregroundStyle(Color.accentColor)
+                    Image(systemName: "checkmark.circle")
+                        .foregroundStyle(.secondary)
                     Text(status)
-                        .font(.system(size: 11))
+                        .font(.subheadline)
                     Spacer()
+                    Button("Dismiss") { statusMessage = nil }
+                        .font(.caption)
+                        .buttonStyle(.borderless)
                 }
-                .padding(.horizontal, 14)
-                .padding(.vertical, 8)
-                .background(Color.accentColor.opacity(0.1))
-                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
                 .padding(.horizontal, 24)
-                .padding(.top, 10)
+                .padding(.vertical, 8)
+                .background(.bar)
+                Divider()
             }
 
             List {
                 ForEach(plugins) { plugin in
-                    HStack(spacing: 14) {
+                    HStack(spacing: 12) {
                         Image(systemName: plugin.icon)
-                            .font(.system(size: 16, weight: .semibold))
-                            .foregroundStyle(plugin.isInstalled ? Color(red: 16/255, green: 185/255, blue: 129/255) : Color.secondary)
-                            .frame(width: 32, height: 32)
-                            .background(Color(nsColor: .controlBackgroundColor))
-                            .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                            .font(.system(size: 15))
+                            .foregroundStyle(.secondary)
+                            .frame(width: 24, height: 24)
 
                         VStack(alignment: .leading, spacing: 2) {
-                            HStack(spacing: 6) {
+                            HStack(spacing: 8) {
                                 Text(plugin.name)
                                     .font(.system(size: 13, weight: .semibold))
 
                                 if plugin.isInstalled {
                                     Text("Installed")
-                                        .font(.system(size: 9, weight: .bold))
-                                        .padding(.horizontal, 5)
-                                        .padding(.vertical, 1.5)
-                                        .background(Color(red: 16/255, green: 185/255, blue: 129/255).opacity(0.15))
-                                        .foregroundStyle(Color(red: 16/255, green: 185/255, blue: 129/255))
-                                        .clipShape(Capsule())
-                                } else {
-                                    Text("Not Found")
-                                        .font(.system(size: 9, weight: .medium))
-                                        .padding(.horizontal, 5)
-                                        .padding(.vertical, 1.5)
-                                        .background(Color.secondary.opacity(0.12))
+                                        .font(.caption2)
                                         .foregroundStyle(.secondary)
-                                        .clipShape(Capsule())
+                                } else {
+                                    Text("Not Installed")
+                                        .font(.caption2)
+                                        .foregroundStyle(.tertiary)
                                 }
                             }
 
                             Text(plugin.description)
-                                .font(.system(size: 11))
+                                .font(.caption)
                                 .foregroundStyle(.secondary)
                         }
 
                         Spacer()
 
-                        Button("Execute Cleanup") {
+                        Button("Run Cleanup") {
                             Task { await runPlugin(plugin) }
                         }
                         .disabled(!plugin.isInstalled)
                         .buttonStyle(.bordered)
                         .controlSize(.small)
                     }
-                    .padding(.vertical, 6)
+                    .padding(.vertical, 4)
                 }
             }
             .listStyle(.inset)
         }
+        .background(Color(nsColor: .windowBackgroundColor))
         .task {
             if plugins.isEmpty {
                 await detectPlugins()

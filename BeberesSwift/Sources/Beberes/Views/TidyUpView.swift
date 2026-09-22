@@ -37,25 +37,24 @@ public struct TidyUpView: View {
 
     public var body: some View {
         VStack(spacing: 0) {
-            // Header Bar
-            HStack {
-                VStack(alignment: .leading, spacing: 3) {
-                    Text("Tidy Up Clutter")
-                        .font(.system(size: 20, weight: .bold, design: .rounded))
+            // Standard Native Page Header
+            HStack(alignment: .center) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Tidy Up")
+                        .font(.title2.weight(.bold))
                     Text("Organize Desktop and Downloads, and eliminate obsolete disk installers.")
-                        .font(.system(size: 11))
+                        .font(.subheadline)
                         .foregroundStyle(.secondary)
                 }
 
                 Spacer()
 
-                // Source Folder Picker
                 Picker("Folder", selection: $selectedSource) {
                     Text("Downloads").tag(downloadsURL)
                     Text("Desktop").tag(desktopURL)
                 }
                 .pickerStyle(.segmented)
-                .frame(width: 190)
+                .frame(width: 180)
                 .onChange(of: selectedSource) {
                     Task { await runScan() }
                 }
@@ -63,175 +62,129 @@ public struct TidyUpView: View {
                 Button {
                     Task { await runScan() }
                 } label: {
-                    Label(isScanning ? "Scanning..." : "Scan Folder", systemImage: "arrow.clockwise")
+                    Label("Rescan", systemImage: "arrow.clockwise")
                 }
-                .disabled(isScanning || isProcessing)
                 .buttonStyle(.bordered)
+                .disabled(isScanning || isProcessing)
             }
             .padding(.horizontal, 24)
-            .padding(.top, 18)
-            .padding(.bottom, 14)
+            .padding(.top, 20)
+            .padding(.bottom, 16)
 
             Divider()
+
+            // Status message
+            if let status = statusMessage {
+                HStack(spacing: 8) {
+                    Image(systemName: "checkmark.circle")
+                        .foregroundStyle(.secondary)
+                    Text(status)
+                        .font(.subheadline)
+                    Spacer()
+                    Button("Dismiss") { statusMessage = nil }
+                        .font(.caption)
+                        .buttonStyle(.borderless)
+                }
+                .padding(.horizontal, 24)
+                .padding(.vertical, 8)
+                .background(.bar)
+                Divider()
+            }
 
             if isScanning {
                 VStack(spacing: 12) {
                     ProgressView()
                         .controlSize(.large)
-                    Text("Scanning selected directory for unorganized files...")
-                        .font(.system(size: 12))
+                    Text("Analyzing files in folder...")
+                        .font(.subheadline)
                         .foregroundStyle(.secondary)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else if let result = scanResult {
-                // Summary Cards
-                HStack(spacing: 14) {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("TOTAL CLUTTER")
-                            .font(.system(size: 9, weight: .bold))
+                // Summary Bar
+                HStack(spacing: 20) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Clutter Found")
+                            .font(.caption)
                             .foregroundStyle(.secondary)
                         Text(result.totalBytes.formattedBytes)
-                            .font(.system(size: 18, weight: .bold, design: .rounded))
-                        Text("\(result.totalFiles) files scattered")
-                            .font(.system(size: 10))
-                            .foregroundStyle(.secondary)
+                            .font(.headline.monospacedDigit())
                     }
-                    .padding(14)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(Color(nsColor: .controlBackgroundColor))
-                    .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
 
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("REDUNDANT INSTALLERS")
-                            .font(.system(size: 9, weight: .bold))
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Redundant Installers")
+                            .font(.caption)
                             .foregroundStyle(.secondary)
-                        Text(result.redundantInstallersBytes.formattedBytes)
-                            .font(.system(size: 18, weight: .bold, design: .rounded))
-                            .foregroundStyle(Color(red: 239/255, green: 68/255, blue: 68/255))
-                        Text("\(result.redundantInstallersCount) apps already installed in /Applications")
-                            .font(.system(size: 10))
-                            .foregroundStyle(.secondary)
+                        Text("\(result.redundantInstallersCount) files (\(result.redundantInstallersBytes.formattedBytes))")
+                            .font(.headline.monospacedDigit())
                     }
-                    .padding(14)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(Color(nsColor: .controlBackgroundColor))
-                    .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
 
-                    // Actions
-                    VStack(spacing: 8) {
-                        Button {
+                    Spacer()
+
+                    Picker("Category", selection: $selectedCategory) {
+                        ForEach(availableCategories, id: \.self) { cat in
+                            Text(cat).tag(cat)
+                        }
+                    }
+                    .frame(width: 140)
+
+                    if result.redundantInstallersCount > 0 {
+                        Button("Trash Redundant (\(result.redundantInstallersBytes.formattedBytes))", role: .destructive) {
                             Task { await cleanRedundantInstallers() }
-                        } label: {
-                            HStack {
-                                Image(systemName: "trash")
-                                Text("Trash Redundant (\(result.redundantInstallersCount))")
-                            }
-                            .frame(maxWidth: .infinity)
                         }
                         .buttonStyle(.borderedProminent)
-                        .tint(Color(red: 239/255, green: 68/255, blue: 68/255))
-                        .disabled(result.redundantInstallersCount == 0 || isProcessing)
-
-                        Button {
-                            Task { await organizeAll() }
-                        } label: {
-                            HStack {
-                                Image(systemName: "folder.badge.plus")
-                                Text("Organize Into Folders")
-                            }
-                            .frame(maxWidth: .infinity)
-                        }
-                        .buttonStyle(.bordered)
-                        .disabled(result.items.isEmpty || isProcessing)
+                        .disabled(isProcessing)
                     }
-                    .frame(width: 220)
+
+                    Button("Organize Into Folders") {
+                        Task { await organizeAll() }
+                    }
+                    .buttonStyle(.bordered)
+                    .disabled(result.items.isEmpty || isProcessing)
                 }
                 .padding(.horizontal, 24)
-                .padding(.vertical, 14)
+                .padding(.vertical, 10)
+                .background(Color(nsColor: .controlBackgroundColor))
 
-                if let status = statusMessage {
-                    HStack(spacing: 8) {
-                        Image(systemName: "info.circle")
-                            .foregroundStyle(Color.accentColor)
-                        Text(status)
-                            .font(.system(size: 11))
-                        Spacer()
-                    }
-                    .padding(.horizontal, 14)
-                    .padding(.vertical, 8)
-                    .background(Color.accentColor.opacity(0.1))
-                    .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
-                    .padding(.horizontal, 24)
-                    .padding(.bottom, 8)
-                }
+                Divider()
 
-                // Category Filter Pills
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 8) {
-                        ForEach(availableCategories, id: \.self) { cat in
-                            Button {
-                                selectedCategory = cat
-                            } label: {
-                                Text(cat)
-                                    .font(.system(size: 11, weight: selectedCategory == cat ? .bold : .regular))
-                                    .padding(.horizontal, 10)
-                                    .padding(.vertical, 4)
-                                    .background(selectedCategory == cat ? Color.accentColor : Color.secondary.opacity(0.12))
-                                    .foregroundStyle(selectedCategory == cat ? .white : .primary)
-                                    .clipShape(Capsule())
-                            }
-                            .buttonStyle(.plain)
-                        }
-                    }
-                    .padding(.horizontal, 24)
-                    .padding(.vertical, 4)
-                }
-
-                // File List
                 if filteredItems.isEmpty {
-                    VStack(spacing: 8) {
-                        Image(systemName: "checkmark.seal")
-                            .font(.system(size: 28))
-                            .foregroundStyle(Color(red: 16/255, green: 185/255, blue: 129/255))
-                        Text("No items found in this category.")
-                            .font(.system(size: 13, weight: .medium))
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    ContentUnavailableView(
+                        "No Items in Category",
+                        systemImage: "folder",
+                        description: Text("No files match the selected category.")
+                    )
                 } else {
                     List {
                         ForEach(filteredItems) { item in
                             HStack(spacing: 12) {
-                                Image(systemName: categoryIcon(item.category))
+                                Image(systemName: item.isRedundantInstaller ? "shippingbox" : "doc")
                                     .font(.system(size: 14))
-                                    .foregroundStyle(item.isRedundantInstaller ? Color(red: 239/255, green: 68/255, blue: 68/255) : Color.accentColor)
-                                    .frame(width: 22)
+                                    .foregroundStyle(.secondary)
+                                    .frame(width: 20)
 
-                                VStack(alignment: .leading, spacing: 2) {
+                                VStack(alignment: .leading, spacing: 1) {
                                     HStack(spacing: 6) {
                                         Text(item.name)
-                                            .font(.system(size: 12, weight: .medium))
+                                            .font(.system(size: 13, weight: .medium))
                                             .lineLimit(1)
 
                                         if item.isRedundantInstaller, let appName = item.installedAppName {
-                                            Text("\(appName) installed")
-                                                .font(.system(size: 9, weight: .semibold))
-                                                .padding(.horizontal, 5)
-                                                .padding(.vertical, 1.5)
-                                                .background(Color(red: 239/255, green: 68/255, blue: 68/255).opacity(0.15))
-                                                .foregroundStyle(Color(red: 239/255, green: 68/255, blue: 68/255))
-                                                .clipShape(Capsule())
+                                            Text("Already installed: \(appName)")
+                                                .font(.caption2)
+                                                .foregroundStyle(.secondary)
                                         }
                                     }
 
-                                    Text("Moves to: \(item.targetFolder)/")
-                                        .font(.system(size: 10))
-                                        .foregroundStyle(.secondary)
+                                    Text("Category: \(item.category) • Moves to: \(item.targetFolder)/")
+                                        .font(.caption2)
+                                        .foregroundStyle(.tertiary)
                                 }
 
                                 Spacer()
 
                                 Text(item.formattedSize)
-                                    .font(.system(size: 11, design: .monospaced))
+                                    .font(.subheadline.monospacedDigit())
                                     .foregroundStyle(.secondary)
 
                                 Button {
@@ -243,23 +196,20 @@ public struct TidyUpView: View {
                                 .buttonStyle(.borderless)
                                 .help("Reveal in Finder")
                             }
-                            .padding(.vertical, 3)
+                            .padding(.vertical, 2)
                         }
                     }
                     .listStyle(.inset)
                 }
             } else {
-                VStack(spacing: 12) {
-                    Image(systemName: "folder.badge.gearshape")
-                        .font(.system(size: 36))
-                        .foregroundStyle(.secondary)
-                    Text("Select a folder and click Scan Folder to discover clutter.")
-                        .font(.system(size: 13))
-                        .foregroundStyle(.secondary)
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                ContentUnavailableView(
+                    "Select Folder to Tidy Up",
+                    systemImage: "folder.badge.gearshape",
+                    description: Text("Scan Downloads or Desktop to discover unorganized clutter and redundant installers.")
+                )
             }
         }
+        .background(Color(nsColor: .windowBackgroundColor))
         .task {
             if scanResult == nil {
                 await runScan()
@@ -293,7 +243,7 @@ public struct TidyUpView: View {
         }
 
         state.lifetimeFreedBytes += trashedBytes
-        statusMessage = "Moved \(trashedCount) redundant installers (\(trashedBytes.formattedBytes)) safely to Trash."
+        statusMessage = "Moved \(trashedCount) redundant installers (\(trashedBytes.formattedBytes)) to Trash."
         await runScan()
         isProcessing = false
     }
@@ -302,21 +252,9 @@ public struct TidyUpView: View {
         guard let result = scanResult else { return }
         isProcessing = true
         let nonRedundant = result.items.filter { !$0.isRedundantInstaller }
-        let (moved, bytes, _) = await TidyUpService.shared.organizeItems(nonRedundant, sourceDirectory: selectedSource)
-        statusMessage = "Organized \(moved) files (\(bytes.formattedBytes)) into categorized folders."
+        let (moved, _, _) = await TidyUpService.shared.organizeItems(nonRedundant, sourceDirectory: selectedSource)
+        statusMessage = "Organized \(moved) files into folders."
         await runScan()
         isProcessing = false
-    }
-
-    private func categoryIcon(_ category: String) -> String {
-        switch category {
-        case "Screenshots": return "camera.viewfinder"
-        case "Redundant Installers": return "shippingbox.fill"
-        case "Installers": return "shippingbox"
-        case "Archives": return "archivebox"
-        case "Documents": return "doc.text"
-        case "Media": return "photo"
-        default: return "doc"
-        }
     }
 }

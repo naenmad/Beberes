@@ -13,32 +13,19 @@ public struct LargeFilesView: View {
 
     public var body: some View {
         VStack(spacing: 0) {
-            // Header Bar
+            // Standard Native Page Header
             HStack(alignment: .center) {
-                VStack(alignment: .leading, spacing: 3) {
-                    HStack(spacing: 8) {
-                        Text("Large & Duplicate Files")
-                            .font(.system(size: 22, weight: .bold))
-
-                        let count = state.largeFiles.count
-                        Text("\(count) Large Files")
-                            .font(.system(size: 10, weight: .bold))
-                            .padding(.horizontal, 6)
-                            .padding(.vertical, 2)
-                            .background(Color.blue.opacity(0.15))
-                            .foregroundColor(.blue)
-                            .cornerRadius(4)
-                    }
-
-                    Text("Detect oversized videos, installers, disk images, and duplicate copies in your home folders.")
-                        .font(.system(size: 12))
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Large & Duplicates")
+                        .font(.title2.weight(.bold))
+                    Text("Identify oversized files and duplicate copies in home folders.")
+                        .font(.subheadline)
                         .foregroundStyle(.secondary)
                 }
 
                 Spacer()
 
-                // Tab Switcher
-                Picker("", selection: $selectedTab) {
+                Picker("View", selection: $selectedTab) {
                     Text("Large Files (\(state.largeFiles.count))").tag(0)
                     Text("Duplicates (\(state.duplicateGroups.count))").tag(1)
                 }
@@ -48,194 +35,141 @@ public struct LargeFilesView: View {
                 Button {
                     Task { await state.fetchLargeFiles() }
                 } label: {
-                    Label("Scan", systemImage: "arrow.clockwise")
+                    Label("Rescan", systemImage: "arrow.clockwise")
                 }
                 .buttonStyle(.bordered)
                 .disabled(state.isLoadingLargeFiles)
             }
-            .padding(20)
-            .background(Color(nsColor: .controlBackgroundColor))
+            .padding(.horizontal, 24)
+            .padding(.top, 20)
+            .padding(.bottom, 16)
 
             Divider()
 
-            // Filter Categories (for Large Files tab)
-            if selectedTab == 0 {
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 8) {
-                        ForEach(FileCategory.allCases) { cat in
-                            Button {
-                                state.selectedLargeCategory = cat
-                            } label: {
-                                HStack(spacing: 5) {
-                                    Image(systemName: cat.icon)
-                                        .font(.system(size: 11))
-                                    Text(cat.rawValue)
-                                        .font(.system(size: 12, weight: state.selectedLargeCategory == cat ? .semibold : .regular))
-                                }
-                                .padding(.horizontal, 10)
-                                .padding(.vertical, 5)
-                                .background(
-                                    state.selectedLargeCategory == cat
-                                        ? Color.blue.opacity(0.18)
-                                        : Color.secondary.opacity(0.08)
-                                )
-                                .foregroundColor(state.selectedLargeCategory == cat ? .blue : .primary)
-                                .clipShape(Capsule())
-                            }
-                            .buttonStyle(.plain)
-                        }
-                    }
-                    .padding(.horizontal, 20)
-                    .padding(.vertical, 8)
+            // Feedback Message
+            if let msg = state.largeFilesToastMessage {
+                HStack(spacing: 8) {
+                    Image(systemName: "checkmark.circle")
+                        .foregroundStyle(.secondary)
+                    Text(msg)
+                        .font(.subheadline)
+                    Spacer()
+                    Button("Dismiss") { state.largeFilesToastMessage = nil }
+                        .font(.caption)
+                        .buttonStyle(.borderless)
                 }
-                .background(Color(nsColor: .windowBackgroundColor))
-
+                .padding(.horizontal, 24)
+                .padding(.vertical, 8)
+                .background(.bar)
                 Divider()
             }
 
-            // Main Content Area
             if state.isLoadingLargeFiles {
-                VStack(spacing: 16) {
+                VStack(spacing: 12) {
                     ProgressView()
-                    Text("Scanning user storage for large files and duplicates...")
-                        .font(.system(size: 13))
+                        .controlSize(.large)
+                    Text("Scanning files >50MB and matching duplicate hashes...")
+                        .font(.subheadline)
                         .foregroundStyle(.secondary)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else if selectedTab == 0 {
-                // Large Files List
-                if state.filteredLargeFiles.isEmpty {
-                    VStack(spacing: 12) {
-                        Image(systemName: "checkmark.circle.fill")
-                            .font(.system(size: 40))
-                            .foregroundStyle(.green)
-                        Text("No large files found")
-                            .font(.system(size: 15, weight: .semibold))
-                        Text("There are no files larger than 50 MB in your user folders.")
-                            .font(.system(size: 13))
-                            .foregroundStyle(.secondary)
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                // Large Files Tab
+                if state.largeFiles.isEmpty {
+                    ContentUnavailableView(
+                        "No Large Files Found",
+                        systemImage: "doc.on.doc",
+                        description: Text("No files larger than 50MB detected in your home folders.")
+                    )
                 } else {
                     List {
                         ForEach(state.filteredLargeFiles) { file in
                             HStack(spacing: 12) {
                                 Image(systemName: file.category.icon)
-                                    .font(.system(size: 18))
-                                    .foregroundStyle(iconColor(for: file.category))
-                                    .frame(width: 28)
+                                    .font(.system(size: 14))
+                                    .foregroundStyle(.secondary)
+                                    .frame(width: 20)
 
-                                VStack(alignment: .leading, spacing: 2) {
+                                VStack(alignment: .leading, spacing: 1) {
                                     Text(file.name)
                                         .font(.system(size: 13, weight: .medium))
                                         .lineLimit(1)
-
                                     Text(file.path)
-                                        .font(.system(size: 10))
+                                        .font(.caption2)
                                         .foregroundStyle(.tertiary)
                                         .lineLimit(1)
-                                        .truncationMode(.middle)
                                 }
 
                                 Spacer()
 
                                 Text(file.formattedSize)
-                                    .font(.system(size: 12, weight: .bold, design: .rounded))
+                                    .font(.subheadline.monospacedDigit())
+                                    .foregroundStyle(.secondary)
 
                                 Button {
                                     state.revealLargeFile(file)
                                 } label: {
-                                    Image(systemName: "magnifyingglass.circle")
-                                        .foregroundStyle(.secondary)
+                                    Image(systemName: "magnifyingglass")
+                                        .font(.system(size: 11))
                                 }
-                                .buttonStyle(.plain)
+                                .buttonStyle(.borderless)
                                 .help("Reveal in Finder")
 
-                                Button {
+                                Button("Trash", role: .destructive) {
                                     fileToTrash = file
                                     showConfirmTrash = true
-                                } label: {
-                                    Image(systemName: "trash")
-                                        .foregroundStyle(.red)
                                 }
-                                .buttonStyle(.plain)
-                                .help("Move file to Trash")
+                                .buttonStyle(.bordered)
+                                .controlSize(.small)
                             }
-                            .padding(.vertical, 4)
+                            .padding(.vertical, 2)
                         }
                     }
                     .listStyle(.inset)
                 }
             } else {
-                // Duplicates List
+                // Duplicates Tab
                 if state.duplicateGroups.isEmpty {
-                    VStack(spacing: 12) {
-                        Image(systemName: "doc.on.doc")
-                            .font(.system(size: 40))
-                            .foregroundStyle(.secondary)
-                        Text("No duplicate files detected")
-                            .font(.system(size: 15, weight: .semibold))
-                        Text("Your storage does not have identical duplicate files in user directories.")
-                            .font(.system(size: 13))
-                            .foregroundStyle(.secondary)
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    ContentUnavailableView(
+                        "No Duplicates Found",
+                        systemImage: "checkmark.seal",
+                        description: Text("No duplicate files with identical chunk hashes detected.")
+                    )
                 } else {
                     List {
                         ForEach(state.duplicateGroups) { group in
-                            Section {
-                                ForEach(Array(group.items.enumerated()), id: \.element.id) { index, item in
+                            Section("Identical Content: \(group.items.first?.name ?? "File") (\(group.formattedWastedSize) reclaimable)") {
+                                ForEach(group.items) { file in
                                     HStack(spacing: 12) {
-                                        Text(index == 0 ? "MASTER" : "COPY")
-                                            .font(.system(size: 9, weight: .bold))
-                                            .padding(.horizontal, 5)
-                                            .padding(.vertical, 2)
-                                            .background(index == 0 ? Color.green.opacity(0.15) : Color.orange.opacity(0.15))
-                                            .foregroundColor(index == 0 ? .green : .orange)
-                                            .cornerRadius(4)
+                                        Image(systemName: "doc")
+                                            .font(.system(size: 13))
+                                            .foregroundStyle(.secondary)
 
-                                        VStack(alignment: .leading, spacing: 2) {
-                                            Text(item.name)
-                                                .font(.system(size: 13, weight: .medium))
-                                            Text(item.path)
-                                                .font(.system(size: 10))
-                                                .foregroundStyle(.tertiary)
+                                        VStack(alignment: .leading, spacing: 1) {
+                                            Text(file.path)
+                                                .font(.caption)
+                                                .foregroundStyle(.secondary)
                                                 .lineLimit(1)
-                                                .truncationMode(.middle)
                                         }
 
                                         Spacer()
 
                                         Button {
-                                            state.revealLargeFile(item)
+                                            state.revealLargeFile(file)
                                         } label: {
-                                            Image(systemName: "magnifyingglass.circle")
-                                                .foregroundStyle(.secondary)
+                                            Image(systemName: "magnifyingglass")
+                                                .font(.system(size: 11))
                                         }
-                                        .buttonStyle(.plain)
+                                        .buttonStyle(.borderless)
 
-                                        if index > 0 {
-                                            Button {
-                                                fileToTrash = item
-                                                showConfirmTrash = true
-                                            } label: {
-                                                Image(systemName: "trash")
-                                                    .foregroundStyle(.red)
-                                            }
-                                            .buttonStyle(.plain)
-                                            .help("Trash duplicate copy")
+                                        Button("Trash", role: .destructive) {
+                                            fileToTrash = file
+                                            showConfirmTrash = true
                                         }
+                                        .buttonStyle(.bordered)
+                                        .controlSize(.small)
                                     }
-                                    .padding(.vertical, 2)
-                                }
-                            } header: {
-                                HStack {
-                                    Text("\(group.items.first?.name ?? "Duplicate") (\(group.items.count) files)")
-                                        .font(.system(size: 12, weight: .bold))
-                                    Spacer()
-                                    Text("Wasting \(group.formattedWastedSize)")
-                                        .font(.system(size: 11, weight: .bold))
-                                        .foregroundStyle(.orange)
+                                    .padding(.vertical, 1)
                                 }
                             }
                         }
@@ -244,51 +178,22 @@ public struct LargeFilesView: View {
                 }
             }
         }
-        .task {
-            if state.largeFiles.isEmpty {
-                await state.fetchLargeFiles()
-            }
-        }
+        .background(Color(nsColor: .windowBackgroundColor))
         .confirmationDialog(
-            "Move \(fileToTrash?.name ?? "File") to Trash?",
+            "Move to Trash?",
             isPresented: $showConfirmTrash,
-            presenting: fileToTrash
-        ) { item in
+            titleVisibility: .visible
+        ) {
             Button("Move to Trash", role: .destructive) {
-                Task { await state.trashLargeFile(item) }
+                if let file = fileToTrash {
+                    Task { await state.trashLargeFile(file) }
+                }
             }
             Button("Cancel", role: .cancel) {}
-        } message: { item in
-            Text("This will move the file at \(item.path) (\(item.formattedSize)) to macOS Trash. You can recover it if needed.")
-        }
-        .overlay(alignment: .bottom) {
-            if let toast = state.largeFilesToastMessage {
-                Text(toast)
-                    .font(.system(size: 12, weight: .medium))
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 8)
-                    .background(.ultraThinMaterial)
-                    .cornerRadius(8)
-                    .shadow(radius: 4)
-                    .padding(.bottom, 20)
-                    .onAppear {
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
-                            state.largeFilesToastMessage = nil
-                        }
-                    }
+        } message: {
+            if let file = fileToTrash {
+                Text("Are you sure you want to move '\(file.name)' (\(file.formattedSize)) to the macOS Trash?")
             }
-        }
-    }
-
-    private func iconColor(for category: FileCategory) -> Color {
-        switch category {
-        case .videos: return .purple
-        case .archives: return .orange
-        case .installers: return .blue
-        case .images: return .teal
-        case .audio: return .pink
-        case .documents: return .indigo
-        default: return .secondary
         }
     }
 }

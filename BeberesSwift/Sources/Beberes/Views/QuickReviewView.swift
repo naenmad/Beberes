@@ -11,13 +11,13 @@ public struct QuickReviewView: View {
 
     public var body: some View {
         VStack(spacing: 0) {
-            // Header Bar
-            HStack {
-                VStack(alignment: .leading, spacing: 3) {
+            // Standard Native Page Header
+            HStack(alignment: .center) {
+                VStack(alignment: .leading, spacing: 2) {
                     Text("Quick Review")
-                        .font(.system(size: 20, weight: .bold, design: .rounded))
-                    Text("All-in-one comprehensive assessment of reclaimable space and system health.")
-                        .font(.system(size: 11))
+                        .font(.title2.weight(.bold))
+                    Text("All-in-one assessment of reclaimable space and system health.")
+                        .font(.subheadline)
                         .foregroundStyle(.secondary)
                 }
 
@@ -26,29 +26,29 @@ public struct QuickReviewView: View {
                 Button {
                     Task { await performFullAssessment() }
                 } label: {
-                    Label(isReviewing ? "Assessing System..." : "Run Assessment", systemImage: "bolt.badge.sparkle")
+                    Label(isReviewing ? "Assessing..." : "Run Assessment", systemImage: "bolt.badge.sparkle")
                 }
                 .disabled(isReviewing)
                 .buttonStyle(.borderedProminent)
             }
             .padding(.horizontal, 24)
-            .padding(.top, 18)
-            .padding(.bottom, 14)
+            .padding(.top, 20)
+            .padding(.bottom, 16)
 
             Divider()
 
             if isReviewing {
-                VStack(spacing: 14) {
+                VStack(spacing: 12) {
                     ProgressView()
                         .controlSize(.large)
                     Text("Scanning storage volumes, trash, caches, and developer environments...")
-                        .font(.system(size: 12))
+                        .font(.subheadline)
                         .foregroundStyle(.secondary)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
                 ScrollView {
-                    VStack(spacing: 16) {
+                    VStack(spacing: 14) {
                         // Overview Cards Grid
                         LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 14) {
                             ReviewModuleCard(
@@ -100,15 +100,15 @@ public struct QuickReviewView: View {
                             )
                         }
                     }
-                    .padding(20)
+                    .padding(24)
                 }
             }
         }
+        .background(Color(nsColor: .windowBackgroundColor))
     }
 
     private func performFullAssessment() async {
         isReviewing = true
-        // Refresh all background services concurrently
         await state.refreshAll()
         isReviewing = false
         reviewDone = true
@@ -137,7 +137,7 @@ private struct ReviewModuleCard: View {
             }
 
             Text(status)
-                .font(.system(size: 11))
+                .font(.caption)
                 .foregroundStyle(.secondary)
 
             Divider()
@@ -145,7 +145,7 @@ private struct ReviewModuleCard: View {
             Button(action: onAction) {
                 HStack {
                     Text(actionTitle)
-                        .font(.system(size: 11))
+                        .font(.caption)
                     Spacer()
                     Image(systemName: "chevron.right")
                         .font(.system(size: 10))

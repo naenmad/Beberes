@@ -12,13 +12,13 @@ public struct DiskVisualizerView: View {
 
     public var body: some View {
         VStack(spacing: 0) {
-            // Header Bar
-            HStack {
-                VStack(alignment: .leading, spacing: 3) {
+            // Standard Native Page Header
+            HStack(alignment: .center) {
+                VStack(alignment: .leading, spacing: 2) {
                     Text("Disk Visualizer")
-                        .font(.system(size: 20, weight: .bold, design: .rounded))
-                    Text("Visual breakdown of user directories and storage utilization.")
-                        .font(.system(size: 11))
+                        .font(.title2.weight(.bold))
+                    Text("Storage utilization breakdown across home directory folders.")
+                        .font(.subheadline)
                         .foregroundStyle(.secondary)
                 }
 
@@ -27,14 +27,14 @@ public struct DiskVisualizerView: View {
                 Button {
                     Task { await analyzeUserStorage() }
                 } label: {
-                    Label(isAnalyzing ? "Analyzing Space..." : "Analyze Home Directory", systemImage: "chart.pie.fill")
+                    Label(isAnalyzing ? "Analyzing..." : "Analyze Home Directory", systemImage: "chart.pie")
                 }
                 .disabled(isAnalyzing)
                 .buttonStyle(.borderedProminent)
             }
             .padding(.horizontal, 24)
-            .padding(.top, 18)
-            .padding(.bottom, 14)
+            .padding(.top, 20)
+            .padding(.bottom, 16)
 
             Divider()
 
@@ -43,47 +43,44 @@ public struct DiskVisualizerView: View {
                     ProgressView()
                         .controlSize(.large)
                     Text("Calculating directory sizes across user profile...")
-                        .font(.system(size: 12))
+                        .font(.subheadline)
                         .foregroundStyle(.secondary)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else if nodes.isEmpty {
-                VStack(spacing: 12) {
-                    Image(systemName: "chart.pie")
-                        .font(.system(size: 36))
-                        .foregroundStyle(.secondary)
-                    Text("Click Analyze Home Directory to see where storage is consumed.")
-                        .font(.system(size: 13))
-                        .foregroundStyle(.secondary)
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                ContentUnavailableView(
+                    "No Storage Analysis",
+                    systemImage: "chart.pie",
+                    description: Text("Analyze your home directory to visualize storage consumption by folder.")
+                )
             } else {
                 VStack(spacing: 16) {
-                    // Total bar
+                    // Storage Allocation Bar (macOS System Settings Style)
                     VStack(alignment: .leading, spacing: 8) {
                         HStack {
-                            Text("USER DIRECTORIES USAGE")
-                                .font(.system(size: 10, weight: .bold))
+                            Text("USER DIRECTORIES ALLOCATION")
+                                .font(.caption.weight(.semibold))
                                 .foregroundStyle(.secondary)
                             Spacer()
                             Text(totalScannedBytes.formattedBytes)
-                                .font(.system(size: 13, weight: .bold, design: .monospaced))
+                                .font(.subheadline.monospacedDigit().weight(.semibold))
                         }
 
                         GeometryReader { proxy in
                             HStack(spacing: 2) {
-                                ForEach(nodes) { node in
+                                ForEach(Array(nodes.enumerated()), id: \.element.id) { index, node in
                                     let ratio = totalScannedBytes > 0 ? CGFloat(node.sizeBytes) / CGFloat(totalScannedBytes) : 0
-                                    if ratio > 0.02 {
-                                        Rectangle()
-                                            .fill(node.color)
+                                    if ratio > 0.01 {
+                                        let opacity = max(0.2, 0.85 - Double(index) * 0.1)
+                                        RoundedRectangle(cornerRadius: 2)
+                                            .fill(Color.primary.opacity(opacity))
                                             .frame(width: max(4, proxy.size.width * ratio))
                                     }
                                 }
                             }
-                            .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+                            .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
                         }
-                        .frame(height: 14)
+                        .frame(height: 10)
                     }
                     .padding(16)
                     .background(Color(nsColor: .controlBackgroundColor))
@@ -95,20 +92,17 @@ public struct DiskVisualizerView: View {
                     List {
                         ForEach(nodes) { node in
                             HStack(spacing: 12) {
-                                RoundedRectangle(cornerRadius: 3, style: .continuous)
-                                    .fill(node.color)
-                                    .frame(width: 8, height: 28)
-
-                                Image(systemName: "folder.fill")
-                                    .foregroundStyle(node.color)
+                                Image(systemName: "folder")
+                                    .foregroundStyle(.secondary)
                                     .font(.system(size: 14))
+                                    .frame(width: 20)
 
                                 VStack(alignment: .leading, spacing: 2) {
                                     Text(node.name)
-                                        .font(.system(size: 13, weight: .semibold))
+                                        .font(.system(size: 13, weight: .medium))
                                     Text(node.path)
-                                        .font(.system(size: 10))
-                                        .foregroundStyle(.secondary)
+                                        .font(.caption2)
+                                        .foregroundStyle(.tertiary)
                                         .lineLimit(1)
                                 }
 
@@ -116,12 +110,12 @@ public struct DiskVisualizerView: View {
 
                                 let percentage = totalScannedBytes > 0 ? (Double(node.sizeBytes) / Double(totalScannedBytes)) * 100 : 0
                                 Text(String(format: "%.1f%%", percentage))
-                                    .font(.system(size: 11, weight: .medium, design: .monospaced))
+                                    .font(.subheadline.monospacedDigit())
                                     .foregroundStyle(.secondary)
                                     .frame(width: 50, alignment: .trailing)
 
                                 Text(node.sizeBytes.formattedBytes)
-                                    .font(.system(size: 12, weight: .bold, design: .monospaced))
+                                    .font(.subheadline.monospacedDigit().weight(.medium))
                                     .frame(width: 80, alignment: .trailing)
 
                                 Button {
@@ -133,13 +127,14 @@ public struct DiskVisualizerView: View {
                                 .buttonStyle(.borderless)
                                 .help("Reveal in Finder")
                             }
-                            .padding(.vertical, 4)
+                            .padding(.vertical, 3)
                         }
                     }
                     .listStyle(.inset)
                 }
             }
         }
+        .background(Color(nsColor: .windowBackgroundColor))
         .task {
             if nodes.isEmpty {
                 await analyzeUserStorage()
@@ -151,22 +146,22 @@ public struct DiskVisualizerView: View {
         isAnalyzing = true
         let home = FileManager.default.homeDirectoryForCurrentUser
         let targetDirs = [
-            ("Library", home.appendingPathComponent("Library"), Color.purple),
-            ("Developer", home.appendingPathComponent("Developer"), Color.blue),
-            ("Downloads", home.appendingPathComponent("Downloads"), Color.orange),
-            ("Documents", home.appendingPathComponent("Documents"), Color.green),
-            ("Pictures", home.appendingPathComponent("Pictures"), Color.pink),
-            ("Movies", home.appendingPathComponent("Movies"), Color.indigo),
-            ("Desktop", home.appendingPathComponent("Desktop"), Color.teal)
+            ("Library", home.appendingPathComponent("Library")),
+            ("Developer", home.appendingPathComponent("Developer")),
+            ("Downloads", home.appendingPathComponent("Downloads")),
+            ("Documents", home.appendingPathComponent("Documents")),
+            ("Pictures", home.appendingPathComponent("Pictures")),
+            ("Movies", home.appendingPathComponent("Movies")),
+            ("Desktop", home.appendingPathComponent("Desktop"))
         ]
 
         var scannedNodes: [DiskVisualNode] = []
         var total: Int64 = 0
 
-        for (name, url, color) in targetDirs {
+        for (name, url) in targetDirs {
             let size = await calculateDirSize(url)
             if size > 0 {
-                scannedNodes.append(DiskVisualNode(name: name, path: url.path, sizeBytes: size, color: color))
+                scannedNodes.append(DiskVisualNode(name: name, path: url.path, sizeBytes: size))
                 total += size
             }
         }
@@ -202,5 +197,4 @@ public struct DiskVisualNode: Identifiable, Sendable {
     public let name: String
     public let path: String
     public let sizeBytes: Int64
-    public let color: Color
 }

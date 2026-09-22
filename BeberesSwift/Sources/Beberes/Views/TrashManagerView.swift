@@ -11,25 +11,13 @@ public struct TrashManagerView: View {
 
     public var body: some View {
         VStack(spacing: 0) {
-            // Header
-            HStack {
-                VStack(alignment: .leading, spacing: 3) {
-                    HStack(spacing: 8) {
-                        Text("Trash Manager")
-                            .font(.system(size: 22, weight: .bold))
-
-                        let totalSize = state.trashItems.reduce(0) { $0 + $1.sizeBytes }
-                        Text(totalSize.formattedBytes)
-                            .font(.system(size: 11, weight: .bold))
-                            .padding(.horizontal, 6)
-                            .padding(.vertical, 2)
-                            .background(Color.red.opacity(0.15))
-                            .foregroundColor(.red)
-                            .cornerRadius(4)
-                    }
-
-                    Text("Inspect files sitting in ~/.Trash and permanently reclaim disk space.")
-                        .font(.system(size: 12))
+            // Standard Native Page Header
+            HStack(alignment: .center) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Trash Manager")
+                        .font(.title2.weight(.bold))
+                    Text("Inspect and permanently empty files in the macOS Trash.")
+                        .font(.subheadline)
                         .foregroundStyle(.secondary)
                 }
 
@@ -38,141 +26,134 @@ public struct TrashManagerView: View {
                 Button {
                     Task { await state.fetchTrashItems() }
                 } label: {
-                    Image(systemName: "arrow.clockwise")
+                    Label("Refresh", systemImage: "arrow.clockwise")
                 }
                 .buttonStyle(.bordered)
-                .help("Refresh Trash")
+                .disabled(state.isLoadingTrash)
 
-                Button("Empty Trash") {
+                let totalSize = state.trashItems.reduce(0) { $0 + $1.sizeBytes }
+
+                Button("Empty Trash (\(totalSize.formattedBytes))", role: .destructive) {
                     showConfirmEmptyTrash = true
                 }
                 .buttonStyle(.borderedProminent)
-                .tint(.red)
                 .disabled(state.trashItems.isEmpty || state.isLoadingTrash)
             }
-            .padding(20)
-            .background(Color(nsColor: .controlBackgroundColor))
+            .padding(.horizontal, 24)
+            .padding(.top, 20)
+            .padding(.bottom, 16)
 
             Divider()
 
-            // Content
+            // Toast Message
+            if let msg = state.trashToastMessage {
+                HStack(spacing: 8) {
+                    Image(systemName: "checkmark.circle")
+                        .foregroundStyle(.secondary)
+                    Text(msg)
+                        .font(.subheadline)
+                    Spacer()
+                    Button("Dismiss") { state.trashToastMessage = nil }
+                        .font(.caption)
+                        .buttonStyle(.borderless)
+                }
+                .padding(.horizontal, 24)
+                .padding(.vertical, 8)
+                .background(.bar)
+                Divider()
+            }
+
             if state.isLoadingTrash {
-                VStack(spacing: 16) {
+                VStack(spacing: 12) {
                     ProgressView()
-                    Text("Scanning macOS Trash...")
-                        .font(.system(size: 13))
+                        .controlSize(.large)
+                    Text("Scanning Trash...")
+                        .font(.subheadline)
                         .foregroundStyle(.secondary)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else if state.trashItems.isEmpty {
-                VStack(spacing: 12) {
-                    Image(systemName: "trash.slash")
-                        .font(.system(size: 40))
-                        .foregroundStyle(.secondary)
-                    Text("Trash is completely empty")
-                        .font(.system(size: 15, weight: .semibold))
-                    Text("No lingering files found in your macOS Trash folder.")
-                        .font(.system(size: 13))
-                        .foregroundStyle(.secondary)
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                ContentUnavailableView(
+                    "Trash is Empty",
+                    systemImage: "trash",
+                    description: Text("There are no deleted items waiting in the macOS Trash.")
+                )
             } else {
                 List {
                     ForEach(state.trashItems) { item in
                         HStack(spacing: 12) {
-                            Image(systemName: item.isDirectory ? "folder.fill" : "doc.fill")
-                                .font(.system(size: 18))
-                                .foregroundStyle(item.isDirectory ? Color.blue : Color.secondary)
-                                .frame(width: 24)
+                            Image(systemName: item.isDirectory ? "folder" : "doc")
+                                .font(.system(size: 14))
+                                .foregroundStyle(.secondary)
+                                .frame(width: 20)
 
-                            VStack(alignment: .leading, spacing: 2) {
+                            VStack(alignment: .leading, spacing: 1) {
                                 Text(item.name)
                                     .font(.system(size: 13, weight: .medium))
                                     .lineLimit(1)
 
                                 Text(item.path)
-                                    .font(.system(size: 10))
+                                    .font(.caption2)
                                     .foregroundStyle(.tertiary)
                                     .lineLimit(1)
-                                    .truncationMode(.middle)
                             }
 
                             Spacer()
 
                             Text(item.formattedSize)
-                                .font(.system(size: 12, weight: .semibold, design: .rounded))
+                                .font(.subheadline.monospacedDigit())
+                                .foregroundStyle(.secondary)
 
                             Button {
                                 state.revealTrashItem(item)
                             } label: {
-                                Image(systemName: "magnifyingglass.circle")
-                                    .foregroundStyle(.secondary)
+                                Image(systemName: "magnifyingglass")
+                                    .font(.system(size: 11))
                             }
-                            .buttonStyle(.plain)
+                            .buttonStyle(.borderless)
                             .help("Reveal in Finder")
 
-                            Button {
+                            Button("Delete", role: .destructive) {
                                 itemToDelete = item
-                            } label: {
-                                Image(systemName: "xmark.circle")
-                                    .foregroundStyle(.red)
                             }
-                            .buttonStyle(.plain)
-                            .help("Delete permanently now")
+                            .buttonStyle(.bordered)
+                            .controlSize(.small)
                         }
-                        .padding(.vertical, 4)
+                        .padding(.vertical, 2)
                     }
                 }
                 .listStyle(.inset)
             }
         }
-        .task {
-            if state.trashItems.isEmpty {
-                await state.fetchTrashItems()
-            }
-        }
+        .background(Color(nsColor: .windowBackgroundColor))
         .confirmationDialog(
-            "Empty Trash permanently?",
-            isPresented: $showConfirmEmptyTrash
+            "Empty Trash?",
+            isPresented: $showConfirmEmptyTrash,
+            titleVisibility: .visible
         ) {
-            Button("Empty Trash", role: .destructive) {
+            Button("Empty Trash Permanently", role: .destructive) {
                 Task { await state.emptyAllTrash() }
             }
             Button("Cancel", role: .cancel) {}
         } message: {
-            Text("All \(state.trashItems.count) items in macOS Trash will be permanently deleted and cannot be recovered.")
+            Text("This action permanently removes all items in the macOS Trash. It cannot be undone.")
         }
         .confirmationDialog(
-            "Permanently delete \(itemToDelete?.name ?? "item")?",
+            "Delete \(itemToDelete?.name ?? "Item")?",
             isPresented: Binding(
                 get: { itemToDelete != nil },
                 set: { if !$0 { itemToDelete = nil } }
             ),
-            presenting: itemToDelete
-        ) { item in
+            titleVisibility: .visible
+        ) {
             Button("Delete Permanently", role: .destructive) {
-                Task { await state.deleteTrashItemPermanently(item) }
+                if let item = itemToDelete {
+                    Task { await state.deleteTrashItemPermanently(item) }
+                }
             }
             Button("Cancel", role: .cancel) {}
-        } message: { item in
-            Text("This item will be permanently removed from disk.")
-        }
-        .overlay(alignment: .bottom) {
-            if let toast = state.trashToastMessage {
-                Text(toast)
-                    .font(.system(size: 12, weight: .medium))
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 8)
-                    .background(.ultraThinMaterial)
-                    .cornerRadius(8)
-                    .shadow(radius: 4)
-                    .padding(.bottom, 20)
-                    .onAppear {
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
-                            state.trashToastMessage = nil
-                        }
-                    }
-            }
+        } message: {
+            Text("Permanently delete this item? This action cannot be undone.")
         }
     }
 }

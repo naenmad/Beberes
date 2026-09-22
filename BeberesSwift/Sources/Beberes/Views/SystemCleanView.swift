@@ -9,85 +9,75 @@ public struct SystemCleanView: View {
 
     public var body: some View {
         VStack(spacing: 0) {
-            // Header
-            HStack {
+            // Standard Native Page Header
+            HStack(alignment: .center) {
                 VStack(alignment: .leading, spacing: 2) {
                     Text("System Clean")
-                        .font(.title2.bold())
-                    Text("Remove purgeable system caches, APFS snapshots, and diagnostic logs")
+                        .font(.title2.weight(.bold))
+                    Text("Purgeable caches, temporary logs, and diagnostic files.")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                 }
 
                 Spacer()
 
-                Button(action: {
+                Button {
                     Task { await state.scanSystemCategories() }
-                }) {
+                } label: {
                     Label("Rescan", systemImage: "arrow.clockwise")
                 }
+                .buttonStyle(.bordered)
                 .disabled(state.isLoadingSystemClean)
 
-                Button(action: {
+                let selectedBytes = state.cleanCategories
+                    .filter { state.selectedCategoryIDs.contains($0.id) }
+                    .reduce(0) { $0 + $1.sizeBytes }
+
+                Button {
                     Task { await state.cleanSelectedCategories() }
-                }) {
-                    Label("Clean Selected", systemImage: "sparkles")
+                } label: {
+                    Label("Clean (\(selectedBytes.formattedBytes))", systemImage: "sparkles")
                 }
                 .buttonStyle(.borderedProminent)
-                .tint(Color.emerald)
                 .disabled(state.isLoadingSystemClean || state.selectedCategoryIDs.isEmpty)
             }
-            .padding()
-            .background(.bar)
+            .padding(.horizontal, 24)
+            .padding(.top, 20)
+            .padding(.bottom, 16)
 
             Divider()
 
-            // Toast feedback
+            // Status message
             if let msg = state.systemCleanToastMessage {
-                HStack {
+                HStack(spacing: 8) {
+                    Image(systemName: "checkmark.circle")
+                        .foregroundStyle(.secondary)
                     Text(msg)
-                        .font(.footnote)
-                        .foregroundStyle(.primary)
+                        .font(.subheadline)
                     Spacer()
                     Button("Dismiss") { state.systemCleanToastMessage = nil }
                         .font(.caption)
+                        .buttonStyle(.borderless)
                 }
-                .padding(.horizontal)
+                .padding(.horizontal, 24)
                 .padding(.vertical, 8)
-                .background(Color.emerald.opacity(0.12))
+                .background(.bar)
+                Divider()
             }
 
-            // Categories List
             if state.isLoadingSystemClean {
-                Spacer()
                 VStack(spacing: 12) {
                     ProgressView()
-                    Text("Analyzing system storage and local caches...")
+                        .controlSize(.large)
+                    Text("Analyzing system caches and logs...")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                 }
-                Spacer()
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
                 List {
-                    // Summary Banner
-                    let totalBytes = state.cleanCategories
-                        .filter { state.selectedCategoryIDs.contains($0.id) }
-                        .reduce(0) { $0 + $1.sizeBytes }
-
-                    HStack {
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text("\(state.selectedCategoryIDs.count) of \(state.cleanCategories.count) Categories Selected")
-                                .font(.headline)
-                            Text("Selected for cleanup: \(totalBytes.formattedBytes)")
-                                .font(.subheadline)
-                                .foregroundStyle(Color.emerald)
-                        }
-                        Spacer()
-                    }
-                    .padding(.vertical, 4)
-
-                    ForEach(state.cleanCategories) { cat in
-                        HStack(spacing: 14) {
+                    ForEach(state.cleanCategories, id: \.id) { (cat: CleanCategory) in
+                        HStack(spacing: 12) {
                             Toggle(isOn: Binding(
                                 get: { state.selectedCategoryIDs.contains(cat.id) },
                                 set: { selected in
@@ -100,17 +90,16 @@ public struct SystemCleanView: View {
                             )) {
                                 EmptyView()
                             }
-                            .toggleStyle(.checkbox)
+                            .labelsHidden()
 
                             Image(systemName: cat.iconName)
-                                .font(.title2)
-                                .frame(width: 36, height: 36)
-                                .background(Color.accentColor.opacity(0.1))
-                                .clipShape(RoundedRectangle(cornerRadius: 8))
+                                .font(.system(size: 14))
+                                .foregroundStyle(.secondary)
+                                .frame(width: 22)
 
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(cat.title)
-                                    .font(.headline)
+                                    .font(.system(size: 13, weight: .medium))
                                 Text(cat.detail)
                                     .font(.caption)
                                     .foregroundStyle(.secondary)
@@ -118,28 +107,16 @@ public struct SystemCleanView: View {
 
                             Spacer()
 
-                            VStack(alignment: .trailing, spacing: 2) {
-                                Text(cat.formattedSize)
-                                    .font(.system(.body, design: .rounded).weight(.bold))
-                                Text("\(cat.itemCount) items")
-                                    .font(.caption2)
-                                    .foregroundStyle(.secondary)
-                            }
+                            Text(cat.formattedSize)
+                                .font(.subheadline.monospacedDigit())
+                                .foregroundStyle(.secondary)
                         }
-                        .padding(.vertical, 6)
+                        .padding(.vertical, 3)
                     }
                 }
                 .listStyle(.inset)
             }
         }
-        .task {
-            if state.cleanCategories.isEmpty {
-                await state.scanSystemCategories()
-            }
-        }
+        .background(Color(nsColor: .windowBackgroundColor))
     }
-}
-
-private extension Color {
-    static let emerald = Color(red: 16/255, green: 185/255, blue: 129/255)
 }

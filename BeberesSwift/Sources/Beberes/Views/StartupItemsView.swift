@@ -12,13 +12,13 @@ public struct StartupItemsView: View {
 
     public var body: some View {
         VStack(spacing: 0) {
-            // Header
-            HStack {
-                VStack(alignment: .leading, spacing: 4) {
+            // Standard Native Page Header
+            HStack(alignment: .center) {
+                VStack(alignment: .leading, spacing: 2) {
                     Text("Startup Items")
-                        .font(.system(size: 22, weight: .bold))
-                    Text("Control background services scheduled to launch automatically at boot or login.")
-                        .font(.system(size: 12))
+                        .font(.title2.weight(.bold))
+                    Text("Manage LaunchAgents and background daemons scheduled at login.")
+                        .font(.subheadline)
                         .foregroundStyle(.secondary)
                 }
 
@@ -30,175 +30,113 @@ public struct StartupItemsView: View {
                     Label("Refresh", systemImage: "arrow.clockwise")
                 }
                 .buttonStyle(.bordered)
+                .disabled(appState.isLoadingStartup)
             }
-            .padding(20)
-            .background(Color(nsColor: .controlBackgroundColor))
+            .padding(.horizontal, 24)
+            .padding(.top, 20)
+            .padding(.bottom, 16)
 
             Divider()
 
-            // Filter and summary bar
-            HStack {
-                HStack {
-                    Image(systemName: "magnifyingglass")
+            // Toast feedback
+            if let msg = appState.startupToastMessage {
+                HStack(spacing: 8) {
+                    Image(systemName: "checkmark.circle")
                         .foregroundStyle(.secondary)
-                    TextField("Filter startup items...", text: $appState.startupSearchText)
-                        .textFieldStyle(.plain)
+                    Text(msg)
+                        .font(.subheadline)
+                    Spacer()
+                    Button("Dismiss") { appState.startupToastMessage = nil }
+                        .font(.caption)
+                        .buttonStyle(.borderless)
                 }
-                .padding(8)
-                .background(Color(nsColor: .windowBackgroundColor))
-                .cornerRadius(8)
-                .frame(maxWidth: 300)
-
-                Spacer()
-
-                let total = appState.startupItems.count
-                let enabledCount = appState.startupItems.filter(\.isEnabled).count
-                Text("\(total) items (\(enabledCount) active)")
-                    .font(.system(size: 12, weight: .medium))
-                    .foregroundStyle(.secondary)
+                .padding(.horizontal, 24)
+                .padding(.vertical, 8)
+                .background(.bar)
+                Divider()
             }
-            .padding(.horizontal, 20)
-            .padding(.vertical, 10)
 
-            Divider()
-
-            // List
             if appState.isLoadingStartup {
-                VStack(spacing: 16) {
+                VStack(spacing: 12) {
                     ProgressView()
-                    Text("Scanning launch agents and daemons...")
-                        .font(.system(size: 13))
+                        .controlSize(.large)
+                    Text("Inspecting LaunchAgents and LaunchDaemons...")
+                        .font(.subheadline)
                         .foregroundStyle(.secondary)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else if appState.filteredStartupItems.isEmpty {
-                VStack(spacing: 12) {
-                    Image(systemName: "bolt.badge.checkmark")
-                        .font(.system(size: 40))
-                        .foregroundStyle(.secondary)
-                    Text("No startup items found")
-                        .font(.system(size: 15, weight: .semibold))
-                    Text("Your startup and login configuration is completely clean.")
-                        .font(.system(size: 13))
-                        .foregroundStyle(.secondary)
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                ContentUnavailableView(
+                    "No Startup Items",
+                    systemImage: "bolt",
+                    description: Text(appState.startupSearchText.isEmpty ? "No custom background startup items detected." : "No items match '\(appState.startupSearchText)'.")
+                )
             } else {
                 List {
                     ForEach(appState.filteredStartupItems) { item in
                         HStack(spacing: 14) {
-                            // Icon
-                            ZStack {
-                                Circle()
-                                    .fill(item.isEnabled ? Color.blue.opacity(0.15) : Color.secondary.opacity(0.1))
-                                    .frame(width: 36, height: 36)
-
-                                Image(systemName: item.isUser ? "person.crop.circle" : "gearshape.2.fill")
-                                    .font(.system(size: 16))
-                                    .foregroundStyle(item.isEnabled ? Color.blue : Color.secondary)
+                            Toggle(isOn: Binding(
+                                get: { item.isEnabled },
+                                set: { newValue in
+                                    Task { await appState.toggleStartupItem(item) }
+                                }
+                            )) {
+                                EmptyView()
                             }
+                            .labelsHidden()
 
-                            // Details
-                            VStack(alignment: .leading, spacing: 3) {
-                                HStack(spacing: 8) {
-                                    Text(item.name)
-                                        .font(.system(size: 13, weight: .semibold))
+                            Image(systemName: item.isUser ? "person" : "gearshape")
+                                .font(.system(size: 14))
+                                .foregroundStyle(.secondary)
+                                .frame(width: 20)
 
-                                    Text(item.kindLabel.uppercased())
-                                        .font(.system(size: 9, weight: .bold))
-                                        .padding(.horizontal, 6)
-                                        .padding(.vertical, 2)
-                                        .background(badgeColor(for: item.kindLabel).opacity(0.15))
-                                        .foregroundColor(badgeColor(for: item.kindLabel))
-                                        .cornerRadius(4)
-                                }
-
-                                if let prog = item.program {
-                                    Text(prog)
-                                        .font(.system(size: 11))
-                                        .foregroundStyle(.secondary)
-                                        .lineLimit(1)
-                                        .truncationMode(.middle)
-                                }
-
-                                Text(item.path)
-                                    .font(.system(size: 10))
-                                    .foregroundStyle(.tertiary)
-                                    .lineLimit(1)
-                                    .truncationMode(.middle)
+                            VStack(alignment: .leading, spacing: 1) {
+                                Text(item.name)
+                                    .font(.system(size: 13, weight: .medium))
+                                Text(item.label)
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
                             }
 
                             Spacer()
 
-                            // Toggle
-                            Toggle("", isOn: Binding(
-                                get: { item.isEnabled },
-                                set: { _ in
-                                    Task { await appState.toggleStartupItem(item) }
-                                }
-                            ))
-                            .toggleStyle(.switch)
-                            .labelsHidden()
+                            Text(item.kindLabel)
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
 
-                            // Remove
                             Button {
                                 itemToRemove = item
                                 showConfirmRemove = true
                             } label: {
                                 Image(systemName: "trash")
-                                    .foregroundStyle(.secondary)
+                                    .font(.caption)
                             }
-                            .buttonStyle(.plain)
-                            .help("Remove launch configuration")
+                            .buttonStyle(.borderless)
+                            .help("Remove startup item")
                         }
-                        .padding(.vertical, 6)
+                        .padding(.vertical, 3)
                     }
                 }
                 .listStyle(.inset)
             }
         }
-        .task {
-            if appState.startupItems.isEmpty {
-                await appState.fetchStartupItems()
-            }
-        }
+        .searchable(text: $appState.startupSearchText, prompt: "Filter startup items")
+        .background(Color(nsColor: .windowBackgroundColor))
         .confirmationDialog(
-            "Remove \(itemToRemove?.name ?? "Startup Item")?",
+            "Remove Startup Item?",
             isPresented: $showConfirmRemove,
-            presenting: itemToRemove
-        ) { item in
-            Button("Remove & Move to Trash", role: .destructive) {
-                Task { await appState.removeStartupItem(item) }
+            titleVisibility: .visible
+        ) {
+            Button("Remove Plist File", role: .destructive) {
+                if let item = itemToRemove {
+                    Task { await appState.removeStartupItem(item) }
+                }
             }
             Button("Cancel", role: .cancel) {}
-        } message: { item in
-            Text("This will deactivate \(item.name) and move the plist file at \(item.path) to macOS Trash.")
-        }
-        .overlay(alignment: .bottom) {
-            if let toast = appState.startupToastMessage {
-                Text(toast)
-                    .font(.system(size: 12, weight: .medium))
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 8)
-                    .background(.ultraThinMaterial)
-                    .cornerRadius(8)
-                    .shadow(radius: 4)
-                    .padding(.bottom, 20)
-                    .onAppear {
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
-                            appState.startupToastMessage = nil
-                        }
-                    }
+        } message: {
+            if let item = itemToRemove {
+                Text("This will delete '\(item.name)' configuration plist file and unregister it from launchd.")
             }
-        }
-    }
-
-    private func badgeColor(for kind: String) -> Color {
-        switch kind {
-        case "User Agent": return .blue
-        case "Global Agent": return .purple
-        case "Global Daemon": return .orange
-        default: return .secondary
         }
     }
 }

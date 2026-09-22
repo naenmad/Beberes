@@ -27,13 +27,13 @@ public struct GitSweeperView: View {
 
     public var body: some View {
         VStack(spacing: 0) {
-            // Header Bar
-            HStack {
-                VStack(alignment: .leading, spacing: 3) {
+            // Standard Native Page Header
+            HStack(alignment: .center) {
+                VStack(alignment: .leading, spacing: 2) {
                     Text("Git Sweeper")
-                        .font(.system(size: 20, weight: .bold, design: .rounded))
+                        .font(.title2.weight(.bold))
                     Text("Detect merged branches and maintain lightweight git repository metadata.")
-                        .font(.system(size: 11))
+                        .font(.subheadline)
                         .foregroundStyle(.secondary)
                 }
 
@@ -42,53 +42,66 @@ public struct GitSweeperView: View {
                 Button {
                     Task { await runScan() }
                 } label: {
-                    Label(isScanning ? "Scanning Repositories..." : "Scan Repositories", systemImage: "arrow.clockwise")
+                    Label(isScanning ? "Scanning..." : "Scan Repositories", systemImage: "arrow.clockwise")
                 }
                 .disabled(isScanning)
                 .buttonStyle(.borderedProminent)
             }
             .padding(.horizontal, 24)
-            .padding(.top, 18)
-            .padding(.bottom, 14)
+            .padding(.top, 20)
+            .padding(.bottom, 16)
 
             Divider()
+
+            if let status = statusMessage {
+                HStack(spacing: 8) {
+                    Image(systemName: "checkmark.circle")
+                        .foregroundStyle(.secondary)
+                    Text(status)
+                        .font(.subheadline)
+                    Spacer()
+                    Button("Dismiss") { statusMessage = nil }
+                        .font(.caption)
+                        .buttonStyle(.borderless)
+                }
+                .padding(.horizontal, 24)
+                .padding(.vertical, 8)
+                .background(.bar)
+                Divider()
+            }
 
             if isScanning {
                 VStack(spacing: 12) {
                     ProgressView()
                         .controlSize(.large)
                     Text("Scanning workspace roots for active Git repositories...")
-                        .font(.system(size: 12))
+                        .font(.subheadline)
                         .foregroundStyle(.secondary)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else if repos.isEmpty {
-                VStack(spacing: 12) {
-                    Image(systemName: "arrow.triangle.branch")
-                        .font(.system(size: 36))
-                        .foregroundStyle(.secondary)
-                    Text("Click Scan Repositories to analyze git branches in ~/Developer and ~/Projects.")
-                        .font(.system(size: 13))
-                        .foregroundStyle(.secondary)
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                ContentUnavailableView(
+                    "No Repositories Scanned",
+                    systemImage: "arrow.triangle.branch",
+                    description: Text("Scan your workspace roots to discover local repositories and prune merged branches.")
+                )
             } else {
                 // Summary bar
                 HStack(spacing: 16) {
-                    HStack(spacing: 8) {
-                        Image(systemName: "folder.fill")
-                            .foregroundStyle(Color.accentColor)
-                        Text("\(repos.count) Git Repositories Discovered")
-                            .font(.system(size: 12, weight: .medium))
+                    HStack(spacing: 6) {
+                        Image(systemName: "folder")
+                            .foregroundStyle(.secondary)
+                        Text("\(repos.count) Repositories")
+                            .font(.subheadline.weight(.medium))
                     }
 
                     Spacer()
 
-                    HStack(spacing: 8) {
+                    HStack(spacing: 6) {
                         Image(systemName: "arrow.triangle.branch")
-                            .foregroundStyle(totalMergedBranchesCount > 0 ? Color(red: 239/255, green: 68/255, blue: 68/255) : Color.secondary)
+                            .foregroundStyle(.secondary)
                         Text("\(totalMergedBranchesCount) Stale Merged Branches")
-                            .font(.system(size: 12, weight: .semibold))
+                            .font(.subheadline.weight(.semibold))
                     }
                 }
                 .padding(.horizontal, 24)
@@ -97,62 +110,42 @@ public struct GitSweeperView: View {
 
                 Divider()
 
-                if let status = statusMessage {
-                    HStack(spacing: 8) {
-                        Image(systemName: "info.circle")
-                            .foregroundStyle(Color.accentColor)
-                        Text(status)
-                            .font(.system(size: 11))
-                        Spacer()
-                    }
-                    .padding(.horizontal, 14)
-                    .padding(.vertical, 8)
-                    .background(Color.accentColor.opacity(0.1))
-                    .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
-                    .padding(.horizontal, 24)
-                    .padding(.top, 10)
-                }
-
                 // Repositories List
                 List {
                     ForEach(repos) { repo in
-                        VStack(alignment: .leading, spacing: 10) {
+                        VStack(alignment: .leading, spacing: 8) {
                             HStack(alignment: .top) {
-                                VStack(alignment: .leading, spacing: 3) {
+                                VStack(alignment: .leading, spacing: 2) {
                                     HStack(spacing: 8) {
                                         Text(repo.name)
-                                            .font(.system(size: 14, weight: .bold))
+                                            .font(.system(size: 13, weight: .semibold))
 
                                         Text(repo.activeBranch)
-                                            .font(.system(size: 10, weight: .semibold, design: .monospaced))
-                                            .padding(.horizontal, 6)
-                                            .padding(.vertical, 2)
-                                            .background(Color.accentColor.opacity(0.15))
-                                            .foregroundStyle(Color.accentColor)
-                                            .clipShape(Capsule())
+                                            .font(.caption2.monospaced())
+                                            .padding(.horizontal, 5)
+                                            .padding(.vertical, 1.5)
+                                            .background(Color.secondary.opacity(0.12))
+                                            .foregroundStyle(.secondary)
+                                            .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
 
                                         if repo.hasUncommittedChanges {
-                                            Text("Uncommitted Changes")
-                                                .font(.system(size: 9, weight: .semibold))
-                                                .padding(.horizontal, 5)
-                                                .padding(.vertical, 1.5)
-                                                .background(Color.orange.opacity(0.15))
-                                                .foregroundStyle(Color.orange)
-                                                .clipShape(Capsule())
+                                            Text("Modified")
+                                                .font(.caption2)
+                                                .foregroundStyle(.orange)
                                         }
                                     }
 
                                     Text(repo.path)
-                                        .font(.system(size: 11))
-                                        .foregroundStyle(.secondary)
+                                        .font(.caption2)
+                                        .foregroundStyle(.tertiary)
                                         .lineLimit(1)
                                 }
 
                                 Spacer()
 
                                 VStack(alignment: .trailing, spacing: 4) {
-                                    Text(".git size: \(repo.formattedGitSize)")
-                                        .font(.system(size: 11, design: .monospaced))
+                                    Text(".git: \(repo.formattedGitSize)")
+                                        .font(.caption.monospacedDigit())
                                         .foregroundStyle(.secondary)
 
                                     HStack(spacing: 6) {
@@ -166,11 +159,10 @@ public struct GitSweeperView: View {
                                         .help("Reveal in Finder")
 
                                         if !repo.mergedBranches.isEmpty {
-                                            Button("Prune Merged (\(repo.mergedBranches.count))") {
+                                            Button("Prune Merged (\(repo.mergedBranches.count))", role: .destructive) {
                                                 Task { await pruneRepo(repo) }
                                             }
-                                            .buttonStyle(.borderedProminent)
-                                            .tint(Color(red: 239/255, green: 68/255, blue: 68/255))
+                                            .buttonStyle(.bordered)
                                             .controlSize(.small)
                                         }
                                     }
@@ -180,34 +172,35 @@ public struct GitSweeperView: View {
                             // Merged branches list
                             if !repo.mergedBranches.isEmpty {
                                 VStack(alignment: .leading, spacing: 4) {
-                                    Text("Safe to delete (already merged into active branch):")
-                                        .font(.system(size: 10, weight: .medium))
+                                    Text("Merged into active branch:")
+                                        .font(.caption2)
                                         .foregroundStyle(.secondary)
 
                                     ScrollView(.horizontal, showsIndicators: false) {
                                         HStack(spacing: 6) {
                                             ForEach(repo.mergedBranches, id: \.self) { branch in
                                                 Text(branch)
-                                                    .font(.system(size: 10, design: .monospaced))
-                                                    .padding(.horizontal, 6)
-                                                    .padding(.vertical, 2)
-                                                    .background(Color.secondary.opacity(0.12))
-                                                    .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
+                                                    .font(.caption2.monospaced())
+                                                    .padding(.horizontal, 5)
+                                                    .padding(.vertical, 1.5)
+                                                    .background(Color.secondary.opacity(0.1))
+                                                    .clipShape(RoundedRectangle(cornerRadius: 3, style: .continuous))
                                             }
                                         }
                                     }
                                 }
                                 .padding(8)
-                                .background(Color(nsColor: .controlBackgroundColor).opacity(0.7))
+                                .background(Color(nsColor: .controlBackgroundColor).opacity(0.6))
                                 .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
                             }
                         }
-                        .padding(.vertical, 6)
+                        .padding(.vertical, 4)
                     }
                 }
                 .listStyle(.inset)
             }
         }
+        .background(Color(nsColor: .windowBackgroundColor))
         .task {
             if repos.isEmpty {
                 await runScan()

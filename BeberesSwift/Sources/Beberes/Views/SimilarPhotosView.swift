@@ -12,13 +12,13 @@ public struct SimilarPhotosView: View {
 
     public var body: some View {
         VStack(spacing: 0) {
-            // Header Bar
-            HStack {
-                VStack(alignment: .leading, spacing: 3) {
-                    Text("Similar & Duplicate Photos")
-                        .font(.system(size: 20, weight: .bold, design: .rounded))
+            // Standard Native Page Header
+            HStack(alignment: .center) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Similar Photos")
+                        .font(.title2.weight(.bold))
                     Text("Identify redundant screenshots and duplicate media across Pictures and Desktop.")
-                        .font(.system(size: 11))
+                        .font(.subheadline)
                         .foregroundStyle(.secondary)
                 }
 
@@ -27,14 +27,14 @@ public struct SimilarPhotosView: View {
                 Button {
                     Task { await scanMedia() }
                 } label: {
-                    Label(isScanning ? "Scanning Media..." : "Scan Media", systemImage: "photo.stack")
+                    Label(isScanning ? "Scanning..." : "Scan Media", systemImage: "photo.stack")
                 }
                 .disabled(isScanning)
                 .buttonStyle(.borderedProminent)
             }
             .padding(.horizontal, 24)
-            .padding(.top, 18)
-            .padding(.bottom, 14)
+            .padding(.top, 20)
+            .padding(.bottom, 16)
 
             Divider()
 
@@ -43,20 +43,16 @@ public struct SimilarPhotosView: View {
                     ProgressView()
                         .controlSize(.large)
                     Text("Analyzing image libraries and screenshots for redundant captures...")
-                        .font(.system(size: 12))
+                        .font(.subheadline)
                         .foregroundStyle(.secondary)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else if duplicateImages.isEmpty {
-                VStack(spacing: 12) {
-                    Image(systemName: "photo.on.rectangle.angled")
-                        .font(.system(size: 36))
-                        .foregroundStyle(.secondary)
-                    Text("Click Scan Media to detect duplicate photos or redundant screenshots.")
-                        .font(.system(size: 13))
-                        .foregroundStyle(.secondary)
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                ContentUnavailableView(
+                    "No Similar Photos",
+                    systemImage: "photo.stack",
+                    description: Text("Scan media to detect duplicate photos or redundant screenshots.")
+                )
             } else {
                 List {
                     ForEach(duplicateImages) { group in
@@ -65,17 +61,17 @@ public struct SimilarPhotosView: View {
                                 Text(group.label)
                                     .font(.system(size: 13, weight: .semibold))
                                 Spacer()
-                                Text("\(group.items.count) items, \(group.wastedBytes.formattedBytes) reclaimable")
-                                    .font(.system(size: 11, design: .monospaced))
+                                Text("\(group.items.count) items • \(group.wastedBytes.formattedBytes) reclaimable")
+                                    .font(.subheadline.monospacedDigit())
                                     .foregroundStyle(.secondary)
                             }
 
                             ForEach(group.items, id: \.self) { path in
                                 HStack {
                                     Image(systemName: "photo")
-                                        .foregroundStyle(.pink)
+                                        .foregroundStyle(.secondary)
                                     Text(URL(fileURLWithPath: path).lastPathComponent)
-                                        .font(.system(size: 11))
+                                        .font(.system(size: 12))
                                     Spacer()
                                     Button {
                                         NSWorkspace.shared.selectFile(path, inFileViewerRootedAtPath: "")
@@ -84,15 +80,17 @@ public struct SimilarPhotosView: View {
                                             .font(.system(size: 11))
                                     }
                                     .buttonStyle(.borderless)
+                                    .help("Reveal in Finder")
                                 }
                             }
                         }
-                        .padding(.vertical, 6)
+                        .padding(.vertical, 4)
                     }
                 }
                 .listStyle(.inset)
             }
         }
+        .background(Color(nsColor: .windowBackgroundColor))
         .task {
             if duplicateImages.isEmpty {
                 await scanMedia()

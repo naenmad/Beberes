@@ -9,103 +9,88 @@ public struct DevWorkspaceView: View {
 
     public var body: some View {
         VStack(spacing: 0) {
-            // Header Bar
-            HStack {
+            // Standard Native Page Header
+            HStack(alignment: .center) {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Developer Workspace")
-                        .font(.title2.bold())
-                    Text("Hibernate disposable build artifacts in dormant Git repositories")
+                    Text("Dev Workspace")
+                        .font(.title2.weight(.bold))
+                    Text("Hibernate disposable build caches in inactive Git projects.")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                 }
 
                 Spacer()
 
-                // Inactivity Threshold Picker
-                Picker("Inactivity Threshold", selection: $state.inactivityThresholdDays) {
+                Picker("Threshold", selection: $state.inactivityThresholdDays) {
                     Text("30 Days").tag(30)
                     Text("60 Days").tag(60)
                     Text("90 Days").tag(90)
                 }
                 .pickerStyle(.segmented)
-                .frame(width: 220)
+                .frame(width: 210)
                 .onChange(of: state.inactivityThresholdDays) { _, _ in
                     Task { await state.scanDormantProjects() }
                 }
 
-                Button(action: {
+                Button {
                     Task { await state.scanDormantProjects() }
-                }) {
-                    Label("Scan Projects", systemImage: "arrow.clockwise")
+                } label: {
+                    Label("Rescan", systemImage: "arrow.clockwise")
                 }
+                .buttonStyle(.bordered)
                 .disabled(state.isLoadingProjects)
             }
-            .padding()
-            .background(.bar)
+            .padding(.horizontal, 24)
+            .padding(.top, 20)
+            .padding(.bottom, 16)
 
             Divider()
 
-            // Toast Message
+            // Feedback Message
             if let msg = state.hibernateToastMessage {
-                HStack {
+                HStack(spacing: 8) {
+                    Image(systemName: "checkmark.circle")
+                        .foregroundStyle(.secondary)
                     Text(msg)
-                        .font(.footnote)
-                        .foregroundStyle(.primary)
+                        .font(.subheadline)
                     Spacer()
                     Button("Dismiss") { state.hibernateToastMessage = nil }
                         .font(.caption)
+                        .buttonStyle(.borderless)
                 }
-                .padding(.horizontal)
+                .padding(.horizontal, 24)
                 .padding(.vertical, 8)
-                .background(Color.emerald.opacity(0.12))
+                .background(.bar)
+                Divider()
             }
 
-            // Content
             if state.isLoadingProjects {
-                Spacer()
                 VStack(spacing: 12) {
                     ProgressView()
-                    Text("Scanning Developer folders for git repos and build artifacts...")
+                        .controlSize(.large)
+                    Text("Scanning Developer directories for dormant build artifacts...")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                 }
-                Spacer()
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else if state.dormantProjects.isEmpty {
-                Spacer()
-                VStack(spacing: 8) {
-                    Image(systemName: "sparkles")
-                        .font(.system(size: 44))
-                        .foregroundStyle(.secondary)
-                    Text("No dormant projects found")
-                        .font(.headline)
-                    Text("All your projects have recent commits (within \(state.inactivityThresholdDays) days), or have already been hibernated.")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                }
-                Spacer()
+                ContentUnavailableView(
+                    "No Inactive Projects Found",
+                    systemImage: "hammer",
+                    description: Text("All detected projects have recent Git commits within \(state.inactivityThresholdDays) days or have already been hibernated.")
+                )
             } else {
                 List {
-                    // Summary Banner
-                    let totalReclaimable = state.dormantProjects.reduce(0) { $0 + $1.totalReclaimableBytes }
-                    HStack {
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text("\(state.dormantProjects.count) Inactive Projects Found")
-                                .font(.headline)
-                            Text("Total Reclaimable: \(totalReclaimable.formattedBytes)")
-                                .font(.subheadline)
-                                .foregroundStyle(.secondary)
-                        }
-                        Spacer()
-                    }
-                    .padding(.vertical, 6)
-
-                    // Project Cards
                     ForEach(state.dormantProjects) { project in
-                        VStack(alignment: .leading, spacing: 10) {
-                            HStack {
-                                VStack(alignment: .leading, spacing: 2) {
+                        VStack(alignment: .leading, spacing: 8) {
+                            HStack(alignment: .center) {
+                                Image(systemName: "folder")
+                                    .font(.system(size: 14))
+                                    .foregroundStyle(.secondary)
+
+                                VStack(alignment: .leading, spacing: 1) {
                                     Text(project.name)
-                                        .font(.headline)
+                                        .font(.system(size: 13, weight: .semibold))
                                     Text(project.path)
                                         .font(.caption)
                                         .foregroundStyle(.secondary)
@@ -114,55 +99,36 @@ public struct DevWorkspaceView: View {
 
                                 Spacer()
 
-                                StatusBadge("\(project.inactiveDays) days inactive", systemImage: "clock", color: .orange)
-                                StatusBadge(project.formattedReclaimable, systemImage: "arrow.down.circle", color: .emerald)
+                                Text(project.formattedReclaimable)
+                                    .font(.subheadline.monospacedDigit())
+                                    .foregroundStyle(.secondary)
 
-                                Button(action: {
+                                Button("Hibernate") {
                                     Task { await state.hibernate(project: project) }
-                                }) {
-                                    if state.hibernatingPath == project.path {
-                                        ProgressView().controlSize(.small)
-                                    } else {
-                                        Text("Hibernate")
-                                    }
                                 }
-                                .buttonStyle(.borderedProminent)
-                                .tint(.emerald)
-                                .disabled(state.hibernatingPath != nil)
+                                .buttonStyle(.bordered)
+                                .controlSize(.small)
+                                .disabled(state.hibernatingPath == project.path)
                             }
 
-                            // Commit Subject
-                            Text("Last commit: \"\(project.lastCommitSubject)\"")
-                                .font(.caption)
-                                .italic()
-                                .foregroundStyle(.secondary)
-
-                            // Artifacts Tags
+                            // Artifacts list
                             HStack(spacing: 6) {
                                 ForEach(project.artifacts) { art in
-                                    Text("\(art.name): \(art.formattedSize)")
-                                        .font(.system(size: 11, design: .monospaced))
+                                    Text("\(art.name) (\(art.formattedSize))")
+                                        .font(.caption2.monospaced())
                                         .padding(.horizontal, 6)
                                         .padding(.vertical, 2)
-                                        .background(Color(nsColor: .controlBackgroundColor))
-                                        .clipShape(RoundedRectangle(cornerRadius: 4))
+                                        .background(Color.secondary.opacity(0.1))
+                                        .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
                                 }
                             }
                         }
-                        .padding(.vertical, 8)
+                        .padding(.vertical, 4)
                     }
                 }
                 .listStyle(.inset)
             }
         }
-        .task {
-            if state.dormantProjects.isEmpty {
-                await state.scanDormantProjects()
-            }
-        }
+        .background(Color(nsColor: .windowBackgroundColor))
     }
-}
-
-private extension Color {
-    static let emerald = Color(red: 16/255, green: 185/255, blue: 129/255)
 }
