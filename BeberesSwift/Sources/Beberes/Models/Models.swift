@@ -1,33 +1,78 @@
 import Foundation
 
 // MARK: - Navigation Target
+public enum NavigationGroup: String, CaseIterable, Identifiable, Sendable {
+    case overview = "OVERVIEW"
+    case cleaning = "CLEANING"
+    case organization = "ORGANIZATION"
+    case developer = "DEVELOPER"
+
+    public var id: String { rawValue }
+}
+
 public enum NavigationSection: String, CaseIterable, Identifiable, Hashable, Sendable {
+    // Overview
     case dashboard = "Dashboard"
-    case devWorkspace = "Developer Workspace"
-    case zombiePorts = "Zombie Ports"
+    case hardware = "Hardware"
+
+    // Cleaning
     case systemClean = "System Clean"
-    case largeFiles = "Large & Duplicates"
     case appUninstaller = "App Uninstaller"
     case trashManager = "Trash Manager"
-    case startupItems = "Startup Items"
-    case hardware = "Hardware Info"
     case fileShredder = "File Shredder"
+
+    // Organization
+    case tidyUp = "Tidy Up"
+    case largeFiles = "Large & Duplicates"
+    case quickReview = "Quick Review"
+    case diskVisualizer = "Disk Visualizer"
+    case similarPhotos = "Similar Photos"
+
+    // Developer
+    case devWorkspace = "Dev Workspace"
+    case gitSweeper = "Git Sweeper"
+    case startupItems = "Startup Manager"
+    case zombiePorts = "Zombie Ports"
+    case plugins = "Plugins"
+
+    // Preferences
     case settings = "Settings"
 
     public var id: String { rawValue }
 
+    public var group: NavigationGroup? {
+        switch self {
+        case .dashboard, .hardware:
+            return .overview
+        case .systemClean, .appUninstaller, .trashManager, .fileShredder:
+            return .cleaning
+        case .tidyUp, .largeFiles, .quickReview, .diskVisualizer, .similarPhotos:
+            return .organization
+        case .devWorkspace, .gitSweeper, .startupItems, .zombiePorts, .plugins:
+            return .developer
+        case .settings:
+            return nil
+        }
+    }
+
     public var iconName: String {
         switch self {
-        case .dashboard: return "gauge.with.needle"
-        case .devWorkspace: return "hammer"
-        case .zombiePorts: return "network"
+        case .dashboard: return "square.grid.2x2"
+        case .hardware: return "waveform.path.ecg"
         case .systemClean: return "sparkles"
-        case .largeFiles: return "doc.on.doc"
-        case .appUninstaller: return "trash"
-        case .trashManager: return "trash.circle"
-        case .startupItems: return "bolt.badge.clock"
-        case .hardware: return "cpu"
-        case .fileShredder: return "flame"
+        case .appUninstaller: return "app.badge"
+        case .trashManager: return "trash"
+        case .fileShredder: return "shield.lefthalf.filled"
+        case .tidyUp: return "folder.badge.gearshape"
+        case .largeFiles: return "square.stack.3d.up"
+        case .quickReview: return "eye"
+        case .diskVisualizer: return "chart.pie"
+        case .similarPhotos: return "photo.stack"
+        case .devWorkspace: return "hammer"
+        case .gitSweeper: return "arrow.triangle.branch"
+        case .startupItems: return "bolt"
+        case .zombiePorts: return "network"
+        case .plugins: return "puzzlepiece.extension"
         case .settings: return "gearshape"
         }
     }
@@ -388,6 +433,102 @@ public struct TrashItem: Identifiable, Hashable, Sendable {
 
     public var formattedSize: String {
         sizeBytes.formattedBytes
+    }
+}
+
+// MARK: - Tidy Up Models
+public struct TidyItem: Identifiable, Hashable, Sendable {
+    public var id: String { path }
+    public let name: String
+    public let path: String
+    public let sizeBytes: Int64
+    public let category: String
+    public let targetFolder: String
+    public let isRedundantInstaller: Bool
+    public let installedAppName: String?
+    public let lastModified: Date
+
+    public init(
+        name: String,
+        path: String,
+        sizeBytes: Int64,
+        category: String,
+        targetFolder: String,
+        isRedundantInstaller: Bool = false,
+        installedAppName: String? = nil,
+        lastModified: Date = Date()
+    ) {
+        self.name = name
+        self.path = path
+        self.sizeBytes = sizeBytes
+        self.category = category
+        self.targetFolder = targetFolder
+        self.isRedundantInstaller = isRedundantInstaller
+        self.installedAppName = installedAppName
+        self.lastModified = lastModified
+    }
+
+    public var formattedSize: String {
+        sizeBytes.formattedBytes
+    }
+}
+
+public struct TidyScanResult: Sendable {
+    public let sourcePath: String
+    public let items: [TidyItem]
+    public let totalFiles: Int
+    public let totalBytes: Int64
+    public let redundantInstallersCount: Int
+    public let redundantInstallersBytes: Int64
+
+    public init(
+        sourcePath: String,
+        items: [TidyItem],
+        totalFiles: Int,
+        totalBytes: Int64,
+        redundantInstallersCount: Int,
+        redundantInstallersBytes: Int64
+    ) {
+        self.sourcePath = sourcePath
+        self.items = items
+        self.totalFiles = totalFiles
+        self.totalBytes = totalBytes
+        self.redundantInstallersCount = redundantInstallersCount
+        self.redundantInstallersBytes = redundantInstallersBytes
+    }
+}
+
+// MARK: - Git Sweeper Models
+public struct GitRepoItem: Identifiable, Hashable, Sendable {
+    public var id: String { path }
+    public let name: String
+    public let path: String
+    public let gitFolderSizeBytes: Int64
+    public let activeBranch: String
+    public let mergedBranches: [String]
+    public let hasUncommittedChanges: Bool
+    public let lastCommitDate: Date
+
+    public init(
+        name: String,
+        path: String,
+        gitFolderSizeBytes: Int64,
+        activeBranch: String,
+        mergedBranches: [String],
+        hasUncommittedChanges: Bool,
+        lastCommitDate: Date
+    ) {
+        self.name = name
+        self.path = path
+        self.gitFolderSizeBytes = gitFolderSizeBytes
+        self.activeBranch = activeBranch
+        self.mergedBranches = mergedBranches
+        self.hasUncommittedChanges = hasUncommittedChanges
+        self.lastCommitDate = lastCommitDate
+    }
+
+    public var formattedGitSize: String {
+        gitFolderSizeBytes.formattedBytes
     }
 }
 

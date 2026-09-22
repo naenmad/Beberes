@@ -70,7 +70,7 @@ public struct AppUninstallerView: View {
                 } else {
                     List(appState.filteredApps, selection: $appState.selectedApp) { app in
                         HStack(spacing: 12) {
-                            AppIconView(path: app.path)
+                            AppBundleIconView(path: app.path)
                                 .frame(width: 36, height: 36)
 
                             VStack(alignment: .leading, spacing: 2) {
@@ -175,8 +175,8 @@ public struct AppUninstallerView: View {
     }
 }
 
-// MARK: - App Icon View
-struct AppIconView: View {
+// MARK: - App Bundle Icon View
+struct AppBundleIconView: View {
     let path: String
 
     var body: some View {
@@ -202,7 +202,7 @@ struct AppDetailInspectorView: View {
         VStack(spacing: 0) {
             // Header card
             HStack(spacing: 16) {
-                AppIconView(path: app.path)
+                AppBundleIconView(path: app.path)
                     .frame(width: 64, height: 64)
 
                 VStack(alignment: .leading, spacing: 4) {

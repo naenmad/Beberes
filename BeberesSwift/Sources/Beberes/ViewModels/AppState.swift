@@ -365,5 +365,14 @@ public final class AppState {
     public func revealTrashItem(_ item: TrashItem) {
         trashManagerService.revealInFinder(path: item.path)
     }
+
+    // MARK: - Global Refresh
+    public func refreshAll() async {
+        refreshSystemStats()
+        refreshHardware()
+        await fetchPorts()
+        await scanDormantProjects()
+        await fetchTrashItems()
+    }
 }
 

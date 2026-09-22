@@ -8,45 +8,56 @@ public struct MainView: View {
     public var body: some View {
         NavigationSplitView {
             SidebarView(state: state)
-                .navigationSplitViewColumnWidth(min: 200, ideal: 230, max: 280)
+                .navigationSplitViewColumnWidth(min: 210, ideal: 235, max: 280)
         } detail: {
             Group {
                 switch state.selectedSection {
+                // OVERVIEW
                 case .dashboard:
                     DashboardView(state: state)
-                case .devWorkspace:
-                    DevWorkspaceView(state: state)
-                case .zombiePorts:
-                    ZombiePortsView(state: state)
+                case .hardware:
+                    HardwareView(appState: state)
+
+                // CLEANING
                 case .systemClean:
                     SystemCleanView(state: state)
-                case .largeFiles:
-                    LargeFilesView(appState: state)
                 case .appUninstaller:
                     AppUninstallerView(appState: state)
                 case .trashManager:
                     TrashManagerView(appState: state)
-                case .startupItems:
-                    StartupItemsView(appState: state)
-                case .hardware:
-                    HardwareView(appState: state)
                 case .fileShredder:
                     FileShredderView(appState: state)
-                default:
-                    VStack(spacing: 12) {
-                        Image(systemName: state.selectedSection.iconName)
-                            .font(.system(size: 48))
-                            .foregroundStyle(.secondary)
-                        Text(state.selectedSection.rawValue)
-                            .font(.title2.bold())
-                        Text("Settings & preferences are being integrated.")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+
+                // ORGANIZATION
+                case .tidyUp:
+                    TidyUpView(state: state)
+                case .largeFiles:
+                    LargeFilesView(appState: state)
+                case .quickReview:
+                    QuickReviewView(state: state)
+                case .diskVisualizer:
+                    DiskVisualizerView(state: state)
+                case .similarPhotos:
+                    SimilarPhotosView(state: state)
+
+                // DEVELOPER
+                case .devWorkspace:
+                    DevWorkspaceView(state: state)
+                case .gitSweeper:
+                    GitSweeperView(state: state)
+                case .startupItems:
+                    StartupItemsView(appState: state)
+                case .zombiePorts:
+                    ZombiePortsView(state: state)
+                case .plugins:
+                    PluginsView(state: state)
+
+                // PREFERENCES
+                case .settings:
+                    SettingsView(state: state)
                 }
             }
         }
-        .frame(minWidth: 850, minHeight: 550)
+        .frame(minWidth: 920, minHeight: 580)
     }
 }

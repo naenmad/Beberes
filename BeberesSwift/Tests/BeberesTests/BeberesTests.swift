@@ -95,6 +95,43 @@ struct BeberesTests {
         // Trash scan should execute cleanly without crashing
         #expect(items.count >= 0)
     }
+
+    @Test("NavigationSection correctly maps to 4 Tauri groups")
+    func testNavigationGroups() {
+        #expect(NavigationSection.dashboard.group == .overview)
+        #expect(NavigationSection.hardware.group == .overview)
+        #expect(NavigationSection.systemClean.group == .cleaning)
+        #expect(NavigationSection.appUninstaller.group == .cleaning)
+        #expect(NavigationSection.trashManager.group == .cleaning)
+        #expect(NavigationSection.fileShredder.group == .cleaning)
+        #expect(NavigationSection.tidyUp.group == .organization)
+        #expect(NavigationSection.largeFiles.group == .organization)
+        #expect(NavigationSection.devWorkspace.group == .developer)
+        #expect(NavigationSection.gitSweeper.group == .developer)
+        #expect(NavigationSection.startupItems.group == .developer)
+        #expect(NavigationSection.zombiePorts.group == .developer)
+        #expect(NavigationSection.plugins.group == .developer)
+        #expect(NavigationSection.settings.group == nil)
+    }
+
+    @Test("TidyUpService scans folder safely")
+    func testTidyUpScan() async throws {
+        let tempDir = FileManager.default.temporaryDirectory.appendingPathComponent("beberes_tidy_\(UUID().uuidString)")
+        try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: tempDir) }
+
+        // Create dummy screenshot and document
+        let screenshotURL = tempDir.appendingPathComponent("Screen Shot 2026-09-22 at 12.00.00.png")
+        let docURL = tempDir.appendingPathComponent("report.pdf")
+        try "fake image".data(using: .utf8)?.write(to: screenshotURL)
+        try "fake doc".data(using: .utf8)?.write(to: docURL)
+
+        let result = await TidyUpService.shared.scan(sourceDirectory: tempDir)
+        #expect(result.totalFiles == 2)
+        #expect(result.items.contains { $0.category == "Screenshots" })
+        #expect(result.items.contains { $0.category == "Documents" })
+    }
 }
+
 
 
