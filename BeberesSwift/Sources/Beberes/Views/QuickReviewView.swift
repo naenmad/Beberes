@@ -54,26 +54,23 @@ public struct QuickReviewView: View {
                             ReviewModuleCard(
                                 title: "System Caches & Logs",
                                 icon: "sparkles",
-                                color: Color(red: 16/255, green: 185/255, blue: 129/255),
-                                status: "Ready to analyze",
+                                status: "User caches, system logs, and development artifacts",
                                 actionTitle: "Open System Clean",
                                 onAction: { state.selectedSection = .systemClean }
                             )
 
                             ReviewModuleCard(
                                 title: "Trash Can Items",
-                                icon: "trash.fill",
-                                color: .orange,
-                                status: "\(state.trashItems.count) items ready to purge",
+                                icon: "trash",
+                                status: "\(state.trashItems.count) items in Trash",
                                 actionTitle: "Open Trash Manager",
                                 onAction: { state.selectedSection = .trashManager }
                             )
 
                             ReviewModuleCard(
                                 title: "Dormant Dev Workspaces",
-                                icon: "hammer.fill",
-                                color: .blue,
-                                status: "\(state.dormantProjects.count) dormant projects detected",
+                                icon: "hammer",
+                                status: "\(state.dormantProjects.count) inactive projects detected",
                                 actionTitle: "Open Dev Workspace",
                                 onAction: { state.selectedSection = .devWorkspace }
                             )
@@ -81,16 +78,14 @@ public struct QuickReviewView: View {
                             ReviewModuleCard(
                                 title: "Desktop & Downloads Clutter",
                                 icon: "folder.badge.gearshape",
-                                color: .purple,
-                                status: "Analyze installers and redundant files",
+                                status: "Installers, redundant files, and screenshots",
                                 actionTitle: "Open Tidy Up",
                                 onAction: { state.selectedSection = .tidyUp }
                             )
 
                             ReviewModuleCard(
                                 title: "Large & Duplicate Files",
-                                icon: "square.stack.3d.up.fill",
-                                color: .indigo,
+                                icon: "doc.on.doc",
                                 status: "\(state.largeFiles.count) files scanned",
                                 actionTitle: "Open Large Files",
                                 onAction: { state.selectedSection = .largeFiles }
@@ -99,14 +94,13 @@ public struct QuickReviewView: View {
                             ReviewModuleCard(
                                 title: "Listening Network Ports",
                                 icon: "network",
-                                color: .cyan,
                                 status: "\(state.ports.count) active TCP listeners",
                                 actionTitle: "Open Zombie Ports",
                                 onAction: { state.selectedSection = .zombiePorts }
                             )
                         }
                     }
-                    .padding(24)
+                    .padding(20)
                 }
             }
         }
@@ -124,23 +118,20 @@ public struct QuickReviewView: View {
 private struct ReviewModuleCard: View {
     let title: String
     let icon: String
-    let color: Color
     let status: String
     let actionTitle: String
     let onAction: () -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: 8) {
                 Image(systemName: icon)
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundStyle(color)
-                    .frame(width: 28, height: 28)
-                    .background(color.opacity(0.12))
-                    .clipShape(RoundedRectangle(cornerRadius: 7, style: .continuous))
+                    .font(.system(size: 14))
+                    .foregroundStyle(.secondary)
+                    .frame(width: 20)
 
                 Text(title)
-                    .font(.system(size: 13, weight: .bold))
+                    .font(.system(size: 13, weight: .semibold))
 
                 Spacer()
             }
@@ -154,10 +145,11 @@ private struct ReviewModuleCard: View {
             Button(action: onAction) {
                 HStack {
                     Text(actionTitle)
-                        .font(.system(size: 11, weight: .medium))
+                        .font(.system(size: 11))
                     Spacer()
                     Image(systemName: "chevron.right")
-                        .font(.system(size: 10, weight: .semibold))
+                        .font(.system(size: 10))
+                        .foregroundStyle(.tertiary)
                 }
             }
             .buttonStyle(.plain)
