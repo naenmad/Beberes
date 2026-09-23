@@ -13,38 +13,6 @@ public struct LargeFilesView: View {
 
     public var body: some View {
         VStack(spacing: 0) {
-            // Standard Native Page Header
-            HStack(alignment: .center) {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Large & Duplicates")
-                        .font(.title2.weight(.bold))
-                    Text("Identify oversized files and duplicate copies in home folders.")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                }
-
-                Spacer()
-
-                Picker("View", selection: $selectedTab) {
-                    Text("Large Files (\(state.largeFiles.count))").tag(0)
-                    Text("Duplicates (\(state.duplicateGroups.count))").tag(1)
-                }
-                .pickerStyle(.segmented)
-                .frame(width: 250)
-
-                Button {
-                    Task { await state.fetchLargeFiles() }
-                } label: {
-                    Label("Rescan", systemImage: "arrow.clockwise")
-                }
-                .buttonStyle(.bordered)
-                .disabled(state.isLoadingLargeFiles)
-            }
-            .padding(.horizontal, 24)
-            .padding(.top, 20)
-            .padding(.bottom, 16)
-
-            Divider()
 
             // Feedback Message
             if let msg = state.largeFilesToastMessage {
@@ -179,6 +147,27 @@ public struct LargeFilesView: View {
             }
         }
         .background(Color(nsColor: .windowBackgroundColor))
+        .navigationTitle("Large & Duplicates")
+        .toolbar {
+            ToolbarItem(placement: .principal) {
+                Picker("View", selection: $selectedTab) {
+                    Text("Large Files (\(state.largeFiles.count))").tag(0)
+                    Text("Duplicates (\(state.duplicateGroups.count))").tag(1)
+                }
+                .pickerStyle(.segmented)
+                .labelsHidden()
+                .frame(width: 240)
+            }
+
+            ToolbarItem(placement: .primaryAction) {
+                Button {
+                    Task { await state.fetchLargeFiles() }
+                } label: {
+                    Label("Rescan", systemImage: "arrow.clockwise")
+                }
+                .disabled(state.isLoadingLargeFiles)
+            }
+        }
         .confirmationDialog(
             "Move to Trash?",
             isPresented: $showConfirmTrash,

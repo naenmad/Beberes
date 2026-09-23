@@ -8,37 +8,10 @@ public struct HardwareView: View {
     }
 
     public var body: some View {
-        VStack(spacing: 0) {
-            // Header
-            HStack(alignment: .center) {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Hardware")
-                        .font(.title2.weight(.bold))
-                    Text("Low-level Apple Silicon architecture and thermal metrics.")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                }
-
-                Spacer()
-
-                Button {
-                    state.refreshHardware()
-                    state.refreshSystemStats()
-                } label: {
-                    Label("Refresh", systemImage: "arrow.clockwise")
-                }
-                .buttonStyle(.bordered)
-            }
-            .padding(.horizontal, 24)
-            .padding(.top, 20)
-            .padding(.bottom, 16)
-
-            Divider()
-
-            ScrollView {
-                VStack(alignment: .leading, spacing: 18) {
-                    // Processor Specification Banner
-                    HStack(spacing: 16) {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 18) {
+                // Processor Specification Banner
+                HStack(spacing: 16) {
                     Image(systemName: "cpu")
                         .font(.system(size: 32))
                         .foregroundStyle(.secondary)
@@ -100,13 +73,23 @@ public struct HardwareView: View {
                     }
                 }
                 .padding(.horizontal, 24)
-                .padding(.bottom, 20)
-                .padding(.top, 18)
+                .padding(.bottom, 24)
+            }
+            .padding(.top, 20)
+        }
+        .background(Color(nsColor: .windowBackgroundColor))
+        .navigationTitle("Hardware")
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button {
+                    state.refreshHardware()
+                    state.refreshSystemStats()
+                } label: {
+                    Label("Refresh", systemImage: "arrow.clockwise")
+                }
             }
         }
     }
-    .background(Color(nsColor: .windowBackgroundColor))
-}
 }
 
 private struct HardwareSpecCard: View {

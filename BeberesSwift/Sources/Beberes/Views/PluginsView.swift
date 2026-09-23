@@ -12,31 +12,6 @@ public struct PluginsView: View {
 
     public var body: some View {
         VStack(spacing: 0) {
-            // Standard Native Page Header
-            HStack(alignment: .center) {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Plugins")
-                        .font(.title2.weight(.bold))
-                    Text("System scripts for developer package managers and runtime caches.")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                }
-
-                Spacer()
-
-                Button {
-                    Task { await detectPlugins() }
-                } label: {
-                    Label(isChecking ? "Checking..." : "Refresh Status", systemImage: "arrow.clockwise")
-                }
-                .disabled(isChecking)
-                .buttonStyle(.bordered)
-            }
-            .padding(.horizontal, 24)
-            .padding(.top, 20)
-            .padding(.bottom, 16)
-
-            Divider()
 
             if let status = statusMessage {
                 HStack(spacing: 8) {
@@ -99,6 +74,17 @@ public struct PluginsView: View {
             .listStyle(.inset)
         }
         .background(Color(nsColor: .windowBackgroundColor))
+        .navigationTitle("Plugins")
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button {
+                    Task { await detectPlugins() }
+                } label: {
+                    Label(isChecking ? "Checking..." : "Refresh Status", systemImage: "arrow.clockwise")
+                }
+                .disabled(isChecking)
+            }
+        }
         .task {
             if plugins.isEmpty {
                 await detectPlugins()

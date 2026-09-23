@@ -12,31 +12,6 @@ public struct StartupItemsView: View {
 
     public var body: some View {
         VStack(spacing: 0) {
-            // Standard Native Page Header
-            HStack(alignment: .center) {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Startup Items")
-                        .font(.title2.weight(.bold))
-                    Text("Manage LaunchAgents and background daemons scheduled at login.")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                }
-
-                Spacer()
-
-                Button {
-                    Task { await appState.fetchStartupItems() }
-                } label: {
-                    Label("Refresh", systemImage: "arrow.clockwise")
-                }
-                .buttonStyle(.bordered)
-                .disabled(appState.isLoadingStartup)
-            }
-            .padding(.horizontal, 24)
-            .padding(.top, 20)
-            .padding(.bottom, 16)
-
-            Divider()
 
             // Toast feedback
             if let msg = appState.startupToastMessage {
@@ -118,6 +93,17 @@ public struct StartupItemsView: View {
                     }
                 }
                 .listStyle(.inset)
+            }
+        }
+        .navigationTitle("Startup Items")
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button {
+                    Task { await appState.fetchStartupItems() }
+                } label: {
+                    Label("Refresh", systemImage: "arrow.clockwise")
+                }
+                .disabled(appState.isLoadingStartup)
             }
         }
         .searchable(text: $appState.startupSearchText, prompt: "Filter startup items")

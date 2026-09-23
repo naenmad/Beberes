@@ -14,22 +14,6 @@ public struct SettingsView: View {
 
     public var body: some View {
         VStack(spacing: 0) {
-            // Standard Native Page Header
-            HStack(alignment: .center) {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Settings")
-                        .font(.title2.weight(.bold))
-                    Text("Application preferences and safety safeguards.")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                }
-                Spacer()
-            }
-            .padding(.horizontal, 24)
-            .padding(.top, 20)
-            .padding(.bottom, 16)
-
-            Divider()
 
             Form {
                 if let note = statusNote {
@@ -74,6 +58,7 @@ public struct SettingsView: View {
             .formStyle(.grouped)
         }
         .background(Color(nsColor: .windowBackgroundColor))
+        .navigationTitle("Settings")
         .onAppear {
             checkLaunchAtLoginStatus()
         }

@@ -10,47 +10,10 @@ public struct DashboardView: View {
     }
 
     public var body: some View {
-        VStack(spacing: 0) {
-            // Standard Native Page Header
-            HStack(alignment: .center) {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Dashboard")
-                        .font(.title2.weight(.bold))
-                    Text("Volume capacity and system memory metrics.")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                }
-
-                Spacer()
-
-                Button {
-                    Task {
-                        isScanning = true
-                        state.refreshSystemStats()
-                        await state.scanSystemCategories()
-                        isScanning = false
-                    }
-                } label: {
-                    if isScanning {
-                        ProgressView()
-                            .controlSize(.small)
-                    } else {
-                        Label("Refresh", systemImage: "arrow.clockwise")
-                    }
-                }
-                .buttonStyle(.bordered)
-                .disabled(isScanning)
-            }
-            .padding(.horizontal, 24)
-            .padding(.top, 20)
-            .padding(.bottom, 16)
-
-            Divider()
-
-            ScrollView {
-                VStack(alignment: .leading, spacing: 18) {
-                    // Storage & Memory Gauges (Apple Disk Utility Style)
-                    HStack(spacing: 16) {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 18) {
+                // Storage & Memory Gauges (Apple Disk Utility Style)
+                HStack(spacing: 16) {
                     // Macintosh HD Card
                     VStack(alignment: .leading, spacing: 14) {
                         HStack {
@@ -209,13 +172,33 @@ public struct DashboardView: View {
                 .background(Color(nsColor: .controlBackgroundColor))
                 .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
                 .padding(.horizontal, 24)
-                .padding(.bottom, 20)
-                .padding(.top, 18)
+                .padding(.bottom, 24)
+            }
+            .padding(.top, 20)
+        }
+        .background(Color(nsColor: .windowBackgroundColor))
+        .navigationTitle("Dashboard")
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button {
+                    Task {
+                        isScanning = true
+                        state.refreshSystemStats()
+                        await state.scanSystemCategories()
+                        isScanning = false
+                    }
+                } label: {
+                    if isScanning {
+                        ProgressView()
+                            .controlSize(.small)
+                    } else {
+                        Label("Refresh", systemImage: "arrow.clockwise")
+                    }
+                }
+                .disabled(isScanning)
             }
         }
     }
-    .background(Color(nsColor: .windowBackgroundColor))
-}
 }
 
 private struct NativeStatLine: View {

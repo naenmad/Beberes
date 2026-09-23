@@ -13,35 +13,6 @@ public struct FileShredderView: View {
 
     public var body: some View {
         VStack(spacing: 0) {
-            // Standard Native Page Header
-            HStack(alignment: .center) {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("File Shredder")
-                        .font(.title2.weight(.bold))
-                    Text("Cryptographically overwrite files before permanent deletion.")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                }
-
-                Spacer()
-
-                Picker("Security", selection: $appState.shredPass) {
-                    ForEach(ShredPassOption.allCases) { opt in
-                        Text(opt.label).tag(opt)
-                    }
-                }
-                .frame(width: 220)
-
-                Button("Add Files...") {
-                    openFilePicker()
-                }
-                .buttonStyle(.bordered)
-            }
-            .padding(.horizontal, 24)
-            .padding(.top, 20)
-            .padding(.bottom, 16)
-
-            Divider()
 
             // Toast Message
             if let msg = appState.shredToastMessage {
@@ -130,6 +101,24 @@ public struct FileShredderView: View {
             }
         }
         .background(Color(nsColor: .windowBackgroundColor))
+        .navigationTitle("File Shredder")
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button("Add Files...") {
+                    openFilePicker()
+                }
+            }
+
+            ToolbarItem(placement: .primaryAction) {
+                Picker("Security", selection: $appState.shredPass) {
+                    ForEach(ShredPassOption.allCases) { opt in
+                        Text(opt.label).tag(opt)
+                    }
+                }
+                .labelsHidden()
+                .frame(width: 170)
+            }
+        }
         .confirmationDialog(
             "Permanently Shred Files?",
             isPresented: $showConfirmDialog,

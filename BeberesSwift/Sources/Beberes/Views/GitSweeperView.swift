@@ -27,31 +27,6 @@ public struct GitSweeperView: View {
 
     public var body: some View {
         VStack(spacing: 0) {
-            // Standard Native Page Header
-            HStack(alignment: .center) {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Git Sweeper")
-                        .font(.title2.weight(.bold))
-                    Text("Detect merged branches and maintain lightweight git repository metadata.")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                }
-
-                Spacer()
-
-                Button {
-                    Task { await runScan() }
-                } label: {
-                    Label(isScanning ? "Scanning..." : "Scan Repositories", systemImage: "arrow.clockwise")
-                }
-                .disabled(isScanning)
-                .buttonStyle(.borderedProminent)
-            }
-            .padding(.horizontal, 24)
-            .padding(.top, 20)
-            .padding(.bottom, 16)
-
-            Divider()
 
             if let status = statusMessage {
                 HStack(spacing: 8) {
@@ -201,6 +176,17 @@ public struct GitSweeperView: View {
             }
         }
         .background(Color(nsColor: .windowBackgroundColor))
+        .navigationTitle("Git Sweeper")
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button {
+                    Task { await runScan() }
+                } label: {
+                    Label(isScanning ? "Scanning..." : "Scan Repositories", systemImage: "arrow.clockwise")
+                }
+                .disabled(isScanning)
+            }
+        }
         .task {
             if repos.isEmpty {
                 await runScan()

@@ -23,7 +23,7 @@ struct BeberesApp: App {
             MainView()
         }
         .windowStyle(.titleBar)
-        .windowToolbarStyle(.unified(showsTitle: false))
+        .windowToolbarStyle(.unified)
         .defaultSize(width: 980, height: 640)
         .commands {
             SidebarCommands()

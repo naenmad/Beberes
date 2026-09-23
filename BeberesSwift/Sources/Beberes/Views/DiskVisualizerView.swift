@@ -12,31 +12,6 @@ public struct DiskVisualizerView: View {
 
     public var body: some View {
         VStack(spacing: 0) {
-            // Standard Native Page Header
-            HStack(alignment: .center) {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Disk Visualizer")
-                        .font(.title2.weight(.bold))
-                    Text("Storage utilization breakdown across home directory folders.")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                }
-
-                Spacer()
-
-                Button {
-                    Task { await analyzeUserStorage() }
-                } label: {
-                    Label(isAnalyzing ? "Analyzing..." : "Analyze Home Directory", systemImage: "chart.pie")
-                }
-                .disabled(isAnalyzing)
-                .buttonStyle(.borderedProminent)
-            }
-            .padding(.horizontal, 24)
-            .padding(.top, 20)
-            .padding(.bottom, 16)
-
-            Divider()
 
             if isAnalyzing {
                 VStack(spacing: 12) {
@@ -135,6 +110,17 @@ public struct DiskVisualizerView: View {
             }
         }
         .background(Color(nsColor: .windowBackgroundColor))
+        .navigationTitle("Disk Visualizer")
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button {
+                    Task { await analyzeUserStorage() }
+                } label: {
+                    Label(isAnalyzing ? "Analyzing..." : "Analyze Home Directory", systemImage: "arrow.clockwise")
+                }
+                .disabled(isAnalyzing)
+            }
+        }
         .task {
             if nodes.isEmpty {
                 await analyzeUserStorage()

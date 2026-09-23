@@ -11,39 +11,6 @@ public struct TrashManagerView: View {
 
     public var body: some View {
         VStack(spacing: 0) {
-            // Standard Native Page Header
-            HStack(alignment: .center) {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Trash Manager")
-                        .font(.title2.weight(.bold))
-                    Text("Inspect and permanently empty files in the macOS Trash.")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                }
-
-                Spacer()
-
-                Button {
-                    Task { await state.fetchTrashItems() }
-                } label: {
-                    Label("Refresh", systemImage: "arrow.clockwise")
-                }
-                .buttonStyle(.bordered)
-                .disabled(state.isLoadingTrash)
-
-                let totalSize = state.trashItems.reduce(0) { $0 + $1.sizeBytes }
-
-                Button("Empty Trash (\(totalSize.formattedBytes))", role: .destructive) {
-                    showConfirmEmptyTrash = true
-                }
-                .buttonStyle(.borderedProminent)
-                .disabled(state.trashItems.isEmpty || state.isLoadingTrash)
-            }
-            .padding(.horizontal, 24)
-            .padding(.top, 20)
-            .padding(.bottom, 16)
-
-            Divider()
 
             // Toast Message
             if let msg = state.trashToastMessage {
@@ -126,6 +93,26 @@ public struct TrashManagerView: View {
             }
         }
         .background(Color(nsColor: .windowBackgroundColor))
+        .navigationTitle("Trash Manager")
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                let totalSize = state.trashItems.reduce(0) { $0 + $1.sizeBytes }
+
+                Button("Empty Trash (\(totalSize.formattedBytes))", role: .destructive) {
+                    showConfirmEmptyTrash = true
+                }
+                .disabled(state.trashItems.isEmpty || state.isLoadingTrash)
+            }
+
+            ToolbarItem(placement: .primaryAction) {
+                Button {
+                    Task { await state.fetchTrashItems() }
+                } label: {
+                    Label("Refresh", systemImage: "arrow.clockwise")
+                }
+                .disabled(state.isLoadingTrash)
+            }
+        }
         .confirmationDialog(
             "Empty Trash?",
             isPresented: $showConfirmEmptyTrash,

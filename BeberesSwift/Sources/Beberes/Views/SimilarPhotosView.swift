@@ -12,31 +12,6 @@ public struct SimilarPhotosView: View {
 
     public var body: some View {
         VStack(spacing: 0) {
-            // Standard Native Page Header
-            HStack(alignment: .center) {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Similar Photos")
-                        .font(.title2.weight(.bold))
-                    Text("Identify redundant screenshots and duplicate media across Pictures and Desktop.")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                }
-
-                Spacer()
-
-                Button {
-                    Task { await scanMedia() }
-                } label: {
-                    Label(isScanning ? "Scanning..." : "Scan Media", systemImage: "photo.stack")
-                }
-                .disabled(isScanning)
-                .buttonStyle(.borderedProminent)
-            }
-            .padding(.horizontal, 24)
-            .padding(.top, 20)
-            .padding(.bottom, 16)
-
-            Divider()
 
             if isScanning {
                 VStack(spacing: 12) {
@@ -91,6 +66,17 @@ public struct SimilarPhotosView: View {
             }
         }
         .background(Color(nsColor: .windowBackgroundColor))
+        .navigationTitle("Similar Photos")
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button {
+                    Task { await scanMedia() }
+                } label: {
+                    Label(isScanning ? "Scanning..." : "Scan Media", systemImage: "arrow.clockwise")
+                }
+                .disabled(isScanning)
+            }
+        }
         .task {
             if duplicateImages.isEmpty {
                 await scanMedia()

@@ -9,31 +9,6 @@ public struct ZombiePortsView: View {
 
     public var body: some View {
         VStack(spacing: 0) {
-            // Standard Native Page Header
-            HStack(alignment: .center) {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Zombie Ports")
-                        .font(.title2.weight(.bold))
-                    Text("Identify and terminate processes holding local listening ports.")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                }
-
-                Spacer()
-
-                Button {
-                    Task { await state.fetchPorts() }
-                } label: {
-                    Label("Refresh", systemImage: "arrow.clockwise")
-                }
-                .buttonStyle(.bordered)
-                .disabled(state.isLoadingPorts)
-            }
-            .padding(.horizontal, 24)
-            .padding(.top, 20)
-            .padding(.bottom, 16)
-
-            Divider()
 
             // Status feedback
             if let msg = state.portActionMessage {
@@ -102,6 +77,17 @@ public struct ZombiePortsView: View {
                     }
                 }
                 .listStyle(.inset)
+            }
+        }
+        .navigationTitle("Zombie Ports")
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button {
+                    Task { await state.fetchPorts() }
+                } label: {
+                    Label("Refresh", systemImage: "arrow.clockwise")
+                }
+                .disabled(state.isLoadingPorts)
             }
         }
         .searchable(text: $state.portSearchText, prompt: "Filter by port or process name")

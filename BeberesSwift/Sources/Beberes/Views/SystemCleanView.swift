@@ -7,46 +7,14 @@ public struct SystemCleanView: View {
         self.state = state
     }
 
+    private var selectedBytes: Int64 {
+        state.cleanCategories
+            .filter { state.selectedCategoryIDs.contains($0.id) }
+            .reduce(0) { $0 + $1.sizeBytes }
+    }
+
     public var body: some View {
         VStack(spacing: 0) {
-            // Standard Native Page Header
-            HStack(alignment: .center) {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("System Clean")
-                        .font(.title2.weight(.bold))
-                    Text("Purgeable caches, temporary logs, and diagnostic files.")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                }
-
-                Spacer()
-
-                Button {
-                    Task { await state.scanSystemCategories() }
-                } label: {
-                    Label("Rescan", systemImage: "arrow.clockwise")
-                }
-                .buttonStyle(.bordered)
-                .disabled(state.isLoadingSystemClean)
-
-                let selectedBytes = state.cleanCategories
-                    .filter { state.selectedCategoryIDs.contains($0.id) }
-                    .reduce(0) { $0 + $1.sizeBytes }
-
-                Button {
-                    Task { await state.cleanSelectedCategories() }
-                } label: {
-                    Label("Clean (\(selectedBytes.formattedBytes))", systemImage: "sparkles")
-                }
-                .buttonStyle(.borderedProminent)
-                .disabled(state.isLoadingSystemClean || state.selectedCategoryIDs.isEmpty)
-            }
-            .padding(.horizontal, 24)
-            .padding(.top, 20)
-            .padding(.bottom, 16)
-
-            Divider()
-
             // Status message
             if let msg = state.systemCleanToastMessage {
                 HStack(spacing: 8) {
@@ -118,5 +86,25 @@ public struct SystemCleanView: View {
             }
         }
         .background(Color(nsColor: .windowBackgroundColor))
+        .navigationTitle("System Clean")
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button {
+                    Task { await state.cleanSelectedCategories() }
+                } label: {
+                    Label("Clean (\(selectedBytes.formattedBytes))", systemImage: "sparkles")
+                }
+                .disabled(state.isLoadingSystemClean || state.selectedCategoryIDs.isEmpty)
+            }
+
+            ToolbarItem(placement: .primaryAction) {
+                Button {
+                    Task { await state.scanSystemCategories() }
+                } label: {
+                    Label("Rescan", systemImage: "arrow.clockwise")
+                }
+                .disabled(state.isLoadingSystemClean)
+            }
+        }
     }
 }

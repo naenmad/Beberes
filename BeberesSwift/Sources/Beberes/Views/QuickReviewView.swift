@@ -11,31 +11,6 @@ public struct QuickReviewView: View {
 
     public var body: some View {
         VStack(spacing: 0) {
-            // Standard Native Page Header
-            HStack(alignment: .center) {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Quick Review")
-                        .font(.title2.weight(.bold))
-                    Text("All-in-one assessment of reclaimable space and system health.")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                }
-
-                Spacer()
-
-                Button {
-                    Task { await performFullAssessment() }
-                } label: {
-                    Label(isReviewing ? "Assessing..." : "Run Assessment", systemImage: "bolt.badge.sparkle")
-                }
-                .disabled(isReviewing)
-                .buttonStyle(.borderedProminent)
-            }
-            .padding(.horizontal, 24)
-            .padding(.top, 20)
-            .padding(.bottom, 16)
-
-            Divider()
 
             if isReviewing {
                 VStack(spacing: 12) {
@@ -105,6 +80,17 @@ public struct QuickReviewView: View {
             }
         }
         .background(Color(nsColor: .windowBackgroundColor))
+        .navigationTitle("Quick Review")
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button {
+                    Task { await performFullAssessment() }
+                } label: {
+                    Label(isReviewing ? "Assessing..." : "Run Assessment", systemImage: "bolt.badge.sparkle")
+                }
+                .disabled(isReviewing)
+            }
+        }
     }
 
     private func performFullAssessment() async {

@@ -12,31 +12,6 @@ public struct AppUninstallerView: View {
 
     public var body: some View {
         VStack(spacing: 0) {
-            // Standard Native Page Header
-            HStack(alignment: .center) {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("App Uninstaller")
-                        .font(.title2.weight(.bold))
-                    Text("Uninstall applications and purge associated leftovers.")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                }
-
-                Spacer()
-
-                Button {
-                    Task { await appState.fetchInstalledApps() }
-                } label: {
-                    Label("Refresh", systemImage: "arrow.clockwise")
-                }
-                .buttonStyle(.bordered)
-                .disabled(appState.isLoadingApps)
-            }
-            .padding(.horizontal, 24)
-            .padding(.top, 20)
-            .padding(.bottom, 16)
-
-            Divider()
 
             // Main Split View
             HSplitView {
@@ -105,6 +80,17 @@ public struct AppUninstallerView: View {
                     )
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
+            }
+        }
+        .navigationTitle("App Uninstaller")
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button {
+                    Task { await appState.fetchInstalledApps() }
+                } label: {
+                    Label("Refresh", systemImage: "arrow.clockwise")
+                }
+                .disabled(appState.isLoadingApps)
             }
         }
         .searchable(text: $appState.appSearchText, prompt: "Filter installed applications")

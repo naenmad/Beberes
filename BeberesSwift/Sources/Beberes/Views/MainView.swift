@@ -57,6 +57,7 @@ public struct MainView: View {
                     SettingsView(state: state)
                 }
             }
+            .navigationTitle(state.selectedSection.rawValue)
         }
         .frame(minWidth: 920, minHeight: 580)
     }

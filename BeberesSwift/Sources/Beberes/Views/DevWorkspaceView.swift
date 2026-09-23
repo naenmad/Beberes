@@ -9,42 +9,6 @@ public struct DevWorkspaceView: View {
 
     public var body: some View {
         VStack(spacing: 0) {
-            // Standard Native Page Header
-            HStack(alignment: .center) {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Dev Workspace")
-                        .font(.title2.weight(.bold))
-                    Text("Hibernate disposable build caches in inactive Git projects.")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                }
-
-                Spacer()
-
-                Picker("Threshold", selection: $state.inactivityThresholdDays) {
-                    Text("30 Days").tag(30)
-                    Text("60 Days").tag(60)
-                    Text("90 Days").tag(90)
-                }
-                .pickerStyle(.segmented)
-                .frame(width: 210)
-                .onChange(of: state.inactivityThresholdDays) { _, _ in
-                    Task { await state.scanDormantProjects() }
-                }
-
-                Button {
-                    Task { await state.scanDormantProjects() }
-                } label: {
-                    Label("Rescan", systemImage: "arrow.clockwise")
-                }
-                .buttonStyle(.bordered)
-                .disabled(state.isLoadingProjects)
-            }
-            .padding(.horizontal, 24)
-            .padding(.top, 20)
-            .padding(.bottom, 16)
-
-            Divider()
 
             // Feedback Message
             if let msg = state.hibernateToastMessage {
@@ -130,5 +94,30 @@ public struct DevWorkspaceView: View {
             }
         }
         .background(Color(nsColor: .windowBackgroundColor))
+        .navigationTitle("Dev Workspace")
+        .toolbar {
+            ToolbarItem(placement: .principal) {
+                Picker("Threshold", selection: $state.inactivityThresholdDays) {
+                    Text("30 Days").tag(30)
+                    Text("60 Days").tag(60)
+                    Text("90 Days").tag(90)
+                }
+                .pickerStyle(.segmented)
+                .labelsHidden()
+                .frame(width: 210)
+                .onChange(of: state.inactivityThresholdDays) { _, _ in
+                    Task { await state.scanDormantProjects() }
+                }
+            }
+
+            ToolbarItem(placement: .primaryAction) {
+                Button {
+                    Task { await state.scanDormantProjects() }
+                } label: {
+                    Label("Rescan", systemImage: "arrow.clockwise")
+                }
+                .disabled(state.isLoadingProjects)
+            }
+        }
     }
 }
