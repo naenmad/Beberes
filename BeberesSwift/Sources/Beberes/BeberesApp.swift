@@ -7,8 +7,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         NSApp.activate(ignoringOtherApps: true)
 
         // Set authentic Beberes icon on macOS Dock & App Switcher
-        if let iconURL = Bundle.module.url(forResource: "AppIcon", withExtension: "png"),
-           let iconImage = NSImage(contentsOf: iconURL) {
+        let iconURL = Bundle.main.url(forResource: "AppIcon", withExtension: "png") ?? Bundle.module.url(forResource: "AppIcon", withExtension: "png")
+        if let iconURL, let iconImage = NSImage(contentsOf: iconURL) {
             NSApp.applicationIconImage = iconImage
         }
     }

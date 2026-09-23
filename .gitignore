@@ -21,6 +21,7 @@ target/
 # Swift Builds
 .build/
 BeberesSwift/.build/
+build/
 
 # Editor directories and files
 .vscode/*

@@ -11,7 +11,8 @@ public struct AppIconView: View {
     }
 
     public var body: some View {
-        if let iconURL = Bundle.module.url(forResource: "AppIcon", withExtension: "png"),
+        let iconURL = Bundle.main.url(forResource: "AppIcon", withExtension: "png") ?? Bundle.module.url(forResource: "AppIcon", withExtension: "png")
+        if let iconURL,
            let nsImage = NSImage(contentsOf: iconURL) {
             Image(nsImage: nsImage)
                 .resizable()
