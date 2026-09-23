@@ -27,15 +27,15 @@ Daftar audit fitur backend Rust (`src-tauri/src/`) yang sedang dan akan di-porti
   - Pembersihan cache `~/Library/Developer/Xcode/iOS DeviceSupport/` (simbol debug iOS versi lawas), Archives, dan CoreSimulator caches.
 
 ### 📌 Prioritas 2: Media Intelligence & Maintenance
-- [ ] **Perceptual Image Difference Hashing (dHash)**
+- [x] **Perceptual Image Difference Hashing (dHash)**
   - Porting algoritma dHash 9x8 bitmap dari `similar_media.rs` menggunakan `sips` / CoreGraphics.
   - Mendeteksi foto mirip visual (>80% similarity), foto jepretan burst, dan foto yang di-resize / kompresi.
   - Memungkinkan perbandingan visual langsung dengan rekomendasi keep foto kualitas terbaik.
-- [ ] **Empty Folders & Broken Symlinks Cleaner (`MaintenanceService`)**
+- [x] **Empty Folders & Broken Symlinks Cleaner (`MaintenanceService`)**
   - Porting dari `maintenance.rs`.
   - Deteksi direktori kosong yang hanya berisi file metadata `.DS_Store`.
   - Deteksi broken alias / dangling symlink yang file aslinya sudah terhapus.
-- [ ] **Browser Extensions & System Plugins Inspector**
+- [x] **Browser Extensions & System Plugins Inspector**
   - Porting dari `plugins.rs`.
   - Membaca manifest ekstensi di Chrome, Arc, Brave, Edge, serta QuickLook Plugins (`/Library/QuickLook`) dan Spotlight Importers.
 

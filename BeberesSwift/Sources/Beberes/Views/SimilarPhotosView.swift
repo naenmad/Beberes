@@ -1,59 +1,152 @@
 import SwiftUI
+import AppKit
 
 public struct SimilarPhotosView: View {
     @Bindable var state: AppState
     @State private var isScanning = false
-    @State private var duplicateImages: [SimilarMediaGroup] = []
+    @State private var groups: [SimilarPhotoGroup] = []
     @State private var statusMessage: String?
+    @State private var showConfirmDeleteAll = false
+    @State private var groupToDelete: SimilarPhotoGroup? = nil
 
     public init(state: AppState) {
         self.state = state
     }
 
+    private var totalReclaimable: Int64 {
+        groups.reduce(0) { $0 + $1.reclaimableBytes }
+    }
+
     public var body: some View {
         VStack(spacing: 0) {
+            // Subheader
+            HStack(spacing: 12) {
+                Text("\(groups.count) Visual Duplicate Clusters")
+                    .font(.system(size: 12, weight: .semibold))
+
+                Spacer()
+
+                if !groups.isEmpty && totalReclaimable > 0 {
+                    Button("Clean All Redundant (\(totalReclaimable.formattedBytes))", role: .destructive) {
+                        showConfirmDeleteAll = true
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.small)
+                    .disabled(isScanning)
+                }
+
+                Button {
+                    Task { await runScan() }
+                } label: {
+                    Label(isScanning ? "Scanning..." : "Rescan Media", systemImage: "arrow.clockwise")
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.small)
+                .disabled(isScanning)
+            }
+            .padding(.horizontal, 24)
+            .padding(.vertical, 8)
+            .background(Color(nsColor: .controlBackgroundColor).opacity(0.5))
+
+            Divider()
+
+            // Toast Message
+            if let msg = statusMessage {
+                HStack(spacing: 8) {
+                    Image(systemName: "checkmark.circle")
+                        .foregroundStyle(.secondary)
+                    Text(msg)
+                        .font(.subheadline)
+                    Spacer()
+                    Button("Dismiss") { statusMessage = nil }
+                        .font(.caption)
+                        .buttonStyle(.borderless)
+                }
+                .padding(.horizontal, 24)
+                .padding(.vertical, 8)
+                .background(.bar)
+                Divider()
+            }
 
             if isScanning {
                 VStack(spacing: 12) {
                     ProgressView()
                         .controlSize(.large)
-                    Text("Analyzing image libraries and screenshots for redundant captures...")
+                    Text("Computing perceptual difference hashes (dHash) across image libraries...")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-            } else if duplicateImages.isEmpty {
+            } else if groups.isEmpty {
                 StatusStateView(
                     type: .clean(systemImage: "photo.stack"),
                     title: "Photos & Screenshots Clean",
-                    subtitle: "No redundant duplicate images or screenshot bursts detected in Pictures and Desktop.",
+                    subtitle: "No visually redundant duplicate images, burst captures, or resized copies detected.",
                     actionTitle: "Rescan Media",
                     actionIcon: "arrow.clockwise"
                 ) {
-                    Task { await scanMedia() }
+                    Task { await runScan() }
                 }
             } else {
                 List {
-                    ForEach(duplicateImages) { group in
-                        VStack(alignment: .leading, spacing: 8) {
+                    ForEach(groups) { group in
+                        VStack(alignment: .leading, spacing: 10) {
                             HStack {
                                 Text(group.label)
                                     .font(.system(size: 13, weight: .semibold))
+
                                 Spacer()
-                                Text("\(group.items.count) items • \(group.wastedBytes.formattedBytes) reclaimable")
-                                    .font(.subheadline.monospacedDigit())
-                                    .foregroundStyle(.secondary)
+
+                                if group.reclaimableBytes > 0 {
+                                    Button("Clean Duplicates (\(group.reclaimableBytes.formattedBytes))", role: .destructive) {
+                                        groupToDelete = group
+                                    }
+                                    .buttonStyle(.bordered)
+                                    .controlSize(.mini)
+                                }
                             }
 
-                            ForEach(group.items, id: \.self) { path in
-                                HStack {
-                                    Image(systemName: "photo")
-                                        .foregroundStyle(.secondary)
-                                    Text(URL(fileURLWithPath: path).lastPathComponent)
-                                        .font(.system(size: 12))
+                            // Items in Cluster
+                            ForEach(group.items) { item in
+                                HStack(spacing: 12) {
+                                    // Thumbnail
+                                    PhotoThumbnailView(path: item.path)
+                                        .frame(width: 36, height: 36)
+                                        .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        HStack(spacing: 6) {
+                                            Text(item.filename)
+                                                .font(.system(size: 12, weight: .medium))
+                                                .lineLimit(1)
+
+                                            if item.isRecommendedKeep {
+                                                Text("Keep (Best Quality)")
+                                                    .font(.system(size: 10, weight: .semibold))
+                                                    .padding(.horizontal, 6)
+                                                    .padding(.vertical, 1)
+                                                    .background(Color.secondary.opacity(0.12))
+                                                    .clipShape(Capsule())
+                                            }
+                                        }
+
+                                        HStack(spacing: 8) {
+                                            if !item.dimensionsString.isEmpty {
+                                                Text(item.dimensionsString)
+                                                    .font(.caption2.monospacedDigit())
+                                                    .foregroundStyle(.tertiary)
+                                            }
+
+                                            Text(item.formattedSize)
+                                                .font(.caption2.monospacedDigit())
+                                                .foregroundStyle(.secondary)
+                                        }
+                                    }
+
                                     Spacer()
+
                                     Button {
-                                        NSWorkspace.shared.selectFile(path, inFileViewerRootedAtPath: "")
+                                        NSWorkspace.shared.selectFile(item.path, inFileViewerRootedAtPath: "")
                                     } label: {
                                         Image(systemName: "magnifyingglass")
                                             .font(.system(size: 11))
@@ -61,9 +154,10 @@ public struct SimilarPhotosView: View {
                                     .buttonStyle(.borderless)
                                     .help("Reveal in Finder")
                                 }
+                                .padding(.vertical, 2)
                             }
                         }
-                        .padding(.vertical, 4)
+                        .padding(.vertical, 6)
                     }
                 }
                 .listStyle(.inset)
@@ -71,71 +165,94 @@ public struct SimilarPhotosView: View {
         }
         .background(Color(nsColor: .windowBackgroundColor))
         .navigationTitle("Similar Photos")
+        .confirmationDialog(
+            "Clean Redundant Copies in Cluster?",
+            isPresented: Binding(
+                get: { groupToDelete != nil },
+                set: { if !$0 { groupToDelete = nil } }
+            ),
+            titleVisibility: .visible
+        ) {
+            Button("Clean Copies (\(groupToDelete?.reclaimableBytes.formattedBytes ?? ""))", role: .destructive) {
+                if let g = groupToDelete {
+                    Task { await deleteDuplicatesInGroup(g) }
+                }
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            if let g = groupToDelete {
+                Text("This will remove \(g.items.count - 1) duplicate copy while preserving the highest quality original.")
+            }
+        }
+        .confirmationDialog(
+            "Clean All Redundant Media?",
+            isPresented: $showConfirmDeleteAll,
+            titleVisibility: .visible
+        ) {
+            Button("Clean All (\(totalReclaimable.formattedBytes))", role: .destructive) {
+                Task { await deleteAllDuplicates() }
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("This will clean redundant copies across all clusters while preserving the best quality version of each image.")
+        }
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("BeberesRefreshTriggered"))) { _ in
-            Task { await scanMedia() }
+            Task { await runScan() }
         }
         .task {
-            if duplicateImages.isEmpty {
-                await scanMedia()
+            if groups.isEmpty {
+                await runScan()
             }
         }
     }
 
-    private func scanMedia() async {
+    private func runScan() async {
         isScanning = true
-        let home = FileManager.default.homeDirectoryForCurrentUser
-        let searchDirs = [
-            home.appendingPathComponent("Pictures"),
-            home.appendingPathComponent("Desktop")
-        ]
-
-        var sizeMap: [Int64: [String]] = [:]
-        let fileManager = FileManager.default
-        let imageExtensions: Set<String> = ["png", "jpg", "jpeg", "heic", "webp"]
-
-        for dir in searchDirs {
-            guard let enumerator = fileManager.enumerator(
-                at: dir,
-                includingPropertiesForKeys: [.isRegularFileKey, .fileSizeKey],
-                options: [.skipsHiddenFiles, .skipsPackageDescendants]
-            ) else { continue }
-
-            var checked = 0
-            while let url = enumerator.nextObject() as? URL {
-                if imageExtensions.contains(url.pathExtension.lowercased()),
-                   let values = try? url.resourceValues(forKeys: [.isRegularFileKey, .fileSizeKey]),
-                   values.isRegularFile == true,
-                   let size = values.fileSize, size > 200_000 { // images > 200KB
-                    sizeMap[Int64(size), default: []].append(url.path)
-                }
-                checked += 1
-                if checked > 5000 { break }
-            }
-        }
-
-        var groups: [SimilarMediaGroup] = []
-        for (size, paths) in sizeMap where paths.count > 1 {
-            let firstFileName = URL(fileURLWithPath: paths[0]).lastPathComponent
-            groups.append(SimilarMediaGroup(
-                id: "\(size)_\(paths.count)",
-                label: "Identical file size match: \(firstFileName)",
-                items: paths,
-                fileSizeBytes: size
-            ))
-        }
-
-        duplicateImages = groups.sorted(by: { $0.wastedBytes > $1.wastedBytes })
+        statusMessage = nil
+        groups = await SimilarMediaService.shared.scanSimilarMedia()
         isScanning = false
+    }
+
+    private func deleteDuplicatesInGroup(_ group: SimilarPhotoGroup) async {
+        let toDelete = group.items.filter { !$0.isRecommendedKeep }.map(\.path)
+        let freed = await SimilarMediaService.shared.deleteItems(paths: toDelete, preferTrash: state.deleteToTrash)
+        state.recordCleanResult(freedBytes: freed)
+        statusMessage = "Cleaned \(toDelete.count) duplicate photos and freed \(freed.formattedBytes)."
+        await runScan()
+        state.refreshSystemStats()
+    }
+
+    private func deleteAllDuplicates() async {
+        var toDelete: [String] = []
+        for g in groups {
+            let redundant = g.items.filter { !$0.isRecommendedKeep }.map(\.path)
+            toDelete.append(contentsOf: redundant)
+        }
+        let freed = await SimilarMediaService.shared.deleteItems(paths: toDelete, preferTrash: state.deleteToTrash)
+        state.recordCleanResult(freedBytes: freed)
+        statusMessage = "Cleaned \(toDelete.count) duplicate files and freed \(freed.formattedBytes)."
+        await runScan()
+        state.refreshSystemStats()
     }
 }
 
-public struct SimilarMediaGroup: Identifiable, Sendable {
-    public let id: String
-    public let label: String
-    public let items: [String]
-    public let fileSizeBytes: Int64
+// MARK: - Native Photo Thumbnail View
+private struct PhotoThumbnailView: View {
+    let path: String
 
-    public var wastedBytes: Int64 {
-        max(0, Int64(items.count - 1) * fileSizeBytes)
+    var body: some View {
+        if let img = NSImage(contentsOfFile: path) {
+            Image(nsImage: img)
+                .resizable()
+                .scaledToFill()
+        } else {
+            Rectangle()
+                .fill(Color.secondary.opacity(0.12))
+                .overlay {
+                    Image(systemName: "photo")
+                        .font(.system(size: 14))
+                        .foregroundStyle(.secondary)
+                }
+        }
     }
 }

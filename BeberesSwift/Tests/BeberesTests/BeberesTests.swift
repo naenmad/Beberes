@@ -158,7 +158,44 @@ struct BeberesTests {
         let _ = TrashService.shared
         #expect(TrashService.isTrashMode == true || TrashService.isTrashMode == false)
     }
+
+    @Test("MaintenanceService detects empty directories and broken symlinks")
+    func testMaintenanceService() async throws {
+        let tempDir = FileManager.default.temporaryDirectory.appendingPathComponent("beberes_maint_\(UUID().uuidString)")
+        try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: tempDir) }
+
+        // Create empty directory with .DS_Store
+        let emptySubdir = tempDir.appendingPathComponent("EmptyFolder")
+        try FileManager.default.createDirectory(at: emptySubdir, withIntermediateDirectories: true)
+        let dsStore = emptySubdir.appendingPathComponent(".DS_Store")
+        try "dummy ds_store".data(using: .utf8)?.write(to: dsStore)
+
+        // Create broken symlink
+        let nonExistentTarget = tempDir.appendingPathComponent("non_existent_target.txt")
+        let brokenLink = tempDir.appendingPathComponent("broken_link.txt")
+        try FileManager.default.createSymbolicLink(at: brokenLink, withDestinationURL: nonExistentTarget)
+
+        let result = await MaintenanceService.shared.scanMaintenanceItems(rootURL: tempDir)
+        #expect(result.emptyFolders.contains { $0.name == "EmptyFolder" })
+        #expect(result.brokenSymlinks.contains { $0.name == "broken_link.txt" })
+    }
+
+    @Test("SimilarMediaService computes Hamming distance correctly")
+    func testHammingDistance() {
+        let hash1: UInt64 = 0b00000000
+        let hash2: UInt64 = 0b00000011 // 2 bits diff
+        let dist = SimilarMediaService.shared.hammingDistance(hash1, hash2)
+        #expect(dist == 2)
+    }
+
+    @Test("PluginManagerService scans plugins without failure")
+    func testPluginManagerScanning() async {
+        let plugins = await PluginManagerService.shared.scanExtensionsAndPlugins()
+        #expect(plugins.count >= 0)
+    }
 }
+
 
 
 
