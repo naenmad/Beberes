@@ -18,6 +18,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 struct BeberesApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
 
+    init() {
+        if CLIService.handleCommandLineIfNeeded() {
+            exit(0)
+        }
+    }
+
     var body: some Scene {
         WindowGroup {
             MainView()

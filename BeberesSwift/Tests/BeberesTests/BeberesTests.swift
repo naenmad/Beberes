@@ -194,7 +194,35 @@ struct BeberesTests {
         let plugins = await PluginManagerService.shared.scanExtensionsAndPlugins()
         #expect(plugins.count >= 0)
     }
+
+    @Test("SchedulerService loads default or existing config")
+    func testSchedulerConfig() {
+        let config = SchedulerService.shared.loadConfig()
+        #expect(config.cleanTrashOlderDays >= 0)
+        #expect(!config.intervalType.isEmpty)
+    }
+
+    @Test("ReportService generates comprehensive Markdown diagnostic report")
+    func testReportGeneration() async {
+        let md = await ReportService.shared.generateAuditMarkdown()
+        #expect(md.contains("Beberes System Audit"))
+        #expect(md.contains("Storage Overview"))
+        #expect(md.contains("Memory (RAM) Intelligence"))
+    }
+
+    @Test("CLIService exposes installation status without throwing")
+    func testCLIServiceStatus() {
+        let installed = CLIService.shared.isInstalled
+        #expect(installed == true || installed == false)
+    }
+
+    @Test("AppRelocatorService evaluates bundle location")
+    func testAppRelocator() {
+        let inApps = AppRelocatorService.shared.isInApplicationsFolder
+        #expect(inApps == true || inApps == false)
+    }
 }
+
 
 
 

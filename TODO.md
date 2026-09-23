@@ -40,18 +40,18 @@ Daftar audit fitur backend Rust (`src-tauri/src/`) yang sedang dan akan di-porti
   - Membaca manifest ekstensi di Chrome, Arc, Brave, Edge, serta QuickLook Plugins (`/Library/QuickLook`) dan Spotlight Importers.
 
 ### 📌 Prioritas 3: Otomasi, Pelaporan, & CLI
-- [ ] **Automated Background Scheduler via LaunchAgent**
+- [x] **Automated Background Scheduler via LaunchAgent**
   - Porting dari `scheduler.rs`.
   - Pemasangan daemon `launchd` plist di `~/Library/LaunchAgents/com.naenmad.beberes.cleaner.plist`.
   - Pembersihan otomatis terjadwal (harian / mingguan) di latar belakang.
-- [ ] **Ekspor Laporan Audit Diagnostik Markdown (`Beberes-Audit-*.md`)**
+- [x] **Ekspor Laporan Audit Diagnostik Markdown (`Beberes-Audit-*.md`)**
   - Porting dari `report.rs`.
   - 1-klik ekspor ringkasan performa sistem, ruang kosong, dan histori ke file Markdown di Desktop.
-- [ ] **CLI Companion Mode & Symlink Installer**
+- [x] **CLI Companion Mode & Symlink Installer**
   - Porting dari `cli.rs` & `cli_installer.rs`.
   - Eksekusi `beberes status`, `beberes clean`, `beberes doctor` dari Terminal.
   - Tombol "Install CLI to /usr/local/bin" di Settings.
-- [ ] **Prompt Relokasi Aplikasi ke `/Applications`**
+- [x] **Prompt Relokasi Aplikasi ke `/Applications`**
   - Porting dari `installer.rs`.
   - Deteksi otomatis saat pertama kali dibuka dari folder `~/Downloads` atau disk image `.dmg`.
 
