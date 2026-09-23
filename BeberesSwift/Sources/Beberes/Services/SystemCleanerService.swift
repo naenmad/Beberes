@@ -63,14 +63,20 @@ public actor SystemCleanerService {
             CleanCategory(
                 id: "browser_caches",
                 title: "Browser Web Caches",
-                detail: "Safari, Chrome, and Brave web caches. Passwords and logins are never touched.",
+                detail: "Safari, Chrome, Arc, Brave, Edge, Firefox, and Opera web caches.",
                 iconName: "globe"
             ),
             CleanCategory(
                 id: "xcode_caches",
-                title: "Xcode DerivedData",
-                detail: "Intermediate build files and module indices for Apple developers.",
+                title: "Xcode Developer Artifacts",
+                detail: "DerivedData, old iOS DeviceSupport symbols, and simulator caches.",
                 iconName: "hammer.fill"
+            ),
+            CleanCategory(
+                id: "xcode_simulators",
+                title: "Unavailable iOS Simulators",
+                detail: "Residual runtimes and broken virtual devices via xcrun simctl.",
+                iconName: "iphone.badge.play"
             )
         ]
 
@@ -97,14 +103,26 @@ public actor SystemCleanerService {
                 categories[i].paths = paths
 
             case "browser_caches":
-                let safariCache = home.appendingPathComponent("Library/Caches/com.apple.Safari")
-                let chromeCache = home.appendingPathComponent("Library/Caches/Google/Chrome")
+                let browserCacheDirs = [
+                    home.appendingPathComponent("Library/Caches/com.apple.Safari"),
+                    home.appendingPathComponent("Library/Containers/com.apple.Safari/Data/Library/Caches"),
+                    home.appendingPathComponent("Library/Caches/Google/Chrome"),
+                    home.appendingPathComponent("Library/Application Support/Google/Chrome/Default/Service Worker/CacheStorage"),
+                    home.appendingPathComponent("Library/Caches/company.thebrowser.Browser"),
+                    home.appendingPathComponent("Library/Application Support/Arc/User Data/Default/Service Worker/CacheStorage"),
+                    home.appendingPathComponent("Library/Caches/BraveSoftware/Brave-Browser"),
+                    home.appendingPathComponent("Library/Application Support/BraveSoftware/Brave-Browser/Default/Service Worker/CacheStorage"),
+                    home.appendingPathComponent("Library/Caches/Microsoft Edge"),
+                    home.appendingPathComponent("Library/Application Support/Microsoft Edge/Default/Service Worker/CacheStorage"),
+                    home.appendingPathComponent("Library/Caches/Firefox"),
+                    home.appendingPathComponent("Library/Caches/com.operasoftware.Opera")
+                ]
                 var total: Int64 = 0
                 var allPaths: [String] = []
 
-                for dir in [safariCache, chromeCache] {
+                for dir in browserCacheDirs {
                     if (try? dir.checkResourceIsReachable()) == true {
-                        let (s, _, p) = scanDirectoryContents(dir, maxItems: 50)
+                        let (s, _, p) = scanDirectoryContents(dir, maxItems: 30)
                         total += s
                         allPaths.append(contentsOf: p)
                     }
@@ -114,13 +132,31 @@ public actor SystemCleanerService {
                 categories[i].paths = allPaths
 
             case "xcode_caches":
-                let derivedData = home.appendingPathComponent("Library/Developer/Xcode/DerivedData")
-                if (try? derivedData.checkResourceIsReachable()) == true {
-                    let (size, count, paths) = scanDirectoryContents(derivedData, maxItems: 50)
-                    categories[i].sizeBytes = size
-                    categories[i].itemCount = count
-                    categories[i].paths = paths
+                let devDirs = [
+                    home.appendingPathComponent("Library/Developer/Xcode/DerivedData"),
+                    home.appendingPathComponent("Library/Developer/Xcode/iOS DeviceSupport"),
+                    home.appendingPathComponent("Library/Developer/Xcode/Archives"),
+                    home.appendingPathComponent("Library/Developer/CoreSimulator/Caches")
+                ]
+                var total: Int64 = 0
+                var allPaths: [String] = []
+
+                for dir in devDirs {
+                    if (try? dir.checkResourceIsReachable()) == true {
+                        let (size, _, paths) = scanDirectoryContents(dir, maxItems: 30)
+                        total += size
+                        allPaths.append(contentsOf: paths)
+                    }
                 }
+                categories[i].sizeBytes = total
+                categories[i].itemCount = allPaths.count
+                categories[i].paths = allPaths
+
+            case "xcode_simulators":
+                let (count, estBytes) = scanUnavailableSimulators()
+                categories[i].sizeBytes = estBytes
+                categories[i].itemCount = count
+                categories[i].paths = count > 0 ? ["simctl:delete_unavailable"] : []
 
             default:
                 break
@@ -138,16 +174,57 @@ public actor SystemCleanerService {
                 deleteSnapshot(name: name)
             }
             freed = category.sizeBytes
+        } else if category.id == "xcode_simulators" {
+            purgeUnavailableSimulators()
+            freed = category.sizeBytes
         } else {
             for p in category.paths {
                 if !SafetyGuard.isProtectedPath(p) {
-                    try? TrashService.remove(at: p)
+                    try? TrashService.shared.remove(at: p)
                 }
             }
             freed = category.sizeBytes
         }
 
         return freed
+    }
+
+    private func scanUnavailableSimulators() -> (count: Int, estimatedBytes: Int64) {
+        let task = Process()
+        task.executableURL = URL(fileURLWithPath: "/usr/bin/xcrun")
+        task.arguments = ["simctl", "list", "devices", "-j"]
+
+        let pipe = Pipe()
+        task.standardOutput = pipe
+        task.standardError = Pipe()
+
+        do {
+            try task.run()
+            task.waitUntilExit()
+            let data = pipe.fileHandleForReading.readDataToEndOfFile()
+            if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+               let devices = json["devices"] as? [String: [[String: Any]]] {
+                var unavailable = 0
+                for (_, list) in devices {
+                    for dev in list {
+                        if let isAvailable = dev["isAvailable"] as? Bool, !isAvailable {
+                            unavailable += 1
+                        }
+                    }
+                }
+                let est = Int64(unavailable) * 800_000_000
+                return (unavailable, est)
+            }
+        } catch {}
+        return (0, 0)
+    }
+
+    private func purgeUnavailableSimulators() {
+        let task = Process()
+        task.executableURL = URL(fileURLWithPath: "/usr/bin/xcrun")
+        task.arguments = ["simctl", "delete", "unavailable"]
+        try? task.run()
+        task.waitUntilExit()
     }
 
     private func scanAPFSSnapshots() -> (totalSize: Int64, names: [String]) {

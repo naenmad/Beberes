@@ -4,6 +4,8 @@ import Observation
 @MainActor
 @Observable
 public final class AppState {
+    public static let shared = AppState()
+
     public var selectedSection: NavigationSection = .dashboard
 
     // Global App Bar Controls (Tauri Parity)
@@ -16,7 +18,7 @@ public final class AppState {
     }
 
     public var isGlobalScanning: Bool {
-        isLoadingPorts || isLoadingProjects || isLoadingSystemClean || isLoadingApps || isLoadingStartup || isLoadingLargeFiles || isLoadingTrash
+        isLoadingPorts || isLoadingProjects || isLoadingSystemClean || isLoadingApps || isLoadingStartup || isLoadingLargeFiles || isLoadingTrash || isLoadingOrphaned
     }
 
     public func triggerGlobalRefresh() async {
@@ -75,6 +77,12 @@ public final class AppState {
     public var isLoadingApps: Bool = false
     public var appSearchText: String = ""
     public var appUninstallToastMessage: String? = nil
+    
+    // Orphaned Leftovers State
+    public var orphanedItems: [OrphanedItem] = []
+    public var selectedOrphanedIDs: Set<String> = []
+    public var isLoadingOrphaned: Bool = false
+    public var orphanedToastMessage: String? = nil
 
     // Startup Items State
     public var startupItems: [StartupItem] = []
@@ -259,6 +267,27 @@ public final class AppState {
             $0.name.lowercased().contains(q) ||
             $0.bundleId.lowercased().contains(q)
         }
+    }
+
+    // MARK: - Orphaned Leftovers Actions
+    public func fetchOrphanedLeftovers() async {
+        isLoadingOrphaned = true
+        defer { isLoadingOrphaned = false }
+        orphanedItems = await OrphanedService.shared.scanOrphanedLeftovers()
+        selectedOrphanedIDs = Set(orphanedItems.map(\.id))
+    }
+
+    public func cleanSelectedOrphanedItems() async {
+        isLoadingOrphaned = true
+        defer { isLoadingOrphaned = false }
+
+        let targets = orphanedItems.filter { selectedOrphanedIDs.contains($0.id) }
+        let freed = await OrphanedService.shared.cleanOrphanedItems(targets, preferTrash: deleteToTrash)
+
+        recordCleanResult(freedBytes: freed)
+        orphanedToastMessage = "Removed \(targets.count) orphaned items and freed \(freed.formattedBytes)."
+        await fetchOrphanedLeftovers()
+        refreshSystemStats()
     }
 
     // MARK: - Startup Items Actions

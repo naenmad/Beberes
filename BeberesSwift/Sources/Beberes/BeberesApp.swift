@@ -28,5 +28,10 @@ struct BeberesApp: App {
         .commands {
             SidebarCommands()
         }
+
+        MenuBarExtra("Beberes", systemImage: "sparkles") {
+            MenuBarPopoverView()
+        }
+        .menuBarExtraStyle(.window)
     }
 }

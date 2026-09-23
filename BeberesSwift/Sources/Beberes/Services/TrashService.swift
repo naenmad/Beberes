@@ -1,6 +1,8 @@
 import Foundation
 
 public struct TrashService: Sendable {
+    public static let shared = TrashService()
+
     public static var isTrashMode: Bool {
         if UserDefaults.standard.object(forKey: "beberes_delete_to_trash") == nil {
             return true
@@ -26,5 +28,9 @@ public struct TrashService: Sendable {
         } else {
             try deletePermanently(at: path)
         }
+    }
+
+    public func remove(at path: String, preferTrash: Bool? = nil) throws {
+        try Self.remove(at: path, preferTrash: preferTrash)
     }
 }

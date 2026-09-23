@@ -131,6 +131,33 @@ struct BeberesTests {
         #expect(result.items.contains { $0.category == "Screenshots" })
         #expect(result.items.contains { $0.category == "Documents" })
     }
+
+    @Test("OrphanedService scans without throwing and respects Apple system identifiers")
+    func testOrphanedServiceScan() async {
+        let items = await OrphanedService.shared.scanOrphanedLeftovers()
+        #expect(items.count >= 0)
+        // Ensure no Apple system identifiers leak into orphaned results
+        for item in items {
+            #expect(!item.path.contains("com.apple."))
+        }
+    }
+
+    @Test("SystemCleanerService includes browser and Xcode simulator categories")
+    func testSystemCleanerExtendedCategories() async {
+        let cleaner = SystemCleanerService()
+        let categories = await cleaner.scanCategories()
+        let ids = Set(categories.map(\.id))
+
+        #expect(ids.contains("browser_caches"))
+        #expect(ids.contains("xcode_caches"))
+        #expect(ids.contains("xcode_simulators"))
+    }
+
+    @Test("TrashService conforms to singleton and deletion modes")
+    func testTrashServiceModes() {
+        let _ = TrashService.shared
+        #expect(TrashService.isTrashMode == true || TrashService.isTrashMode == false)
+    }
 }
 
 

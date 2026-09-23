@@ -1,6 +1,59 @@
 # Beberes Development Roadmap & TODO
 
-Daftar rencana pematangan repositori, presentasi visual kelas dunia, dan infrastruktur distribusi open-source.
+Daftar rencana pematangan repositori, presentasi visual kelas dunia, dan tracking implementasi core engine dari Rust ke Pure Swift Native (Beberes v2).
+
+---
+
+## 🚀 Beberes v2 (Pure Swift) - Rust Core Parity Tracker
+
+Daftar audit fitur backend Rust (`src-tauri/src/`) yang sedang dan akan di-porting ke arsitektur native Swift 6 / SwiftUI:
+
+### 📌 Prioritas 1: High Impact & Essential macOS Native Experience
+- [x] **macOS Menu Bar Extra Popover (`MenuBarExtra`)**
+  - Icon status bar mini di pojok kanan atas macOS menu bar.
+  - Floating popover widget (meter real-time RAM & Storage, status disk free).
+  - Tombol aksi 1-klik instan: *1-Click Smart Clean*, *Purge Inactive RAM* (`/usr/bin/purge`), dan *Empty Trash*.
+- [x] **Orphaned App Leftovers Scanner (`OrphanedService`)**
+  - Pemindaian sisa sampah dari aplikasi yang **sudah pernah dihapus di masa lalu** (sebelum user menggunakan Beberes).
+  - Memeriksa direktori `~/Library/Application Support`, `~/Library/Caches`, `~/Library/Saved Application State`, `~/Library/Preferences`, `~/Library/Containers`.
+  - Membandingkan folder sampah dengan daftar aplikasi yang saat ini masih terpasang.
+  - Terintegrasi langsung di subheader `AppUninstallerView` dengan tab `[Installed Apps | Orphaned Leftovers]`.
+- [x] **Ekspansi Browser Web Caches Komprehensif**
+  - Porting dari `browser.rs` ke `SystemCleanerService.swift`.
+  - Mendukung pembersihan cache deep untuk: **Safari, Google Chrome, Arc Browser, Brave Browser, Microsoft Edge, Mozilla Firefox, Opera**.
+- [x] **Xcode Simulators & Deep Developer Purge**
+  - Porting dari `xcode_sim.rs` ke `DeveloperScannerService.swift` / `SystemCleanerService.swift`.
+  - Eksekusi `xcrun simctl delete unavailable` untuk menghapus simulator iOS/watchOS yang rusak atau tidak didukung lagi (menghemat 10-40 GB).
+  - Pembersihan cache `~/Library/Developer/Xcode/iOS DeviceSupport/` (simbol debug iOS versi lawas), Archives, dan CoreSimulator caches.
+
+### 📌 Prioritas 2: Media Intelligence & Maintenance
+- [ ] **Perceptual Image Difference Hashing (dHash)**
+  - Porting algoritma dHash 9x8 bitmap dari `similar_media.rs` menggunakan `sips` / CoreGraphics.
+  - Mendeteksi foto mirip visual (>80% similarity), foto jepretan burst, dan foto yang di-resize / kompresi.
+  - Memungkinkan perbandingan visual langsung dengan rekomendasi keep foto kualitas terbaik.
+- [ ] **Empty Folders & Broken Symlinks Cleaner (`MaintenanceService`)**
+  - Porting dari `maintenance.rs`.
+  - Deteksi direktori kosong yang hanya berisi file metadata `.DS_Store`.
+  - Deteksi broken alias / dangling symlink yang file aslinya sudah terhapus.
+- [ ] **Browser Extensions & System Plugins Inspector**
+  - Porting dari `plugins.rs`.
+  - Membaca manifest ekstensi di Chrome, Arc, Brave, Edge, serta QuickLook Plugins (`/Library/QuickLook`) dan Spotlight Importers.
+
+### 📌 Prioritas 3: Otomasi, Pelaporan, & CLI
+- [ ] **Automated Background Scheduler via LaunchAgent**
+  - Porting dari `scheduler.rs`.
+  - Pemasangan daemon `launchd` plist di `~/Library/LaunchAgents/com.naenmad.beberes.cleaner.plist`.
+  - Pembersihan otomatis terjadwal (harian / mingguan) di latar belakang.
+- [ ] **Ekspor Laporan Audit Diagnostik Markdown (`Beberes-Audit-*.md`)**
+  - Porting dari `report.rs`.
+  - 1-klik ekspor ringkasan performa sistem, ruang kosong, dan histori ke file Markdown di Desktop.
+- [ ] **CLI Companion Mode & Symlink Installer**
+  - Porting dari `cli.rs` & `cli_installer.rs`.
+  - Eksekusi `beberes status`, `beberes clean`, `beberes doctor` dari Terminal.
+  - Tombol "Install CLI to /usr/local/bin" di Settings.
+- [ ] **Prompt Relokasi Aplikasi ke `/Applications`**
+  - Porting dari `installer.rs`.
+  - Deteksi otomatis saat pertama kali dibuka dari folder `~/Downloads` atau disk image `.dmg`.
 
 ---
 
