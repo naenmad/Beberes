@@ -127,11 +127,15 @@ public struct TidyUpView: View {
                 Divider()
 
                 if filteredItems.isEmpty {
-                    ContentUnavailableView(
-                        "No Items in Category",
-                        systemImage: "folder",
-                        description: Text("No files match the selected category filter.")
-                    )
+                    StatusStateView(
+                        type: .clean(systemImage: "folder"),
+                        title: "No Files in \(selectedCategory)",
+                        subtitle: "No items match the '\(selectedCategory)' category filter.",
+                        actionTitle: "Show All Categories",
+                        actionIcon: "xmark.circle"
+                    ) {
+                        selectedCategory = "All"
+                    }
                 } else {
                     List {
                         ForEach(filteredItems) { item in
@@ -181,15 +185,14 @@ public struct TidyUpView: View {
                 }
             } else {
                 // Folder is clean empty state
-                ContentUnavailableView {
-                    Label("\(selectedFolder.rawValue) is Organised", systemImage: "folder.badge.checkmark")
-                } description: {
-                    Text("All loose files in your \(selectedFolder.rawValue) folder are already organized. No clutter detected.")
-                } actions: {
-                    Button(selectedFolder == .downloads ? "Switch to Desktop" : "Switch to Downloads") {
-                        selectedFolder = selectedFolder == .downloads ? .desktop : .downloads
-                    }
-                    .buttonStyle(.bordered)
+                StatusStateView(
+                    type: .clean(systemImage: "folder.badge.checkmark"),
+                    title: "\(selectedFolder.rawValue) is Organised",
+                    subtitle: "All loose files in your \(selectedFolder.rawValue) folder are already organized. No clutter detected.",
+                    actionTitle: selectedFolder == .downloads ? "Switch to Desktop" : "Switch to Downloads",
+                    actionIcon: "arrow.left.arrow.right"
+                ) {
+                    selectedFolder = selectedFolder == .downloads ? .desktop : .downloads
                 }
             }
         }

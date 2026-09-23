@@ -55,11 +55,15 @@ public struct GitSweeperView: View {
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else if repos.isEmpty {
-                ContentUnavailableView(
-                    "No Repositories Scanned",
-                    systemImage: "arrow.triangle.branch",
-                    description: Text("Scan your workspace roots to discover local repositories and prune merged branches.")
-                )
+                StatusStateView(
+                    type: .ready(systemImage: "arrow.triangle.branch"),
+                    title: "Ready to Scan Repositories",
+                    subtitle: "Scan developer workspace folders to detect git repositories and prune obsolete merged branches.",
+                    actionTitle: "Scan Repositories",
+                    actionIcon: "arrow.clockwise"
+                ) {
+                    Task { await runScan() }
+                }
             } else {
                 // Summary bar
                 HStack(spacing: 16) {

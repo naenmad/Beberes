@@ -42,6 +42,16 @@ public struct SystemCleanView: View {
                         .foregroundStyle(.secondary)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else if state.cleanCategories.isEmpty {
+                StatusStateView(
+                    type: .clean(systemImage: "sparkles"),
+                    title: "System Caches Clean",
+                    subtitle: "No redundant user caches or system log files detected. Your Mac is in top shape.",
+                    actionTitle: "Rescan System",
+                    actionIcon: "arrow.clockwise"
+                ) {
+                    Task { await state.scanSystemCategories() }
+                }
             } else {
                 List {
                     ForEach(state.cleanCategories, id: \.id) { (cat: CleanCategory) in
@@ -104,6 +114,11 @@ public struct SystemCleanView: View {
                     Label("Rescan", systemImage: "arrow.clockwise")
                 }
                 .disabled(state.isLoadingSystemClean)
+            }
+        }
+        .task {
+            if state.cleanCategories.isEmpty && !state.isLoadingSystemClean {
+                await state.scanSystemCategories()
             }
         }
     }

@@ -91,6 +91,11 @@ public struct QuickReviewView: View {
                 .disabled(isReviewing)
             }
         }
+        .task {
+            if !reviewDone && !isReviewing {
+                await performFullAssessment()
+            }
+        }
     }
 
     private func performFullAssessment() async {

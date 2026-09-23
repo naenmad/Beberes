@@ -44,11 +44,15 @@ public struct LargeFilesView: View {
             } else if selectedTab == 0 {
                 // Large Files Tab
                 if state.largeFiles.isEmpty {
-                    ContentUnavailableView(
-                        "No Large Files Found",
-                        systemImage: "doc.on.doc",
-                        description: Text("No files larger than 50MB detected in your home folders.")
-                    )
+                    StatusStateView(
+                        type: .clean(systemImage: "doc.on.doc"),
+                        title: "No Large Files Found",
+                        subtitle: "No files larger than 50MB detected across your home directory.",
+                        actionTitle: "Rescan Storage",
+                        actionIcon: "arrow.clockwise"
+                    ) {
+                        Task { await state.fetchLargeFiles() }
+                    }
                 } else {
                     List {
                         ForEach(state.filteredLargeFiles) { file in
@@ -98,11 +102,15 @@ public struct LargeFilesView: View {
             } else {
                 // Duplicates Tab
                 if state.duplicateGroups.isEmpty {
-                    ContentUnavailableView(
-                        "No Duplicates Found",
-                        systemImage: "checkmark.seal",
-                        description: Text("No duplicate files with identical chunk hashes detected.")
-                    )
+                    StatusStateView(
+                        type: .clean(systemImage: "checkmark.seal"),
+                        title: "No Duplicates Found",
+                        subtitle: "No duplicate files with identical content detected. Storage is clean.",
+                        actionTitle: "Rescan Duplicates",
+                        actionIcon: "arrow.clockwise"
+                    ) {
+                        Task { await state.fetchLargeFiles() }
+                    }
                 } else {
                     List {
                         ForEach(state.duplicateGroups) { group in
@@ -182,6 +190,11 @@ public struct LargeFilesView: View {
         } message: {
             if let file = fileToTrash {
                 Text("Are you sure you want to move '\(file.name)' (\(file.formattedSize)) to the macOS Trash?")
+            }
+        }
+        .task {
+            if state.largeFiles.isEmpty && !state.isLoadingLargeFiles {
+                await state.fetchLargeFiles()
             }
         }
     }

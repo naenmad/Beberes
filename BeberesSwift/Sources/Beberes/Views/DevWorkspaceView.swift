@@ -38,11 +38,15 @@ public struct DevWorkspaceView: View {
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else if state.dormantProjects.isEmpty {
-                ContentUnavailableView(
-                    "No Inactive Projects Found",
-                    systemImage: "hammer",
-                    description: Text("All detected projects have recent Git commits within \(state.inactivityThresholdDays) days or have already been hibernated.")
-                )
+                StatusStateView(
+                    type: .clean(systemImage: "hammer"),
+                    title: "Workspace is Clean",
+                    subtitle: "No dormant developer projects found. All repositories have active Git commits within \(state.inactivityThresholdDays) days or are already hibernated.",
+                    actionTitle: "Rescan Projects",
+                    actionIcon: "arrow.clockwise"
+                ) {
+                    Task { await state.scanDormantProjects() }
+                }
             } else {
                 List {
                     ForEach(state.dormantProjects) { project in
@@ -117,6 +121,11 @@ public struct DevWorkspaceView: View {
                     Label("Rescan", systemImage: "arrow.clockwise")
                 }
                 .disabled(state.isLoadingProjects)
+            }
+        }
+        .task {
+            if state.dormantProjects.isEmpty && !state.isLoadingProjects {
+                await state.scanDormantProjects()
             }
         }
     }

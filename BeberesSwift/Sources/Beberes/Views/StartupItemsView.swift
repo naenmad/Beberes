@@ -41,11 +41,27 @@ public struct StartupItemsView: View {
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else if appState.filteredStartupItems.isEmpty {
-                ContentUnavailableView(
-                    "No Startup Items",
-                    systemImage: "bolt",
-                    description: Text(appState.startupSearchText.isEmpty ? "No custom background startup items detected." : "No items match '\(appState.startupSearchText)'.")
-                )
+                if !appState.startupSearchText.isEmpty {
+                    StatusStateView(
+                        type: .searchEmpty(query: appState.startupSearchText),
+                        title: "No Matching Items",
+                        subtitle: "No startup items match '\(appState.startupSearchText)'.",
+                        actionTitle: "Clear Search",
+                        actionIcon: "xmark.circle"
+                    ) {
+                        appState.startupSearchText = ""
+                    }
+                } else {
+                    StatusStateView(
+                        type: .clean(systemImage: "bolt"),
+                        title: "Startup Items Clean",
+                        subtitle: "No unneeded LaunchAgents or login daemons detected.",
+                        actionTitle: "Refresh Items",
+                        actionIcon: "arrow.clockwise"
+                    ) {
+                        Task { await appState.fetchStartupItems() }
+                    }
+                }
             } else {
                 List {
                     ForEach(appState.filteredStartupItems) { item in
@@ -122,6 +138,11 @@ public struct StartupItemsView: View {
         } message: {
             if let item = itemToRemove {
                 Text("This will delete '\(item.name)' configuration plist file and unregister it from launchd.")
+            }
+        }
+        .task {
+            if appState.startupItems.isEmpty && !appState.isLoadingStartup {
+                await appState.fetchStartupItems()
             }
         }
     }

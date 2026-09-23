@@ -23,11 +23,15 @@ public struct DiskVisualizerView: View {
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else if nodes.isEmpty {
-                ContentUnavailableView(
-                    "No Storage Analysis",
-                    systemImage: "chart.pie",
-                    description: Text("Analyze your home directory to visualize storage consumption by folder.")
-                )
+                StatusStateView(
+                    type: .ready(systemImage: "chart.pie"),
+                    title: "Ready to Analyze Storage",
+                    subtitle: "Scan your primary user profile directories to visualize storage distribution.",
+                    actionTitle: "Analyze Home Directory",
+                    actionIcon: "arrow.clockwise"
+                ) {
+                    Task { await analyzeUserStorage() }
+                }
             } else {
                 VStack(spacing: 16) {
                     // Storage Allocation Bar (macOS System Settings Style)

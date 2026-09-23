@@ -35,15 +35,14 @@ public struct FileShredderView: View {
             // Drop Area / Staged Queue
             VStack(spacing: 16) {
                 if appState.shredQueue.isEmpty {
-                    ContentUnavailableView {
-                        Label("Drag and Drop Files to Shred", systemImage: "lock.shield")
-                    } description: {
-                        Text("Files dropped here will be multi-pass overwritten and flushed using F_FULLFSYNC.")
-                    } actions: {
-                        Button("Choose Files...") {
-                            openFilePicker()
-                        }
-                        .buttonStyle(.bordered)
+                    StatusStateView(
+                        type: .ready(systemImage: "lock.shield"),
+                        title: "Drag and Drop Files to Shred",
+                        subtitle: "Items staged here are overwritten with multi-pass random data and flushed using F_FULLFSYNC with zero chance of recovery.",
+                        actionTitle: "Choose Files...",
+                        actionIcon: "plus"
+                    ) {
+                        openFilePicker()
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {

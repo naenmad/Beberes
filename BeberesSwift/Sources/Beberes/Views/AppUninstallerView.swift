@@ -27,11 +27,27 @@ public struct AppUninstallerView: View {
                         }
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                     } else if appState.filteredApps.isEmpty {
-                        ContentUnavailableView(
-                            "No Applications",
-                            systemImage: "app.badge",
-                            description: Text(appState.appSearchText.isEmpty ? "No installed applications found." : "No applications match '\(appState.appSearchText)'.")
-                        )
+                        if !appState.appSearchText.isEmpty {
+                            StatusStateView(
+                                type: .searchEmpty(query: appState.appSearchText),
+                                title: "No Matching Applications",
+                                subtitle: "No installed applications match '\(appState.appSearchText)'.",
+                                actionTitle: "Clear Search",
+                                actionIcon: "xmark.circle"
+                            ) {
+                                appState.appSearchText = ""
+                            }
+                        } else {
+                            StatusStateView(
+                                type: .clean(systemImage: "app.badge"),
+                                title: "No Applications Found",
+                                subtitle: "No third-party installed applications detected in /Applications.",
+                                actionTitle: "Refresh Applications",
+                                actionIcon: "arrow.clockwise"
+                            ) {
+                                Task { await appState.fetchInstalledApps() }
+                            }
+                        }
                     } else {
                         List(appState.filteredApps, selection: $appState.selectedApp) { app in
                             HStack(spacing: 12) {
@@ -73,10 +89,10 @@ public struct AppUninstallerView: View {
                         showConfirmDialog = true
                     }
                 } else {
-                    ContentUnavailableView(
-                        "No App Selected",
-                        systemImage: "sidebar.left",
-                        description: Text("Select an application from the list to inspect leftover caches and preferences.")
+                    StatusStateView(
+                        type: .ready(systemImage: "app.badge"),
+                        title: "Select an Application",
+                        subtitle: "Choose an application from the list to inspect its size and leftover caches."
                     )
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
@@ -109,6 +125,11 @@ public struct AppUninstallerView: View {
         } message: {
             if let app = appToUninstall {
                 Text("This will safely move \(app.name) and \(app.leftovers.count) associated support files (\(app.formattedTotalSize)) to the macOS Trash.")
+            }
+        }
+        .task {
+            if appState.installedApps.isEmpty && !appState.isLoadingApps {
+                await appState.fetchInstalledApps()
             }
         }
     }

@@ -40,11 +40,15 @@ public struct TrashManagerView: View {
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else if state.trashItems.isEmpty {
-                ContentUnavailableView(
-                    "Trash is Empty",
-                    systemImage: "trash",
-                    description: Text("There are no deleted items waiting in the macOS Trash.")
-                )
+                StatusStateView(
+                    type: .clean(systemImage: "trash"),
+                    title: "Trash is Empty",
+                    subtitle: "There are no deleted items waiting in the macOS Trash. Your storage is clean.",
+                    actionTitle: "Refresh",
+                    actionIcon: "arrow.clockwise"
+                ) {
+                    Task { await state.fetchTrashItems() }
+                }
             } else {
                 List {
                     ForEach(state.trashItems) { item in
@@ -141,6 +145,11 @@ public struct TrashManagerView: View {
             Button("Cancel", role: .cancel) {}
         } message: {
             Text("Permanently delete this item? This action cannot be undone.")
+        }
+        .task {
+            if state.trashItems.isEmpty && !state.isLoadingTrash {
+                await state.fetchTrashItems()
+            }
         }
     }
 }

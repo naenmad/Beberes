@@ -23,11 +23,15 @@ public struct SimilarPhotosView: View {
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else if duplicateImages.isEmpty {
-                ContentUnavailableView(
-                    "No Similar Photos",
-                    systemImage: "photo.stack",
-                    description: Text("Scan media to detect duplicate photos or redundant screenshots.")
-                )
+                StatusStateView(
+                    type: .clean(systemImage: "photo.stack"),
+                    title: "Photos & Screenshots Clean",
+                    subtitle: "No redundant duplicate images or screenshot bursts detected in Pictures and Desktop.",
+                    actionTitle: "Rescan Media",
+                    actionIcon: "arrow.clockwise"
+                ) {
+                    Task { await scanMedia() }
+                }
             } else {
                 List {
                     ForEach(duplicateImages) { group in

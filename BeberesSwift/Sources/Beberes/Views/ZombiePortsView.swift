@@ -38,11 +38,27 @@ public struct ZombiePortsView: View {
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else if state.filteredPorts.isEmpty {
-                ContentUnavailableView(
-                    "No Listening Ports",
-                    systemImage: "network",
-                    description: Text(state.portSearchText.isEmpty ? "No active TCP listening sockets found." : "No listening ports match '\(state.portSearchText)'.")
-                )
+                if !state.portSearchText.isEmpty {
+                    StatusStateView(
+                        type: .searchEmpty(query: state.portSearchText),
+                        title: "No Matching Ports",
+                        subtitle: "No listening ports match '\(state.portSearchText)'.",
+                        actionTitle: "Clear Search",
+                        actionIcon: "xmark.circle"
+                    ) {
+                        state.portSearchText = ""
+                    }
+                } else {
+                    StatusStateView(
+                        type: .clean(systemImage: "network"),
+                        title: "All Ports Clean",
+                        subtitle: "No rogue or dangling TCP listening sockets detected on your system.",
+                        actionTitle: "Refresh Ports",
+                        actionIcon: "arrow.clockwise"
+                    ) {
+                        Task { await state.fetchPorts() }
+                    }
+                }
             } else {
                 List {
                     ForEach(state.filteredPorts) { port in
@@ -92,5 +108,10 @@ public struct ZombiePortsView: View {
         }
         .searchable(text: $state.portSearchText, prompt: "Filter by port or process name")
         .background(Color(nsColor: .windowBackgroundColor))
+        .task {
+            if state.ports.isEmpty && !state.isLoadingPorts {
+                await state.fetchPorts()
+            }
+        }
     }
 }
