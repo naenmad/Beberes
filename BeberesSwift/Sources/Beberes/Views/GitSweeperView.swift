@@ -181,15 +181,8 @@ public struct GitSweeperView: View {
         }
         .background(Color(nsColor: .windowBackgroundColor))
         .navigationTitle("Git Sweeper")
-        .toolbar {
-            ToolbarItem(placement: .primaryAction) {
-                Button {
-                    Task { await runScan() }
-                } label: {
-                    Label(isScanning ? "Scanning..." : "Scan Repositories", systemImage: "arrow.clockwise")
-                }
-                .disabled(isScanning)
-            }
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("BeberesRefreshTriggered"))) { _ in
+            Task { await runScan() }
         }
         .task {
             if repos.isEmpty {

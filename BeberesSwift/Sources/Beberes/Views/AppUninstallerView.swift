@@ -99,16 +99,6 @@ public struct AppUninstallerView: View {
             }
         }
         .navigationTitle("App Uninstaller")
-        .toolbar {
-            ToolbarItem(placement: .primaryAction) {
-                Button {
-                    Task { await appState.fetchInstalledApps() }
-                } label: {
-                    Label("Refresh", systemImage: "arrow.clockwise")
-                }
-                .disabled(appState.isLoadingApps)
-            }
-        }
         .searchable(text: $appState.appSearchText, prompt: "Filter installed applications")
         .background(Color(nsColor: .windowBackgroundColor))
         .confirmationDialog(

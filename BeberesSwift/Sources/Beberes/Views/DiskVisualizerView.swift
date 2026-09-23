@@ -115,15 +115,8 @@ public struct DiskVisualizerView: View {
         }
         .background(Color(nsColor: .windowBackgroundColor))
         .navigationTitle("Disk Visualizer")
-        .toolbar {
-            ToolbarItem(placement: .primaryAction) {
-                Button {
-                    Task { await analyzeUserStorage() }
-                } label: {
-                    Label(isAnalyzing ? "Analyzing..." : "Analyze Home Directory", systemImage: "arrow.clockwise")
-                }
-                .disabled(isAnalyzing)
-            }
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("BeberesRefreshTriggered"))) { _ in
+            Task { await analyzeUserStorage() }
         }
         .task {
             if nodes.isEmpty {

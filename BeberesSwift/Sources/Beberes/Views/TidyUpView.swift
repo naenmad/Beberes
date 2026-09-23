@@ -46,6 +46,34 @@ public struct TidyUpView: View {
 
     public var body: some View {
         VStack(spacing: 0) {
+            // Folder Selector Subheader
+            HStack(spacing: 12) {
+                Picker("Target Folder", selection: $selectedFolder) {
+                    ForEach(TidyFolder.allCases) { folder in
+                        Text(folder.rawValue).tag(folder)
+                    }
+                }
+                .pickerStyle(.segmented)
+                .labelsHidden()
+                .frame(width: 180)
+
+                Spacer()
+
+                Button {
+                    Task { await runScan() }
+                } label: {
+                    Label("Rescan", systemImage: "arrow.clockwise")
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.small)
+                .disabled(isScanning || isProcessing)
+            }
+            .padding(.horizontal, 24)
+            .padding(.vertical, 8)
+            .background(Color(nsColor: .controlBackgroundColor).opacity(0.5))
+
+            Divider()
+
             // Status Feedback Toast
             if let status = statusMessage {
                 HStack(spacing: 8) {
@@ -198,27 +226,6 @@ public struct TidyUpView: View {
         }
         .background(Color(nsColor: .windowBackgroundColor))
         .navigationTitle("Tidy Up")
-        .toolbar {
-            ToolbarItem(placement: .principal) {
-                Picker("Target Folder", selection: $selectedFolder) {
-                    ForEach(TidyFolder.allCases) { folder in
-                        Text(folder.rawValue).tag(folder)
-                    }
-                }
-                .pickerStyle(.segmented)
-                .labelsHidden()
-                .frame(width: 180)
-            }
-
-            ToolbarItem(placement: .primaryAction) {
-                Button {
-                    Task { await runScan() }
-                } label: {
-                    Label("Rescan", systemImage: "arrow.clockwise")
-                }
-                .disabled(isScanning || isProcessing)
-            }
-        }
         .onChange(of: selectedFolder) {
             Task { await runScan() }
         }
@@ -226,6 +233,9 @@ public struct TidyUpView: View {
             if scanResult == nil {
                 await runScan()
             }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("BeberesRefreshTriggered"))) { _ in
+            Task { await runScan() }
         }
     }
 
@@ -247,7 +257,7 @@ public struct TidyUpView: View {
 
         for item in redundantItems {
             do {
-                try TrashService.moveToTrash(at: item.path)
+                try TrashService.remove(at: item.path)
                 trashedCount += 1
                 trashedBytes += item.sizeBytes
             } catch {
@@ -256,7 +266,9 @@ public struct TidyUpView: View {
         }
 
         state.lifetimeFreedBytes += trashedBytes
-        statusMessage = "Moved \(trashedCount) redundant installers (\(trashedBytes.formattedBytes)) to Trash."
+        statusMessage = TrashService.isTrashMode
+            ? "Moved \(trashedCount) redundant installers (\(trashedBytes.formattedBytes)) to Trash."
+            : "Permanently deleted \(trashedCount) redundant installers (\(trashedBytes.formattedBytes))."
         await runScan()
         isProcessing = false
     }

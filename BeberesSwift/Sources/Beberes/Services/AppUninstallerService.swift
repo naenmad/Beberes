@@ -144,14 +144,14 @@ public struct AppUninstallerService: Sendable {
         // 1. Move leftovers to trash
         for leftover in app.leftovers {
             if SafetyGuard.isSafeToDelete(path: leftover.path) {
-                if (try? TrashService.moveToTrash(at: leftover.path)) != nil {
+                if (try? TrashService.remove(at: leftover.path)) != nil {
                     totalFreed += leftover.sizeBytes
                 }
             }
         }
 
         // 2. Move main app bundle to trash
-        try TrashService.moveToTrash(at: app.path)
+        try TrashService.remove(at: app.path)
         totalFreed += app.appSizeBytes
 
         return totalFreed

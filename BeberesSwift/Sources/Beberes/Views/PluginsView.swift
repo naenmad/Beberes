@@ -75,15 +75,8 @@ public struct PluginsView: View {
         }
         .background(Color(nsColor: .windowBackgroundColor))
         .navigationTitle("Plugins")
-        .toolbar {
-            ToolbarItem(placement: .primaryAction) {
-                Button {
-                    Task { await detectPlugins() }
-                } label: {
-                    Label(isChecking ? "Checking..." : "Refresh Status", systemImage: "arrow.clockwise")
-                }
-                .disabled(isChecking)
-            }
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("BeberesRefreshTriggered"))) { _ in
+            Task { await detectPlugins() }
         }
         .task {
             if plugins.isEmpty {

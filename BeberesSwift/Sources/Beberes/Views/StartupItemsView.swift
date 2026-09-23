@@ -112,16 +112,6 @@ public struct StartupItemsView: View {
             }
         }
         .navigationTitle("Startup Items")
-        .toolbar {
-            ToolbarItem(placement: .primaryAction) {
-                Button {
-                    Task { await appState.fetchStartupItems() }
-                } label: {
-                    Label("Refresh", systemImage: "arrow.clockwise")
-                }
-                .disabled(appState.isLoadingStartup)
-            }
-        }
         .searchable(text: $appState.startupSearchText, prompt: "Filter startup items")
         .background(Color(nsColor: .windowBackgroundColor))
         .confirmationDialog(

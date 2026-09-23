@@ -13,6 +13,31 @@ public struct FileShredderView: View {
 
     public var body: some View {
         VStack(spacing: 0) {
+            // Security Algorithm & Staging Subheader
+            HStack(spacing: 12) {
+                Picker("Security", selection: $appState.shredPass) {
+                    ForEach(ShredPassOption.allCases) { opt in
+                        Text(opt.label).tag(opt)
+                    }
+                }
+                .labelsHidden()
+                .frame(width: 170)
+
+                Spacer()
+
+                Button {
+                    openFilePicker()
+                } label: {
+                    Label("Add Files...", systemImage: "plus")
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.small)
+            }
+            .padding(.horizontal, 24)
+            .padding(.vertical, 8)
+            .background(Color(nsColor: .controlBackgroundColor).opacity(0.5))
+
+            Divider()
 
             // Toast Message
             if let msg = appState.shredToastMessage {
@@ -101,23 +126,6 @@ public struct FileShredderView: View {
         }
         .background(Color(nsColor: .windowBackgroundColor))
         .navigationTitle("File Shredder")
-        .toolbar {
-            ToolbarItem(placement: .primaryAction) {
-                Button("Add Files...") {
-                    openFilePicker()
-                }
-            }
-
-            ToolbarItem(placement: .primaryAction) {
-                Picker("Security", selection: $appState.shredPass) {
-                    ForEach(ShredPassOption.allCases) { opt in
-                        Text(opt.label).tag(opt)
-                    }
-                }
-                .labelsHidden()
-                .frame(width: 170)
-            }
-        }
         .confirmationDialog(
             "Permanently Shred Files?",
             isPresented: $showConfirmDialog,

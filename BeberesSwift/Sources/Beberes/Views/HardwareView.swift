@@ -79,15 +79,9 @@ public struct HardwareView: View {
         }
         .background(Color(nsColor: .windowBackgroundColor))
         .navigationTitle("Hardware")
-        .toolbar {
-            ToolbarItem(placement: .primaryAction) {
-                Button {
-                    state.refreshHardware()
-                    state.refreshSystemStats()
-                } label: {
-                    Label("Refresh", systemImage: "arrow.clockwise")
-                }
-            }
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("BeberesRefreshTriggered"))) { _ in
+            state.refreshHardware()
+            state.refreshSystemStats()
         }
     }
 }

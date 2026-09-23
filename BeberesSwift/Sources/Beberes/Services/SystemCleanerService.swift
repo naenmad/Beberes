@@ -141,7 +141,7 @@ public actor SystemCleanerService {
         } else {
             for p in category.paths {
                 if !SafetyGuard.isProtectedPath(p) {
-                    try? TrashService.moveToTrash(at: p)
+                    try? TrashService.remove(at: p)
                 }
             }
             freed = category.sizeBytes

@@ -142,7 +142,7 @@ public struct LargeFilesService: Sendable {
                 NSLocalizedDescriptionKey: "Safety guard rejected deletion of \(path)"
             ])
         }
-        try TrashService.moveToTrash(at: path)
+        try TrashService.remove(at: path)
     }
 
     public func revealInFinder(path: String) {

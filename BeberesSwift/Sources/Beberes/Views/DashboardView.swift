@@ -178,24 +178,12 @@ public struct DashboardView: View {
         }
         .background(Color(nsColor: .windowBackgroundColor))
         .navigationTitle("Dashboard")
-        .toolbar {
-            ToolbarItem(placement: .primaryAction) {
-                Button {
-                    Task {
-                        isScanning = true
-                        state.refreshSystemStats()
-                        await state.scanSystemCategories()
-                        isScanning = false
-                    }
-                } label: {
-                    if isScanning {
-                        ProgressView()
-                            .controlSize(.small)
-                    } else {
-                        Label("Refresh", systemImage: "arrow.clockwise")
-                    }
-                }
-                .disabled(isScanning)
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("BeberesRefreshTriggered"))) { _ in
+            Task {
+                isScanning = true
+                state.refreshSystemStats()
+                await state.scanSystemCategories()
+                isScanning = false
             }
         }
     }

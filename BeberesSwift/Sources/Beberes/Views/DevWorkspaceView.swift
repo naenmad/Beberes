@@ -9,6 +9,40 @@ public struct DevWorkspaceView: View {
 
     public var body: some View {
         VStack(spacing: 0) {
+            // Dormancy Threshold Subheader
+            HStack(spacing: 12) {
+                Text("Dormancy Threshold:")
+                    .font(.system(size: 12))
+                    .foregroundStyle(.secondary)
+
+                Picker("Threshold", selection: $state.inactivityThresholdDays) {
+                    Text("30 Days").tag(30)
+                    Text("60 Days").tag(60)
+                    Text("90 Days").tag(90)
+                }
+                .pickerStyle(.segmented)
+                .labelsHidden()
+                .frame(width: 210)
+                .onChange(of: state.inactivityThresholdDays) { _, _ in
+                    Task { await state.scanDormantProjects() }
+                }
+
+                Spacer()
+
+                Button {
+                    Task { await state.scanDormantProjects() }
+                } label: {
+                    Label("Rescan", systemImage: "arrow.clockwise")
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.small)
+                .disabled(state.isLoadingProjects)
+            }
+            .padding(.horizontal, 24)
+            .padding(.vertical, 8)
+            .background(Color(nsColor: .controlBackgroundColor).opacity(0.5))
+
+            Divider()
 
             // Feedback Message
             if let msg = state.hibernateToastMessage {
@@ -99,30 +133,6 @@ public struct DevWorkspaceView: View {
         }
         .background(Color(nsColor: .windowBackgroundColor))
         .navigationTitle("Dev Workspace")
-        .toolbar {
-            ToolbarItem(placement: .principal) {
-                Picker("Threshold", selection: $state.inactivityThresholdDays) {
-                    Text("30 Days").tag(30)
-                    Text("60 Days").tag(60)
-                    Text("90 Days").tag(90)
-                }
-                .pickerStyle(.segmented)
-                .labelsHidden()
-                .frame(width: 210)
-                .onChange(of: state.inactivityThresholdDays) { _, _ in
-                    Task { await state.scanDormantProjects() }
-                }
-            }
-
-            ToolbarItem(placement: .primaryAction) {
-                Button {
-                    Task { await state.scanDormantProjects() }
-                } label: {
-                    Label("Rescan", systemImage: "arrow.clockwise")
-                }
-                .disabled(state.isLoadingProjects)
-            }
-        }
         .task {
             if state.dormantProjects.isEmpty && !state.isLoadingProjects {
                 await state.scanDormantProjects()

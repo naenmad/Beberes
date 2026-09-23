@@ -13,6 +13,32 @@ public struct LargeFilesView: View {
 
     public var body: some View {
         VStack(spacing: 0) {
+            // Mode & Category Subheader
+            HStack(spacing: 12) {
+                Picker("View", selection: $selectedTab) {
+                    Text("Large Files (\(state.largeFiles.count))").tag(0)
+                    Text("Duplicates (\(state.duplicateGroups.count))").tag(1)
+                }
+                .pickerStyle(.segmented)
+                .labelsHidden()
+                .frame(width: 220)
+
+                Spacer()
+
+                Button {
+                    Task { await state.fetchLargeFiles() }
+                } label: {
+                    Label("Rescan", systemImage: "arrow.clockwise")
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.small)
+                .disabled(state.isLoadingLargeFiles)
+            }
+            .padding(.horizontal, 24)
+            .padding(.vertical, 8)
+            .background(Color(nsColor: .controlBackgroundColor).opacity(0.5))
+
+            Divider()
 
             // Feedback Message
             if let msg = state.largeFilesToastMessage {
@@ -156,26 +182,6 @@ public struct LargeFilesView: View {
         }
         .background(Color(nsColor: .windowBackgroundColor))
         .navigationTitle("Large & Duplicates")
-        .toolbar {
-            ToolbarItem(placement: .principal) {
-                Picker("View", selection: $selectedTab) {
-                    Text("Large Files (\(state.largeFiles.count))").tag(0)
-                    Text("Duplicates (\(state.duplicateGroups.count))").tag(1)
-                }
-                .pickerStyle(.segmented)
-                .labelsHidden()
-                .frame(width: 240)
-            }
-
-            ToolbarItem(placement: .primaryAction) {
-                Button {
-                    Task { await state.fetchLargeFiles() }
-                } label: {
-                    Label("Rescan", systemImage: "arrow.clockwise")
-                }
-                .disabled(state.isLoadingLargeFiles)
-            }
-        }
         .confirmationDialog(
             "Move to Trash?",
             isPresented: $showConfirmTrash,

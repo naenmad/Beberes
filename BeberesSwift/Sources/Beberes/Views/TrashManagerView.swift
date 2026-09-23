@@ -107,15 +107,6 @@ public struct TrashManagerView: View {
                 }
                 .disabled(state.trashItems.isEmpty || state.isLoadingTrash)
             }
-
-            ToolbarItem(placement: .primaryAction) {
-                Button {
-                    Task { await state.fetchTrashItems() }
-                } label: {
-                    Label("Refresh", systemImage: "arrow.clockwise")
-                }
-                .disabled(state.isLoadingTrash)
-            }
         }
         .confirmationDialog(
             "Empty Trash?",

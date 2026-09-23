@@ -106,15 +106,6 @@ public struct SystemCleanView: View {
                 }
                 .disabled(state.isLoadingSystemClean || state.selectedCategoryIDs.isEmpty)
             }
-
-            ToolbarItem(placement: .primaryAction) {
-                Button {
-                    Task { await state.scanSystemCategories() }
-                } label: {
-                    Label("Rescan", systemImage: "arrow.clockwise")
-                }
-                .disabled(state.isLoadingSystemClean)
-            }
         }
         .task {
             if state.cleanCategories.isEmpty && !state.isLoadingSystemClean {

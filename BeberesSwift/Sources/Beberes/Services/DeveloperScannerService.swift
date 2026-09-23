@@ -133,7 +133,7 @@ public actor DeveloperScannerService {
             }
 
             if FileManager.default.fileExists(atPath: art.path) {
-                try TrashService.moveToTrash(at: art.path)
+                try TrashService.remove(at: art.path)
                 freedBytes += art.sizeBytes
                 removedCount += 1
             }

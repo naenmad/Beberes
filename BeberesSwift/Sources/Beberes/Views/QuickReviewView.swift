@@ -81,15 +81,8 @@ public struct QuickReviewView: View {
         }
         .background(Color(nsColor: .windowBackgroundColor))
         .navigationTitle("Quick Review")
-        .toolbar {
-            ToolbarItem(placement: .primaryAction) {
-                Button {
-                    Task { await performFullAssessment() }
-                } label: {
-                    Label(isReviewing ? "Assessing..." : "Run Assessment", systemImage: "bolt.badge.sparkle")
-                }
-                .disabled(isReviewing)
-            }
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("BeberesRefreshTriggered"))) { _ in
+            Task { await performFullAssessment() }
         }
         .task {
             if !reviewDone && !isReviewing {

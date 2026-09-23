@@ -71,15 +71,8 @@ public struct SimilarPhotosView: View {
         }
         .background(Color(nsColor: .windowBackgroundColor))
         .navigationTitle("Similar Photos")
-        .toolbar {
-            ToolbarItem(placement: .primaryAction) {
-                Button {
-                    Task { await scanMedia() }
-                } label: {
-                    Label(isScanning ? "Scanning..." : "Scan Media", systemImage: "arrow.clockwise")
-                }
-                .disabled(isScanning)
-            }
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("BeberesRefreshTriggered"))) { _ in
+            Task { await scanMedia() }
         }
         .task {
             if duplicateImages.isEmpty {

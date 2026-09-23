@@ -6,6 +6,46 @@ import Observation
 public final class AppState {
     public var selectedSection: NavigationSection = .dashboard
 
+    // Global App Bar Controls (Tauri Parity)
+    public var deleteToTrash: Bool = true
+    public var isSpotlightOpen: Bool = false
+
+    public func toggleDeleteToTrash() {
+        deleteToTrash.toggle()
+        UserDefaults.standard.set(deleteToTrash, forKey: "beberes_delete_to_trash")
+    }
+
+    public var isGlobalScanning: Bool {
+        isLoadingPorts || isLoadingProjects || isLoadingSystemClean || isLoadingApps || isLoadingStartup || isLoadingLargeFiles || isLoadingTrash
+    }
+
+    public func triggerGlobalRefresh() async {
+        refreshSystemStats()
+        NotificationCenter.default.post(name: NSNotification.Name("BeberesRefreshTriggered"), object: nil)
+        switch selectedSection {
+        case .dashboard:
+            await scanSystemCategories()
+        case .hardware:
+            refreshHardware()
+        case .systemClean:
+            await scanSystemCategories()
+        case .appUninstaller:
+            await fetchInstalledApps()
+        case .trashManager:
+            await fetchTrashItems()
+        case .devWorkspace:
+            await scanDormantProjects()
+        case .zombiePorts:
+            await fetchPorts()
+        case .startupItems:
+            await fetchStartupItems()
+        case .largeFiles:
+            await fetchLargeFiles()
+        case .tidyUp, .quickReview, .diskVisualizer, .similarPhotos, .fileShredder, .gitSweeper, .plugins, .settings:
+            break
+        }
+    }
+
     // Zombie Ports State
     public var ports: [ZombiePort] = []
     public var isLoadingPorts: Bool = false
@@ -78,6 +118,9 @@ public final class AppState {
 
     public init() {
         self.lifetimeFreedBytes = Int64(UserDefaults.standard.integer(forKey: "beberes_lifetime_freed"))
+        if UserDefaults.standard.object(forKey: "beberes_delete_to_trash") != nil {
+            self.deleteToTrash = UserDefaults.standard.bool(forKey: "beberes_delete_to_trash")
+        }
         refreshSystemStats()
     }
 

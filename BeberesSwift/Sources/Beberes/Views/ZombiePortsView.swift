@@ -96,16 +96,6 @@ public struct ZombiePortsView: View {
             }
         }
         .navigationTitle("Zombie Ports")
-        .toolbar {
-            ToolbarItem(placement: .primaryAction) {
-                Button {
-                    Task { await state.fetchPorts() }
-                } label: {
-                    Label("Refresh", systemImage: "arrow.clockwise")
-                }
-                .disabled(state.isLoadingPorts)
-            }
-        }
         .searchable(text: $state.portSearchText, prompt: "Filter by port or process name")
         .background(Color(nsColor: .windowBackgroundColor))
         .task {
