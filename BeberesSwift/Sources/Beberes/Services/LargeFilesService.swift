@@ -3,9 +3,11 @@ import AppKit
 import CryptoKit
 
 public struct LargeFilesService: Sendable {
+    public static let shared = LargeFilesService()
+
     public init() {}
 
-    public func scan(minSizeBytes: Int64 = 50 * 1024 * 1024) async -> ([LargeFileItem], [DuplicateGroup]) {
+    public func scan(minSizeBytes: Int64 = 50 * 1024 * 1024) async -> (largeFiles: [LargeFileItem], duplicateGroups: [DuplicateGroup], oldFiles: [LargeFileItem]) {
         await withCheckedContinuation { continuation in
             DispatchQueue.global(qos: .userInitiated).async {
                 let fm = FileManager.default
@@ -20,7 +22,10 @@ public struct LargeFilesService: Sendable {
                 ]
 
                 var largeFiles: [LargeFileItem] = []
+                var oldFiles: [LargeFileItem] = []
                 var sizeMap: [Int64: [LargeFileItem]] = [:]
+
+                let sixMonthsAgo = Date().addingTimeInterval(-180 * 86400)
 
                 for folder in targetDirectories {
                     guard fm.fileExists(atPath: folder.path) else { continue }
@@ -50,18 +55,24 @@ public struct LargeFilesService: Sendable {
                             lastModified: date
                         )
 
+                        // 1. Large files threshold
                         if sizeInt64 >= minSizeBytes {
                             largeFiles.append(item)
                         }
 
-                        // Track for duplicate detection (only files >= 1MB to avoid wasting time on tiny files)
-                        if sizeInt64 >= 1024 * 1024 {
+                        // 2. Old files (>180 days and size >= 5MB)
+                        if date < sixMonthsAgo && sizeInt64 >= (5 * 1024 * 1024) {
+                            oldFiles.append(item)
+                        }
+
+                        // 3. Track candidates for duplicate detection (files >= 100KB)
+                        if sizeInt64 >= 100 * 1024 {
                             sizeMap[sizeInt64, default: []].append(item)
                         }
                     }
                 }
 
-                // Find duplicate candidates
+                // Match duplicate hash signatures
                 var duplicateGroups: [DuplicateGroup] = []
                 for (size, candidates) in sizeMap where candidates.count > 1 {
                     var hashGroups: [String: [LargeFileItem]] = [:]
@@ -83,8 +94,9 @@ public struct LargeFilesService: Sendable {
 
                 let sortedLarge = largeFiles.sorted { $0.sizeBytes > $1.sizeBytes }
                 let sortedDuplicates = duplicateGroups.sorted { $0.wastedBytes > $1.wastedBytes }
+                let sortedOld = oldFiles.sorted { $0.sizeBytes > $1.sizeBytes }
 
-                continuation.resume(returning: (sortedLarge, sortedDuplicates))
+                continuation.resume(returning: (sortedLarge, sortedDuplicates, sortedOld))
             }
         }
     }
@@ -139,10 +151,24 @@ public struct LargeFilesService: Sendable {
     public func trashFile(path: String) throws {
         guard SafetyGuard.isSafeToDelete(path: path) else {
             throw NSError(domain: "BeberesLargeFiles", code: 403, userInfo: [
-                NSLocalizedDescriptionKey: "Safety guard rejected deletion of \(path)"
+                NSLocalizedDescriptionKey: "Safety guard protected system path: \(path)"
             ])
         }
         try TrashService.remove(at: path)
+    }
+
+    public func deleteFiles(paths: [String], preferTrash: Bool) throws -> Int64 {
+        var totalFreed: Int64 = 0
+        let fm = FileManager.default
+
+        for path in paths {
+            guard SafetyGuard.isSafeToDelete(path: path) else { continue }
+            let size = (try? fm.attributesOfItem(atPath: path)[.size] as? Int64) ?? 0
+            try TrashService.shared.remove(at: path, preferTrash: preferTrash)
+            totalFreed += size
+        }
+
+        return totalFreed
     }
 
     public func revealInFinder(path: String) {

@@ -9,6 +9,28 @@ public struct DashboardView: View {
         self.state = state
     }
 
+    private var storageStatusTitle: String {
+        let pct = state.diskInfo.usagePercentage
+        if pct >= 90 {
+            return "Critical: Storage Almost Full"
+        } else if pct >= 80 {
+            return "Caution: Storage Running Low"
+        } else {
+            return "Optimal: Storage is Healthy"
+        }
+    }
+
+    private var storageStatusColor: Color {
+        let pct = state.diskInfo.usagePercentage
+        if pct >= 90 {
+            return .red
+        } else if pct >= 80 {
+            return .orange
+        } else {
+            return .green
+        }
+    }
+
     public var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
@@ -20,9 +42,14 @@ public struct DashboardView: View {
                             Label("Macintosh HD", systemImage: "internaldrive")
                                 .font(.headline)
                             Spacer()
-                            Text("\(Int(state.diskInfo.usagePercentage))% Used")
-                                .font(.subheadline.monospacedDigit())
-                                .foregroundStyle(.secondary)
+                            HStack(spacing: 6) {
+                                Circle()
+                                    .fill(storageStatusColor)
+                                    .frame(width: 8, height: 8)
+                                Text(storageStatusTitle)
+                                    .font(.caption.weight(.semibold))
+                                    .foregroundStyle(storageStatusColor)
+                            }
                         }
 
                         HStack(spacing: 18) {
@@ -33,7 +60,7 @@ public struct DashboardView: View {
 
                                 Circle()
                                     .trim(from: 0, to: CGFloat(min(1.0, state.diskInfo.usagePercentage / 100.0)))
-                                    .stroke(Color.accentColor, style: StrokeStyle(lineWidth: 8, lineCap: .round))
+                                    .stroke(storageStatusColor, style: StrokeStyle(lineWidth: 8, lineCap: .round))
                                     .rotationEffect(.degrees(-90))
                                     .frame(width: 76, height: 76)
 
@@ -109,6 +136,52 @@ public struct DashboardView: View {
                 }
                 .padding(.horizontal, 24)
 
+                // 4 Quick Cleanup Cards (Tauri Parity)
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("Quick Cleanup Hub")
+                        .font(.headline)
+                        .padding(.horizontal, 24)
+
+                    LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 14) {
+                        QuickHubCard(
+                            title: "System & App Caches",
+                            subtitle: "\(state.cleanCategories.count) categories identified",
+                            icon: "sparkles",
+                            actionTitle: "Clean Caches"
+                        ) {
+                            state.selectedSection = .systemClean
+                        }
+
+                        QuickHubCard(
+                            title: "Large & Duplicates",
+                            subtitle: "\(state.largeFiles.count) large files • \(state.duplicateGroups.count) duplicate groups",
+                            icon: "doc.on.doc",
+                            actionTitle: "Inspect Files"
+                        ) {
+                            state.selectedSection = .largeFiles
+                        }
+
+                        QuickHubCard(
+                            title: "App Leftovers",
+                            subtitle: "\(state.installedApps.count) apps • \(state.orphanedItems.count) orphaned residues",
+                            icon: "app.badge",
+                            actionTitle: "Manage Apps"
+                        ) {
+                            state.selectedSection = .appUninstaller
+                        }
+
+                        QuickHubCard(
+                            title: "Developer Workspace",
+                            subtitle: "\(state.dormantProjects.count) dormant repos with build artifacts",
+                            icon: "hammer",
+                            actionTitle: "Hibernate Repos"
+                        ) {
+                            state.selectedSection = .devWorkspace
+                        }
+                    }
+                    .padding(.horizontal, 24)
+                }
+
                 // Storage Breakdown Bar
                 VStack(alignment: .leading, spacing: 10) {
                     Text("Storage Allocation")
@@ -149,7 +222,7 @@ public struct DashboardView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
                 .padding(.horizontal, 24)
 
-                // Lifetime Saved Bar (Native Apple HIG)
+                // Lifetime Saved Bar
                 HStack(spacing: 12) {
                     Image(systemName: "checkmark.seal")
                         .font(.title2)
@@ -178,6 +251,12 @@ public struct DashboardView: View {
         }
         .background(Color(nsColor: .windowBackgroundColor))
         .navigationTitle("Dashboard")
+        .task {
+            state.refreshSystemStats()
+            if state.cleanCategories.isEmpty {
+                await state.scanSystemCategories()
+            }
+        }
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("BeberesRefreshTriggered"))) { _ in
             Task {
                 isScanning = true
@@ -186,6 +265,43 @@ public struct DashboardView: View {
                 isScanning = false
             }
         }
+    }
+}
+
+private struct QuickHubCard: View {
+    let title: String
+    let subtitle: String
+    let icon: String
+    let actionTitle: String
+    let action: () -> Void
+
+    var body: some View {
+        HStack(spacing: 14) {
+            Image(systemName: icon)
+                .font(.title2)
+                .foregroundStyle(Color.accentColor)
+                .frame(width: 36, height: 36)
+                .background(Color.accentColor.opacity(0.1))
+                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(.system(size: 13, weight: .semibold))
+                Text(subtitle)
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+            }
+
+            Spacer()
+
+            Button(actionTitle, action: action)
+                .buttonStyle(.bordered)
+                .controlSize(.small)
+        }
+        .padding(14)
+        .background(Color(nsColor: .controlBackgroundColor))
+        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
     }
 }
 

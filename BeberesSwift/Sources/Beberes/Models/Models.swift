@@ -379,6 +379,24 @@ public struct DuplicateGroup: Identifiable, Hashable, Sendable {
     }
 }
 
+public enum DuplicateStrategy: String, CaseIterable, Identifiable, Sendable {
+    case keepNewest = "Keep Newest"
+    case keepOldest = "Keep Oldest"
+    case allCopies = "All Copies (Keep First)"
+    case deselectAll = "Deselect All"
+
+    public var id: String { rawValue }
+
+    public var description: String {
+        switch self {
+        case .keepNewest: return "Keep newest copy, select older duplicates"
+        case .keepOldest: return "Keep oldest original, select newer duplicates"
+        case .allCopies: return "Keep first file, select all duplicate copies"
+        case .deselectAll: return "Clear all duplicate selections"
+        }
+    }
+}
+
 // MARK: - Hardware Intelligence Models
 public struct HardwareMetrics: Sendable {
     public let chipName: String

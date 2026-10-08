@@ -99,7 +99,12 @@ public final class AppState {
     // Large & Duplicate Files State
     public var largeFiles: [LargeFileItem] = []
     public var duplicateGroups: [DuplicateGroup] = []
+    public var oldFiles: [LargeFileItem] = []
     public var selectedLargeCategory: FileCategory = .all
+    public var largeFileThresholdMb: Int = 100
+    public var selectedLargeFilePaths: Set<String> = []
+    public var selectedDuplicatePaths: Set<String> = []
+    public var selectedOldFilePaths: Set<String> = []
     public var isLoadingLargeFiles: Bool = false
     public var largeFilesToastMessage: String? = nil
 
@@ -169,6 +174,22 @@ public final class AppState {
         } catch {
             hibernateToastMessage = "Hibernate error: \(error.localizedDescription)"
         }
+    }
+
+    public func hibernateProjects(_ projects: [DormantProject]) async {
+        var totalFreed: Int64 = 0
+        var count = 0
+        for p in projects {
+            do {
+                let res = try await devScanner.hibernateProject(project: p)
+                totalFreed += res.freedBytes
+                count += 1
+            } catch {}
+        }
+        recordCleanResult(freedBytes: totalFreed)
+        hibernateToastMessage = "Hibernated \(count) dormant projects, reclaiming \(totalFreed.formattedBytes)."
+        await scanDormantProjects()
+        refreshSystemStats()
     }
 
     public func recordCleanResult(freedBytes: Int64) {
@@ -367,9 +388,91 @@ public final class AppState {
     public func fetchLargeFiles() async {
         isLoadingLargeFiles = true
         defer { isLoadingLargeFiles = false }
-        let (files, dupes) = await largeFilesService.scan()
+        let thresholdBytes = Int64(largeFileThresholdMb) * 1024 * 1024
+        let (files, dupes, old) = await largeFilesService.scan(minSizeBytes: thresholdBytes)
         largeFiles = files
         duplicateGroups = dupes
+        oldFiles = old
+    }
+
+    public func autoSelectDuplicates(strategy: DuplicateStrategy) {
+        switch strategy {
+        case .deselectAll:
+            selectedDuplicatePaths.removeAll()
+        case .allCopies:
+            var toSelect: Set<String> = []
+            for group in duplicateGroups {
+                for item in group.items.dropFirst() {
+                    toSelect.insert(item.path)
+                }
+            }
+            selectedDuplicatePaths = toSelect
+        case .keepNewest:
+            var toSelect: Set<String> = []
+            for group in duplicateGroups {
+                guard group.items.count > 1 else { continue }
+                let sorted = group.items.sorted { $0.lastModified > $1.lastModified }
+                for item in sorted.dropFirst() {
+                    toSelect.insert(item.path)
+                }
+            }
+            selectedDuplicatePaths = toSelect
+        case .keepOldest:
+            var toSelect: Set<String> = []
+            for group in duplicateGroups {
+                guard group.items.count > 1 else { continue }
+                let sorted = group.items.sorted { $0.lastModified < $1.lastModified }
+                for item in sorted.dropFirst() {
+                    toSelect.insert(item.path)
+                }
+            }
+            selectedDuplicatePaths = toSelect
+        }
+    }
+
+    public func cleanSelectedDuplicates() async {
+        guard !selectedDuplicatePaths.isEmpty else { return }
+        do {
+            let freed = try largeFilesService.deleteFiles(paths: Array(selectedDuplicatePaths), preferTrash: deleteToTrash)
+            recordCleanResult(freedBytes: freed)
+            let count = selectedDuplicatePaths.count
+            selectedDuplicatePaths.removeAll()
+            largeFilesToastMessage = "\(deleteToTrash ? "Moved" : "Deleted") \(count) duplicate copies (\(freed.formattedBytes) reclaimed)."
+            await fetchLargeFiles()
+            refreshSystemStats()
+        } catch {
+            largeFilesToastMessage = "Clean failed: \(error.localizedDescription)"
+        }
+    }
+
+    public func cleanSelectedLargeFiles() async {
+        guard !selectedLargeFilePaths.isEmpty else { return }
+        do {
+            let freed = try largeFilesService.deleteFiles(paths: Array(selectedLargeFilePaths), preferTrash: deleteToTrash)
+            recordCleanResult(freedBytes: freed)
+            let count = selectedLargeFilePaths.count
+            selectedLargeFilePaths.removeAll()
+            largeFilesToastMessage = "\(deleteToTrash ? "Moved" : "Deleted") \(count) large files (\(freed.formattedBytes) reclaimed)."
+            await fetchLargeFiles()
+            refreshSystemStats()
+        } catch {
+            largeFilesToastMessage = "Clean failed: \(error.localizedDescription)"
+        }
+    }
+
+    public func cleanSelectedOldFiles() async {
+        guard !selectedOldFilePaths.isEmpty else { return }
+        do {
+            let freed = try largeFilesService.deleteFiles(paths: Array(selectedOldFilePaths), preferTrash: deleteToTrash)
+            recordCleanResult(freedBytes: freed)
+            let count = selectedOldFilePaths.count
+            selectedOldFilePaths.removeAll()
+            largeFilesToastMessage = "\(deleteToTrash ? "Moved" : "Deleted") \(count) unused files (\(freed.formattedBytes) reclaimed)."
+            await fetchLargeFiles()
+            refreshSystemStats()
+        } catch {
+            largeFilesToastMessage = "Clean failed: \(error.localizedDescription)"
+        }
     }
 
     public func trashLargeFile(_ item: LargeFileItem) async {

@@ -21,7 +21,7 @@ public struct AppUninstallerView: View {
     private var selectedOrphanedBytes: Int64 {
         appState.orphanedItems
             .filter { appState.selectedOrphanedIDs.contains($0.id) }
-            .reduce(0) { $0 + $1.sizeBytes }
+            .reduce(Int64(0)) { $0 + $1.sizeBytes }
     }
 
     public var body: some View {
