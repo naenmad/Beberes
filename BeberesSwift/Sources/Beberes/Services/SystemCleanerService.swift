@@ -80,29 +80,32 @@ public actor SystemCleanerService {
             )
         ]
 
-        for i in categories.indices {
-            switch categories[i].id {
-            case "apfs_snapshots":
+        // Concurrently compute category sizes and paths
+        let categoryResults: [String: (size: Int64, count: Int, paths: [String])] = await withTaskGroup(
+            of: (String, Int64, Int, [String]).self
+        ) { group in
+            // 1. APFS Snapshots
+            group.addTask { [self] in
                 let snapshots = scanAPFSSnapshots()
-                categories[i].sizeBytes = snapshots.totalSize
-                categories[i].itemCount = snapshots.names.count
-                categories[i].paths = snapshots.names
+                return ("apfs_snapshots", snapshots.totalSize, snapshots.names.count, snapshots.names)
+            }
 
-            case "user_caches":
+            // 2. User App Caches
+            group.addTask { [self] in
                 let cachesURL = home.appendingPathComponent("Library/Caches")
-                let (size, count, paths) = scanDirectoryContents(cachesURL, maxItems: 100)
-                categories[i].sizeBytes = size
-                categories[i].itemCount = count
-                categories[i].paths = paths
+                let (size, count, paths) = scanDirectoryContents(cachesURL)
+                return ("user_caches", size, count, paths)
+            }
 
-            case "system_logs":
+            // 3. System Logs
+            group.addTask { [self] in
                 let logsURL = home.appendingPathComponent("Library/Logs")
-                let (size, count, paths) = scanDirectoryContents(logsURL, maxItems: 100)
-                categories[i].sizeBytes = size
-                categories[i].itemCount = count
-                categories[i].paths = paths
+                let (size, count, paths) = scanDirectoryContents(logsURL)
+                return ("system_logs", size, count, paths)
+            }
 
-            case "browser_caches":
+            // 4. Browser Caches
+            group.addTask { [self] in
                 let browserCacheDirs = [
                     home.appendingPathComponent("Library/Caches/com.apple.Safari"),
                     home.appendingPathComponent("Library/Containers/com.apple.Safari/Data/Library/Caches"),
@@ -122,16 +125,16 @@ public actor SystemCleanerService {
 
                 for dir in browserCacheDirs {
                     if (try? dir.checkResourceIsReachable()) == true {
-                        let (s, _, p) = scanDirectoryContents(dir, maxItems: 30)
+                        let (s, _, p) = scanDirectoryContents(dir)
                         total += s
                         allPaths.append(contentsOf: p)
                     }
                 }
-                categories[i].sizeBytes = total
-                categories[i].itemCount = allPaths.count
-                categories[i].paths = allPaths
+                return ("browser_caches", total, allPaths.count, allPaths)
+            }
 
-            case "xcode_caches":
+            // 5. Xcode Developer Artifacts
+            group.addTask { [self] in
                 let devDirs = [
                     home.appendingPathComponent("Library/Developer/Xcode/DerivedData"),
                     home.appendingPathComponent("Library/Developer/Xcode/iOS DeviceSupport"),
@@ -143,23 +146,34 @@ public actor SystemCleanerService {
 
                 for dir in devDirs {
                     if (try? dir.checkResourceIsReachable()) == true {
-                        let (size, _, paths) = scanDirectoryContents(dir, maxItems: 30)
+                        let (size, _, paths) = scanDirectoryContents(dir)
                         total += size
                         allPaths.append(contentsOf: paths)
                     }
                 }
-                categories[i].sizeBytes = total
-                categories[i].itemCount = allPaths.count
-                categories[i].paths = allPaths
+                return ("xcode_caches", total, allPaths.count, allPaths)
+            }
 
-            case "xcode_simulators":
+            // 6. Xcode Unavailable Simulators
+            group.addTask { [self] in
                 let (count, estBytes) = scanUnavailableSimulators()
-                categories[i].sizeBytes = estBytes
-                categories[i].itemCount = count
-                categories[i].paths = count > 0 ? ["simctl:delete_unavailable"] : []
+                let paths = count > 0 ? ["simctl:delete_unavailable"] : []
+                return ("xcode_simulators", estBytes, count, paths)
+            }
 
-            default:
-                break
+            var dict: [String: (size: Int64, count: Int, paths: [String])] = [:]
+            for await (id, size, count, paths) in group {
+                dict[id] = (size, count, paths)
+            }
+            return dict
+        }
+
+        for i in categories.indices {
+            let id = categories[i].id
+            if let res = categoryResults[id] {
+                categories[i].sizeBytes = res.size
+                categories[i].itemCount = res.count
+                categories[i].paths = res.paths
             }
         }
 
@@ -180,7 +194,11 @@ public actor SystemCleanerService {
         } else {
             for p in category.paths {
                 if !SafetyGuard.isProtectedPath(p) {
-                    try? TrashService.shared.remove(at: p)
+                    do {
+                        try TrashService.shared.remove(at: p)
+                    } catch {
+                        // Continue removing other items even if one fails
+                    }
                 }
             }
             freed = category.sizeBytes
@@ -189,7 +207,7 @@ public actor SystemCleanerService {
         return freed
     }
 
-    private func scanUnavailableSimulators() -> (count: Int, estimatedBytes: Int64) {
+    nonisolated private func scanUnavailableSimulators() -> (count: Int, estimatedBytes: Int64) {
         let task = Process()
         task.executableURL = URL(fileURLWithPath: "/usr/bin/xcrun")
         task.arguments = ["simctl", "list", "devices", "-j"]
@@ -219,7 +237,7 @@ public actor SystemCleanerService {
         return (0, 0)
     }
 
-    private func purgeUnavailableSimulators() {
+    nonisolated private func purgeUnavailableSimulators() {
         let task = Process()
         task.executableURL = URL(fileURLWithPath: "/usr/bin/xcrun")
         task.arguments = ["simctl", "delete", "unavailable"]
@@ -227,7 +245,7 @@ public actor SystemCleanerService {
         task.waitUntilExit()
     }
 
-    private func scanAPFSSnapshots() -> (totalSize: Int64, names: [String]) {
+    nonisolated private func scanAPFSSnapshots() -> (totalSize: Int64, names: [String]) {
         let task = Process()
         task.executableURL = URL(fileURLWithPath: "/usr/bin/tmutil")
         task.arguments = ["listlocalsnapshots", "/"]
@@ -263,7 +281,7 @@ public actor SystemCleanerService {
         }
     }
 
-    private func deleteSnapshot(name: String) {
+    nonisolated private func deleteSnapshot(name: String) {
         // e.g. date is "2026-09-21-123456" from name
         let parts = name.components(separatedBy: ".")
         guard let datePart = parts.first(where: { $0.contains("-") && $0.count >= 10 }) else {
@@ -277,10 +295,10 @@ public actor SystemCleanerService {
         task.waitUntilExit()
     }
 
-    private func scanDirectoryContents(_ url: URL, maxItems: Int) -> (size: Int64, count: Int, paths: [String]) {
+    nonisolated private func scanDirectoryContents(_ url: URL, maxItems: Int = 100) -> (size: Int64, count: Int, paths: [String]) {
         guard let enumerator = FileManager.default.enumerator(
             at: url,
-            includingPropertiesForKeys: [.fileSizeKey, .totalFileAllocatedSizeKey],
+            includingPropertiesForKeys: [.fileSizeKey, .isDirectoryKey, .isRegularFileKey],
             options: [.skipsSubdirectoryDescendants]
         ) else { return (0, 0, []) }
 
@@ -292,11 +310,41 @@ public actor SystemCleanerService {
             if SafetyGuard.isProtectedPath(path) { continue }
 
             paths.append(path)
-            if let vals = try? fileURL.resourceValues(forKeys: [.totalFileAllocatedSizeKey, .fileSizeKey]) {
-                totalSize += Int64(vals.totalFileAllocatedSize ?? vals.fileSize ?? 0)
-            }
+            totalSize += calculateItemSize(fileURL)
         }
 
-        return (totalSize, paths.count, Array(paths.prefix(maxItems)))
+        return (totalSize, paths.count, paths)
+    }
+
+    nonisolated private func calculateItemSize(_ url: URL) -> Int64 {
+        var isDir: ObjCBool = false
+        if !FileManager.default.fileExists(atPath: url.path, isDirectory: &isDir) {
+            return 0
+        }
+
+        if !isDir.boolValue {
+            let attrs = try? FileManager.default.attributesOfItem(atPath: url.path)
+            return (attrs?[.size] as? Int64) ?? 0
+        }
+
+        // For directories, calculate size of contents with a reasonable count limit for responsiveness
+        guard let enumerator = FileManager.default.enumerator(
+            at: url,
+            includingPropertiesForKeys: [.fileSizeKey, .isRegularFileKey],
+            options: [.skipsHiddenFiles]
+        ) else { return 0 }
+
+        var total: Int64 = 0
+        var count = 0
+        while let fileURL = enumerator.nextObject() as? URL {
+            if let vals = try? fileURL.resourceValues(forKeys: [.fileSizeKey, .isRegularFileKey]),
+               vals.isRegularFile == true,
+               let size = vals.fileSize {
+                total += Int64(size)
+            }
+            count += 1
+            if count > 1000 { break }
+        }
+        return total
     }
 }
