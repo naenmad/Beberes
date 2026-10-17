@@ -221,6 +221,19 @@ struct BeberesTests {
         let inApps = AppRelocatorService.shared.isInApplicationsFolder
         #expect(inApps == true || inApps == false)
     }
+
+    @Test("GitSweeperService detects root repository when root URL is itself a git repository")
+    func testGitSweeperDetectsRootRepo() async {
+        var dir = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
+        while !FileManager.default.fileExists(atPath: dir.appendingPathComponent(".git").path) && dir.pathComponents.count > 1 {
+            dir = dir.deletingLastPathComponent()
+        }
+        guard FileManager.default.fileExists(atPath: dir.appendingPathComponent(".git").path) else { return }
+
+        let repos = await GitSweeperService.shared.scanRepositories(searchRoots: [dir])
+        #expect(!repos.isEmpty)
+        #expect(repos.contains { $0.path == dir.path })
+    }
 }
 
 

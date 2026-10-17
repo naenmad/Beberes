@@ -12,6 +12,16 @@ public final class GitSweeperService: Sendable {
         for root in searchRoots {
             guard fileManager.fileExists(atPath: root.path) else { continue }
 
+            // Check if root itself is a git repository
+            let rootGit = root.appendingPathComponent(".git")
+            var isRootDir: ObjCBool = false
+            if fileManager.fileExists(atPath: rootGit.path, isDirectory: &isRootDir), isRootDir.boolValue {
+                if let repoItem = await inspectRepo(at: root) {
+                    repos.append(repoItem)
+                }
+                continue
+            }
+
             guard let enumerator = fileManager.enumerator(
                 at: root,
                 includingPropertiesForKeys: [.isDirectoryKey],

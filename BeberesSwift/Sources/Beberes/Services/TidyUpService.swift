@@ -159,13 +159,18 @@ public final class TidyUpService: Sendable {
 
             var matched: String? = nil
             for app in installedApps {
-                if cleanName.hasPrefix(app) || app.hasPrefix(cleanName) {
+                if cleanName == app ||
+                   cleanName.hasPrefix("\(app) ") ||
+                   cleanName.hasPrefix("\(app)_") ||
+                   cleanName.hasPrefix("\(app)-") {
                     matched = "\(app.capitalized).app"
                     break
                 }
-                if let firstWord = words.first, firstWord.count > 3 && app.hasPrefix(firstWord) {
-                    matched = "\(app.capitalized).app"
-                    break
+                if let firstWord = words.first, firstWord.count >= 3 {
+                    if app == firstWord || app.hasPrefix("\(firstWord) ") {
+                        matched = "\(app.capitalized).app"
+                        break
+                    }
                 }
             }
 
