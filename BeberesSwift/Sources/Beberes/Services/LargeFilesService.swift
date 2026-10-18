@@ -164,8 +164,12 @@ public struct LargeFilesService: Sendable {
         for path in paths {
             guard SafetyGuard.isSafeToDelete(path: path) else { continue }
             let size = (try? fm.attributesOfItem(atPath: path)[.size] as? Int64) ?? 0
-            try TrashService.shared.remove(at: path, preferTrash: preferTrash)
-            totalFreed += size
+            do {
+                try TrashService.shared.remove(at: path, preferTrash: preferTrash)
+                totalFreed += size
+            } catch {
+                // If one file fails (e.g. locked or permissions), continue deleting others
+            }
         }
 
         return totalFreed

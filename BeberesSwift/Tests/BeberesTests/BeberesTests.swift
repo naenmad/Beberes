@@ -234,6 +234,18 @@ struct BeberesTests {
         #expect(!repos.isEmpty)
         #expect(repos.contains { $0.path == dir.path })
     }
+
+    @Test("PortManagerService rejects killing protected system daemons")
+    func testPortManagerSafety() async {
+        let manager = PortManagerService()
+        let result = await manager.killPortProcess(pid: 1, processName: "launchd")
+        switch result {
+        case .success:
+            #expect(Bool(false), "SafetyGuard should have prevented killing launchd")
+        case .failure:
+            #expect(true)
+        }
+    }
 }
 
 

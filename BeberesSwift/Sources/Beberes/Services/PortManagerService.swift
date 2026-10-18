@@ -66,13 +66,14 @@ public actor PortManagerService {
         }
     }
 
-    public func killPortProcess(pid: Int32, force: Bool = false) async -> Result<Void, Error> {
+    public func killPortProcess(pid: Int32, processName: String? = nil, force: Bool = false) async -> Result<Void, Error> {
+        let name = (processName?.isEmpty == false ? processName : getProcessName(pid: pid)) ?? ""
         // Double-check safety guard
-        if SafetyGuard.isProtectedProcess(pid: pid, processName: "") {
+        if SafetyGuard.isProtectedProcess(pid: pid, processName: name) {
             return .failure(NSError(
                 domain: "BeberesSecurity",
                 code: 403,
-                userInfo: [NSLocalizedDescriptionKey: "Refusing to kill protected system daemon (PID: \(pid))"]
+                userInfo: [NSLocalizedDescriptionKey: "Refusing to kill protected system daemon '\(name.isEmpty ? String(pid) : name)' (PID: \(pid))"]
             ))
         }
 
@@ -93,6 +94,29 @@ public actor PortManagerService {
                 code: Int(errno),
                 userInfo: [NSLocalizedDescriptionKey: "Failed to kill process (PID: \(pid)): errno \(errno)"]
             ))
+        }
+    }
+
+    private func getProcessName(pid: Int32) -> String? {
+        let task = Process()
+        task.executableURL = URL(fileURLWithPath: "/bin/ps")
+        task.arguments = ["-p", "\(pid)", "-o", "comm="]
+
+        let pipe = Pipe()
+        task.standardOutput = pipe
+        task.standardError = Pipe()
+
+        do {
+            try task.run()
+            let data = pipe.fileHandleForReading.readDataToEndOfFile()
+            task.waitUntilExit()
+
+            guard let output = String(data: data, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines), !output.isEmpty else {
+                return nil
+            }
+            return (output as NSString).lastPathComponent
+        } catch {
+            return nil
         }
     }
 }

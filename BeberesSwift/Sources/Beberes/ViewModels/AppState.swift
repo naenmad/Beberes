@@ -145,7 +145,7 @@ public final class AppState {
     }
 
     public func killPort(_ target: ZombiePort) async {
-        let res = await portManager.killPortProcess(pid: target.pid)
+        let res = await portManager.killPortProcess(pid: target.pid, processName: target.processName)
         switch res {
         case .success:
             portActionMessage = "Terminated \(target.processName) (PID: \(target.pid)) on port \(target.port)"
